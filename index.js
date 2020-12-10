@@ -6,9 +6,9 @@ const port = 3000
 
 const provider = new NearProvider({
   nodeUrl: 'http://rpc.betanet.near.org',
-  networkId: 'default',
+  networkId: 'betanet',
   evmAccountId: 'evm',
-  masterAccountId: 'illia.betanet',
+  masterAccountId: 'testevm1.betanet',
 });
 
 app.use(bodyParser.json({ type: 'application/json' }));
