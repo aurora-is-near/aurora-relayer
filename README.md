@@ -12,3 +12,7 @@ npm run dev
 
 In your wallet, truffle, etc - change node url to the url of this server.
 
+For example:
+```
+http post http://localhost:3000 jsonrpc=2.0 method=eth_blockNumber params:='[]' id=123
+```
