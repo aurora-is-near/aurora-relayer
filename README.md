@@ -56,10 +56,10 @@ Method | Status | Notes
 [`eth_getTransactionReceipt`] | |
 [`eth_getUncleByBlockHashAndIndex`] | |
 [`eth_getUncleByBlockNumberAndIndex`] | |
-[`eth_getCompilers`] | |
-[`eth_compileLLL`] | |
-[`eth_compileSolidity`] | |
-[`eth_compileSerpent`] | |
+[`eth_getCompilers`] | ❌ | Unsupported.
+[`eth_compileLLL`] | ❌ | Unsupported.
+[`eth_compileSolidity`] | ❌ | Unsupported.
+[`eth_compileSerpent`] | ❌ | Unsupported.
 [`eth_newFilter`] | |
 [`eth_newBlockFilter`] | |
 [`eth_newPendingTransactionFilter`] | |
@@ -67,23 +67,23 @@ Method | Status | Notes
 [`eth_getFilterChanges`] | |
 [`eth_getFilterLogs`] | |
 [`eth_getLogs`] | |
-[`eth_getWork`] | |
-[`eth_submitWork`] | |
-[`eth_submitHashrate`] | |
-[`db_putString`] | |
-[`db_getString`] | |
-[`db_putHex`] | |
-[`db_getHex`] | |
-[`shh_post`] | |
-[`shh_version`] | |
-[`shh_newIdentity`] | |
-[`shh_hasIdentity`] | |
-[`shh_newGroup`] | |
-[`shh_addToGroup`] | |
-[`shh_newFilter`] | |
-[`shh_uninstallFilter`] | |
-[`shh_getFilterChanges`] | |
-[`shh_getMessages`] | |
+[`eth_getWork`] | ❌ | Unsupported.
+[`eth_submitWork`] | ❌ | Unsupported.
+[`eth_submitHashrate`] | ❌ | Unsupported.
+[`db_putString`] | ❌ | Deprecated.
+[`db_getString`] | ❌ | Deprecated.
+[`db_putHex`] | ❌ | Deprecated.
+[`db_getHex`] | ❌ | Deprecated.
+[`shh_post`] | ❌ | Discontinued.
+[`shh_version`] | ❌ | Discontinued.
+[`shh_newIdentity`] | ❌ | Discontinued.
+[`shh_hasIdentity`] | ❌ | Discontinued.
+[`shh_newGroup`] | ❌ | Discontinued.
+[`shh_addToGroup`] | ❌ | Discontinued.
+[`shh_newFilter`] | ❌ | Discontinued.
+[`shh_uninstallFilter`] | ❌ | Discontinued.
+[`shh_getFilterChanges`] | ❌ | Discontinued.
+[`shh_getMessages`] | ❌ | Discontinued.
 
 **Legend**: ❌ = not supported. 🚧 = work in progress. ✅ = supported.
 
