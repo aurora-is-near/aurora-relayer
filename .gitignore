@@ -1,3 +1,11 @@
-node_modules
-.idea
+# macOS
+.DS_Store
 
+# Editor metadata
+.idea/
+
+# Editor backup files
+*~
+
+# Node packages
+node_modules/

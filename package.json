@@ -1,14 +1,37 @@
 {
   "name": "near-eth-rpc",
-  "version": "1.0.0",
+  "version": "0.0.0",
   "description": "NEAR Ethereum JSON RPC interface",
   "main": "index.js",
+  "files": [
+    "AUTHORS",
+    "CHANGES.md",
+    "CREDITS.md",
+    "README.md",
+    "UNLICENSE",
+    "VERSION",
+    "package.json",
+    "index.js"
+  ],
   "scripts": {
     "dev": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "cram test/betanet.t"
   },
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "NEAR",
+    "Ethereum",
+    "Web3"
+  ],
+  "author": "near.org",
+  "authors": [
+    "Arto Bendiken <arto@bendiken.net> (https://ar.to)",
+    "Illia Polosukhin <ilblackdragon@gmail.com> (https://github.com/ilblackdragon)"
+  ],
+  "license": "Unlicense",
+  "homepage": "https://github.com/near/near-eth-rpc",
+  "bugs": "https://github.com/near/near-eth-rpc/issues",
+  "repository": "https://github.com/near/near-eth-rpc.git",
+  "devDependencies": {},
   "dependencies": {
     "express": "^4.17.1",
     "near-web3-provider": "git+https://github.com/near/near-web3-provider.git"

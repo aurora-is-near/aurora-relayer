@@ -5,16 +5,18 @@ Provides a JSON RPC interface compatible with [Ethereum's API](https://eth.wiki/
 ## Usage
 
 To install and start the local server, run:
-```
+
+```bash
 npm install
 npm run dev
 ```
 
-In your wallet, truffle, etc - change node url to the url of this server.
+In your wallet, Truffle, etc: change node URL to the URL of this server.
 
 For example:
-```
-http post http://localhost:3000 jsonrpc=2.0 method=eth_blockNumber params:='[]' id=123
+
+```bash
+http post http://localhost:3000 jsonrpc=2.0 id=1 method=eth_blockNumber params:='[]'
 ```
 
 ## Status
