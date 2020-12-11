@@ -23,9 +23,9 @@ Method | Status | Notes
 ------ | ------ | -----
 [`web3_clientVersion`] | |
 [`web3_sha3`] | |
-[`net_version`] | |
+[`net_version`] | ✅ |
 [`net_peerCount`] | |
-[`net_listening`] | |
+[`net_listening`] | ✅ |
 [`eth_protocolVersion`] | |
 [`eth_syncing`] | |
 [`eth_coinbase`] | |
