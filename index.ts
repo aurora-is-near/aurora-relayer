@@ -1,11 +1,11 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import NearProvider from 'near-web3-provider';
+import nearProvider from 'near-web3-provider';
 
 const app = express()
-const port = 3030
+const port = 8545
 
-const provider: NearProvider = new NearProvider.NearProvider({
+const provider = new nearProvider.NearProvider({
   nodeUrl: 'http://rpc.betanet.near.org',
   networkId: 'betanet',
   evmAccountId: 'evm',
@@ -39,7 +39,10 @@ app.post('/', async (req, res) => {
   } catch (error) {
     console.log(error);
     // TODO: return errors that match errors from Ethereum nodes.
-    res.send(response(data.id, null, error));
+    res.send(response(data.id, null, {
+      code: -32000,
+      message: error.message,
+    }));
   }
 })
 
