@@ -1,18 +1,36 @@
 import express from 'express';
 import bodyParser from 'body-parser';
+import cors from 'cors';
 import nearProvider from 'near-web3-provider';
+import yargs from 'yargs';
+
+const argv = yargs
+  .command('network', 'Network')
+  .default('network', 'betanet')
+  .command('port', 'Port')
+  .default('port', 8545)
+  .argv;
+
+const NETWORKS = {
+  local: {
+    nodeUrl: 'localhost:3030',
+    networkId: 'local',
+    evmAccountId: 'evm',
+    masterAccountId: 'test.near',
+  },
+  betanet: {
+    nodeUrl: 'http://rpc.betanet.near.org',
+    networkId: 'betanet',
+    evmAccountId: 'evm',
+    masterAccountId: 'testevm1.betanet',
+  }
+};
+
+const provider = new nearProvider.NearProvider(NETWORKS[argv.network]);
 
 const app = express()
-const port = 8545
-
-const provider = new nearProvider.NearProvider({
-  nodeUrl: 'http://rpc.betanet.near.org',
-  networkId: 'betanet',
-  evmAccountId: 'evm',
-  masterAccountId: 'testevm1.betanet',
-});
-
 app.use(bodyParser.json({ type: 'application/json' }));
+app.use(cors());
 
 function response(id, result, error) {
   let resp = {
@@ -46,6 +64,6 @@ app.post('/', async (req, res) => {
   }
 })
 
-app.listen(port, () => {
-  console.log(`NEAR EVM JSON RPC Proxy listening at http://localhost:${port}`)
+app.listen(argv.port, () => {
+  console.log(`NEAR EVM JSON RPC Proxy for ${argv.network} network listening at http://localhost:${argv.port}`)
 });
