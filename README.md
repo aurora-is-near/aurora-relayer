@@ -31,6 +31,7 @@ Method | Status | Notes
 [`eth_protocolVersion`] | |
 [`eth_syncing`] | |
 [`eth_coinbase`] | |
+[`eth_chainId`] | ✅ |
 [`eth_mining`] | |
 [`eth_hashrate`] | |
 [`eth_gasPrice`] | |
@@ -46,9 +47,9 @@ Method | Status | Notes
 [`eth_getCode`] | |
 [`eth_sign`] | |
 [`eth_signTransaction`] | |
-[`eth_sendTransaction`] | |
-[`eth_sendRawTransaction`] | |
-[`eth_call`] | |
+[`eth_sendTransaction`] | ✅ |
+[`eth_sendRawTransaction`] | ✅ |
+[`eth_call`] | ✅ |
 [`eth_estimateGas`] | |
 [`eth_getBlockByHash`] | |
 [`eth_getBlockByNumber`] | |

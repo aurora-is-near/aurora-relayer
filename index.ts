@@ -3,23 +3,29 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import nearProvider from 'near-web3-provider';
 import yargs from 'yargs';
+import { exit } from 'process';
 
 const argv = yargs
   .command('network', 'Network')
   .default('network', 'betanet')
   .command('port', 'Port')
   .default('port', 8545)
+  .boolean('noisy')
+  .default('noisy', false)
+  .boolean('fail-hard')
+  .default('fail-hard', false)
   .argv;
 
 const NETWORKS = {
   local: {
-    nodeUrl: 'localhost:3030',
+    nodeUrl: 'http://localhost:3030',
     networkId: 'local',
     evmAccountId: 'evm',
     masterAccountId: 'test.near',
+    keyPath: '~/.near/local/validator_key.json',
   },
   betanet: {
-    nodeUrl: 'http://rpc.betanet.near.org',
+    nodeUrl: 'https://rpc.betanet.near.org',
     networkId: 'betanet',
     evmAccountId: 'evm',
     masterAccountId: 'testevm1.betanet',
@@ -49,13 +55,21 @@ app.post('/', async (req, res) => {
   res.header('Content-Type', 'application/json');
   const data = req.body;
   // TODO: validate data input is correct JSON RPC.
-  console.log(data, req.params);
   try {
     const result = await provider.routeRPC(data.method, data.params);
-    console.log(result);
+    if (argv.noisy) {
+      console.log(data, req.params);
+      console.log(result);
+    }
     res.send(response(data.id, result, null));
   } catch (error) {
-    console.log(error);
+    if (argv.failHard || argv.noisy) {
+      console.log(data, req.params);
+      console.log(data, error);
+    }
+    if (argv.failHard) {
+      exit(0);
+    }
     // TODO: return errors that match errors from Ethereum nodes.
     res.send(response(data.id, null, {
       code: -32000,
