@@ -8,7 +8,7 @@ To install and start the local server, run:
 
 ```bash
 npm install
-npm run dev
+npm run start
 ```
 
 In your wallet, Truffle, etc: change node URL to the URL of this server.
@@ -16,7 +16,7 @@ In your wallet, Truffle, etc: change node URL to the URL of this server.
 For example:
 
 ```bash
-http post http://localhost:3000 jsonrpc=2.0 id=1 method=eth_blockNumber params:='[]'
+http post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_blockNumber params:='[]'
 ```
 
 ## Status
