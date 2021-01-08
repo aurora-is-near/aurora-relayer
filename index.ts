@@ -28,7 +28,7 @@ const NETWORKS = {
     nodeUrl: 'https://rpc.betanet.near.org',
     networkId: 'betanet',
     evmAccountId: 'evm',
-    masterAccountId: 'testevm1.betanet',
+    masterAccountId: process.env.NEAR_MASTER_ACCOUNT,
   }
 };
 

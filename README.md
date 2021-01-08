@@ -4,11 +4,31 @@ Provides a JSON RPC interface compatible with [Ethereum's API](https://eth.wiki/
 
 ## Usage
 
-To install and start the local server, run:
+### Set up a NEAR betanet account 
+
+Create a new account at:
+
+https://wallet.betanet.near.org
+
+Install [NEAR CLI](https://docs.near.org/docs/development/near-cli) with:
+
+```bash
+npm install -g near-cli
+```
+
+Use NEAR CLI to login, creating a local key pair. Run this command and follow the directions:
+
+```bash
+near login
+```
+
+### Set up and run the proxy server
+
+To install and start the local server, run the command below, replacing `you.betanet` with your account:
 
 ```bash
 npm install
-npm run start
+NEAR_MASTER_ACCOUNT=you.betanet npm run start
 ```
 
 In your wallet, Truffle, etc: change node URL to the URL of this server.
