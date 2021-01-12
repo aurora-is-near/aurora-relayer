@@ -4,6 +4,7 @@ import cors from 'cors';
 import nearProvider from 'near-web3-provider';
 import yargs from 'yargs';
 import { exit } from 'process';
+import { validateEIP712, encodeMetaCall } from './eip-712-helpers';
 
 const argv = yargs
   .command('network', 'Network')
@@ -76,7 +77,35 @@ app.post('/', async (req, res) => {
       message: error.message,
     }));
   }
-})
+});
+
+app.post('/relay', async (req, res) => {
+  res.header('Content-Type', 'application/json');
+  const data = req.body;
+  if (!validateEIP712(data.data, data.signature)) {
+    res.send({code: -32000, message: "Signature is invalid for given message"});
+    return;
+  }
+  try {
+    let result = await nearProvider.utils.rawFunctionCall(
+      provider.accountId,
+      provider.evm_contract,
+      'meta_call',
+      encodeMetaCall(data.data, data.signature),
+      '10000000000000',
+      '0'
+    );
+    if (argv.noisy) {
+      console.log(result);
+    }
+    res.send(response(data.id, result, null));
+  } catch (error) {
+    res.send(response(data.id, null, {
+      code: -32000,
+      message: error.message,
+    }));
+  }
+});
 
 app.listen(argv.port, () => {
   console.log(`NEAR EVM JSON RPC Proxy for ${argv.network} network listening at http://localhost:${argv.port}`)
