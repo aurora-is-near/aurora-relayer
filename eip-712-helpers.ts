@@ -39,7 +39,7 @@ export function encodeMetaCall(data, signature): Buffer {
     signature = Buffer.from(utils.remove0x(signature), 'hex');
     const args = listEncodeArguments(data.message.arguments, 'Arguments', data.types);
     const methodName = formMethodName('Arguments', data.message.contractMethod.slice(0, data.message.contractMethod.indexOf('(')), data.types);
-    let result = Buffer.concat([
+    return Buffer.concat([
         signature,
         utils.deserializeHex(data.message.nonce, 32),
         utils.deserializeHex(data.message.feeAmount, 32),
@@ -49,5 +49,4 @@ export function encodeMetaCall(data, signature): Buffer {
         Buffer.from(methodName),
         rlp.encode(args),
     ]);
-    return utils.include0x(result.toString('hex'));
 }

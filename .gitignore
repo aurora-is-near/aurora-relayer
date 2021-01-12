@@ -9,3 +9,6 @@
 
 # Node packages
 node_modules/
+
+# Coverage
+coverage/

@@ -2,12 +2,10 @@
     "compilerOptions": {
         "esModuleInterop": true,
         "lib": [
-            "es2015",
-            "esnext",
-            "dom"
+            "es2019",
         ],
         "module": "commonjs",
-        "target": "esnext",
+        "target": "es2019",
         "moduleResolution": "node",
         "alwaysStrict": true,
         "outDir": "./lib",

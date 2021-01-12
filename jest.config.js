@@ -1,4 +1,8 @@
 module.exports = {
+  testEnvironment: 'node',
+  coverageDirectory: './coverage/',
+  collectCoverage: true,
+  testTimeout: 30000,
   roots: ['<rootDir>'],
   transform: {
     '^.+\\.tsx?$': 'ts-jest',
