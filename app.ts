@@ -36,8 +36,8 @@ export function createApp(argv, provider) {
             res.send(response(data.id, result, null));
         } catch (error) {
             if (argv.failHard || argv.noisy) {
-                console.log(data, req.params);
-                console.log(data, error);
+                console.error(data, req.params);
+                console.error(data, error);
             }
             if (argv.failHard) {
                 exit(0);
