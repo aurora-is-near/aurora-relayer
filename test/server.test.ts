@@ -31,7 +31,7 @@ describe("AppServer", () => {
 
     test('#relayMetaCall', done => {
         const typedData = createMetaCall(
-            'evm', '0x0', '0x6', '0x0', '0x702ed64ad1ed211a3cb3c4d7e8b5ca862f7527d6', 'adopt(uint256)',
+            'evm', '0x0', '0x6', '0x0', '0x702ed64ad1ed211a3cb3c4d7e8b5ca862f7527d6', '0x0', 'adopt(uint256)',
             { petId: "0x9" },
             { Arguments: [{ name: "petId", type: "uint256" }] });
         const signature = signTypedData_v4(privKey, { data: typedData });            
