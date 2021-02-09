@@ -45,6 +45,7 @@
   "dependencies": {
     "@types/ethereumjs-util": "^6.1.0",
     "@types/yargs": "^15.0.12",
+    "borsh": "^0.3.1",
     "cors": "^2.8.5",
     "eth-sig-util": "^3.0.0",
     "ethereumjs-abi": "^0.6.8",

@@ -1,6 +1,6 @@
 
 /// Creates a meta call from given arguments and auxiliary types.
-export function createMetaCall(evmId, nonce, feeAmount, feeAddress, contractAddress, contractMethod, args, extraTypes) {
+export function createMetaCall(evmId, nonce, feeAmount, feeAddress, contractAddress, value, contractMethod, args, extraTypes) {
     let types = {
         EIP712Domain: [
             { name: 'name', type: 'string' },
@@ -13,6 +13,7 @@ export function createMetaCall(evmId, nonce, feeAmount, feeAddress, contractAddr
             { name: 'feeAmount', type: 'uint256' },
             { name: 'feeAddress', type: 'address' },
             { name: 'contractAddress', type: 'address' },
+            { name: 'value', type: 'uint256' },
             { name: 'contractMethod', type: 'string' },
             { name: 'arguments', type: 'Arguments' },
         ],
@@ -27,7 +28,7 @@ export function createMetaCall(evmId, nonce, feeAmount, feeAddress, contractAddr
         },
         primaryType: 'NearTx' as const,
         message: {
-            evmId, nonce, feeAmount, feeAddress, contractAddress, contractMethod, arguments: args
+            evmId, nonce, feeAmount, feeAddress, contractAddress, value, contractMethod, arguments: args
         },
     };
 }
