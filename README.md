@@ -10,7 +10,7 @@ Create a new account at:
 
 https://wallet.betanet.near.org
 
-Install [NEAR CLI](https://docs.near.org/docs/development/near-cli) with:
+Install [NEAR CLI](https://docs.near.org/docs/tools/near-cli#setup) with:
 
 ```bash
 npm install -g near-cli
