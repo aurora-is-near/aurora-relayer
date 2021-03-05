@@ -7,6 +7,10 @@ const argv = yargs
   .default('network', process.env.NEAR_ENV || 'local')
   .command('port', 'Port')
   .default('port', 8545)
+  .command('master-account', 'Master Account ID')
+  .default('master-account', process.env.NEAR_MASTER_ACCOUNT)
+  .command('evm-account', 'EVM Account ID')
+  .default('evm-account', process.env.NEAR_EVM_ACCOUNT || 'evm')
   .boolean('noisy')
   .default('noisy', false)
   .boolean('fail-hard')
@@ -19,8 +23,8 @@ const NETWORKS = {
     config: {
       nodeUrl: 'http://localhost:3030',
       networkId: 'local',
-      evmAccountId: 'evm',
-      masterAccountId: 'test.near',
+      evmAccountId: argv.evmAccount,
+      masterAccountId: argv.masterAccount || 'test.near',
       keyPath: '~/.near/local/validator_key.json',
     },
   },
@@ -29,8 +33,8 @@ const NETWORKS = {
     config: {
       nodeUrl: 'https://rpc.betanet.near.org',
       networkId: 'betanet',
-      evmAccountId: 'evm',
-      masterAccountId: process.env.NEAR_MASTER_ACCOUNT,
+      evmAccountId: argv.evmAccount,
+      masterAccountId: argv.masterAccount,
     },
   },
   testnet: {
@@ -38,8 +42,8 @@ const NETWORKS = {
     config: {
       nodeUrl: 'https://rpc.testnet.near.org',
       networkId: 'testnet',
-      evmAccountId: 'evm',
-      masterAccountId: process.env.NEAR_MASTER_ACCOUNT,
+      evmAccountId: argv.evmAccount,
+      masterAccountId: argv.masterAccount,
     },
   },
   mainnet: {
@@ -47,8 +51,8 @@ const NETWORKS = {
     config: {
       nodeUrl: 'https://rpc.mainnet.near.org',
       networkId: 'mainnet',
-      evmAccountId: 'evm',
-      masterAccountId: process.env.NEAR_MASTER_ACCOUNT,
+      evmAccountId: argv.evmAccount,
+      masterAccountId: argv.masterAccount,
     },
   },
 };
