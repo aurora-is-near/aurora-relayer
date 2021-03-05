@@ -26,7 +26,19 @@ const NETWORKS = {
     networkId: 'betanet',
     evmAccountId: 'evm',
     masterAccountId: process.env.NEAR_MASTER_ACCOUNT,
-  }
+  },
+  testnet: {
+    nodeUrl: 'https://rpc.testnet.near.org',
+    networkId: 'testnet',
+    evmAccountId: 'evm',
+    masterAccountId: process.env.NEAR_MASTER_ACCOUNT,
+  },
+  mainnet: {
+    nodeUrl: 'https://rpc.mainnet.near.org',
+    networkId: 'mainnet',
+    evmAccountId: 'evm',
+    masterAccountId: process.env.NEAR_MASTER_ACCOUNT,
+  },
 };
 
 const provider = new nearProvider.NearProvider(NETWORKS[argv.network]);
@@ -34,5 +46,5 @@ const provider = new nearProvider.NearProvider(NETWORKS[argv.network]);
 const app = createApp(argv, provider);
 
 app.listen(argv.port, () => {
-  console.log(`NEAR EVM JSON RPC Proxy for ${argv.network} network listening at http://localhost:${argv.port}`)
+  console.log(`Web3 JSON-RPC proxy for ${argv.network} listening at http://localhost:${argv.port}...`)
 });
