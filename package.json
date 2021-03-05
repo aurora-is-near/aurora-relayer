@@ -29,7 +29,7 @@
     "Arto Bendiken <arto@bendiken.net> (https://ar.to)",
     "Illia Polosukhin <ilblackdragon@gmail.com> (https://github.com/ilblackdragon)"
   ],
-  "license": "Unlicense",
+  "license": "CC0-1.0",
   "homepage": "https://github.com/near/near-eth-rpc",
   "bugs": "https://github.com/near/near-eth-rpc/issues",
   "repository": "https://github.com/near/near-eth-rpc.git",
