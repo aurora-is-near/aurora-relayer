@@ -1,43 +1,45 @@
-# Proxy server for Ethereum JSON RPC to NEAR EVM
+# Web3 Proxy Server for the NEAR EVM
 
-Provides a JSON RPC interface compatible with [Ethereum's API](https://eth.wiki/json-rpc/API) to NEAR's EVM environment.
+Implements a JSON-RPC server compatible with Ethereum's
+[Web3 API](https://eth.wiki/json-rpc/API) for NEAR's EVM environment.
 
 ## Usage
 
-### Set up a NEAR betanet account 
-
-Create a new account at:
-
-https://wallet.betanet.near.org
-
-Install [NEAR CLI](https://docs.near.org/docs/tools/near-cli#setup) with:
-
-```bash
-npm install -g near-cli
-```
-
-Use NEAR CLI to login, creating a local key pair. Run this command and follow the directions:
-
-```bash
-near login
-```
-
-### Set up and run the proxy server
-
-To install and start the local server, run the command below, replacing `you.betanet` with your account:
+### Prerequisites
 
 ```bash
 npm install
-NEAR_MASTER_ACCOUNT=you.betanet npm run start
 ```
 
-In your wallet, Truffle, etc: change node URL to the URL of this server.
+### Usage for LocalNet
 
-For example:
+To run the proxy server, first start [nearcore] and then execute:
+
+```bash
+npm run start
+```
+
+[nearcore]: https://docs.near.org/docs/community/contribute/contribute-nearcore
+
+### Usage for BetaNet
+
+To run the proxy server, replace `you.betanet` with your BetaNet account:
+
+```bash
+NEAR_ENV=betanet NEAR_MASTER_ACCOUNT=you.betanet npm run start
+```
+
+### Endpoint URL
+
+In your MetaMask, Truffle, etc: change the endpoint URL to the URL of this server.
+
+For example, using [HTTPie]:
 
 ```bash
 http post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_blockNumber params:='[]'
 ```
+
+[HTTPie]: https://httpie.io
 
 ## Status
 
