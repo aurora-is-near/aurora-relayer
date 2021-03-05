@@ -4,7 +4,7 @@ import { createApp } from './app';
 
 const argv = yargs
   .command('network', 'Network')
-  .default('network', 'betanet')
+  .default('network', 'local')
   .command('port', 'Port')
   .default('port', 8545)
   .boolean('noisy')
