@@ -15,36 +15,48 @@ const argv = yargs
 
 const NETWORKS = {
   local: {
-    nodeUrl: 'http://localhost:3030',
-    networkId: 'local',
-    evmAccountId: 'evm',
-    masterAccountId: 'test.near',
-    keyPath: '~/.near/local/validator_key.json',
+    label: "LocalNet",
+    config: {
+      nodeUrl: 'http://localhost:3030',
+      networkId: 'local',
+      evmAccountId: 'evm',
+      masterAccountId: 'test.near',
+      keyPath: '~/.near/local/validator_key.json',
+    },
   },
   betanet: {
-    nodeUrl: 'https://rpc.betanet.near.org',
-    networkId: 'betanet',
-    evmAccountId: 'evm',
-    masterAccountId: process.env.NEAR_MASTER_ACCOUNT,
+    label: "BetaNet",
+    config: {
+      nodeUrl: 'https://rpc.betanet.near.org',
+      networkId: 'betanet',
+      evmAccountId: 'evm',
+      masterAccountId: process.env.NEAR_MASTER_ACCOUNT,
+    },
   },
   testnet: {
-    nodeUrl: 'https://rpc.testnet.near.org',
-    networkId: 'testnet',
-    evmAccountId: 'evm',
-    masterAccountId: process.env.NEAR_MASTER_ACCOUNT,
+    label: "TestNet",
+    config: {
+      nodeUrl: 'https://rpc.testnet.near.org',
+      networkId: 'testnet',
+      evmAccountId: 'evm',
+      masterAccountId: process.env.NEAR_MASTER_ACCOUNT,
+    },
   },
   mainnet: {
-    nodeUrl: 'https://rpc.mainnet.near.org',
-    networkId: 'mainnet',
-    evmAccountId: 'evm',
-    masterAccountId: process.env.NEAR_MASTER_ACCOUNT,
+    label: "MainNet",
+    config: {
+      nodeUrl: 'https://rpc.mainnet.near.org',
+      networkId: 'mainnet',
+      evmAccountId: 'evm',
+      masterAccountId: process.env.NEAR_MASTER_ACCOUNT,
+    },
   },
 };
 
-const provider = new nearProvider.NearProvider(NETWORKS[argv.network]);
-
+const network = NETWORKS[argv.network];
+const provider = new nearProvider.NearProvider(network.config);
 const app = createApp(argv, provider);
 
 app.listen(argv.port, () => {
-  console.log(`Web3 JSON-RPC proxy for ${argv.network} listening at http://localhost:${argv.port}...`)
+  console.log(`Web3 JSON-RPC proxy for the NEAR ${network.label} listening at http://localhost:${argv.port}...`)
 });
