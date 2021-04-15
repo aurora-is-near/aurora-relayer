@@ -85,7 +85,7 @@ Method | Status | Notes
 [`eth_getTransactionReceipt`] | |
 [`eth_getUncleByBlockHashAndIndex`] | |
 [`eth_getUncleByBlockNumberAndIndex`] | |
-[`eth_getCompilers`] | ❌ | Unsupported.
+[`eth_getCompilers`] | ✅ |
 [`eth_compileLLL`] | ❌ | Unsupported.
 [`eth_compileSolidity`] | ❌ | Unsupported.
 [`eth_compileSerpent`] | ❌ | Unsupported.
