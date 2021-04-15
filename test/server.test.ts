@@ -2,7 +2,7 @@ import request from 'supertest';
 import nearProvider from 'near-web3-provider';
 import { signTypedData_v4 } from 'eth-sig-util';
 
-import { createApp } from '../app';
+import { createApp } from '../lib/app.js';
 import { createMetaCall } from './utils';
 
 const provider = new nearProvider.NearProvider({
@@ -23,7 +23,7 @@ describe("AppServer", () => {
         request(app)
             .post("/")
             .send({ jsonrpc: '2.0', id: 1, method: 'eth_getBalance', params: ['0x702ed64ad1ed211a3cb3c4d7e8b5ca862f7527d6'] })
-            .then(response => {
+            .then((response: any) => {
                 expect(response.body.result).toEqual(`0x${'00'.repeat(32)}`);
                 done();
             });
@@ -38,7 +38,7 @@ describe("AppServer", () => {
         request(app)
             .post("/relay")
             .send({ data: typedData, signature })
-            .then(response => {
+            .then((response: any) => {
                 expect(response.body.error.message).toEqual('{"index":0,"kind":{"EvmError":"ContractNotFound"}}');
                 expect(response.statusCode).toBe(200);
                 done();

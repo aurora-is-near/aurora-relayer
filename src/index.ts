@@ -1,9 +1,10 @@
 import { NETWORKS } from '@aurora-is-near/engine';
 import nearProvider from 'near-web3-provider';
 import yargs from 'yargs';
-import { createApp } from './app';
+import { hideBin } from 'yargs/helpers'
+import { createApp } from './app.js';
 
-const argv = yargs
+const argv = yargs(hideBin(process.argv))
   .command('network', 'Network')
   .default('network', process.env['NEAR_ENV'] || 'local')
   .command('port', 'Port')

@@ -3,7 +3,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import { exit } from 'process';
 import nearProvider from 'near-web3-provider';
-import { validateEIP712, encodeMetaCall } from './eip-712-helpers';
+import { validateEIP712, encodeMetaCall } from './eip-712-helpers.js';
 
 function response(id: any, result: any, error: any) {
     const resp = {

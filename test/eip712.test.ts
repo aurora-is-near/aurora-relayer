@@ -1,5 +1,5 @@
 import { signTypedData_v4 } from 'eth-sig-util';
-import { validateEIP712, encodeMetaCall } from '../eip-712-helpers';
+import { validateEIP712, encodeMetaCall } from '../lib/eip-712-helpers.js';
 import { createMetaCall } from './utils';
 
 describe('eip712', () => {
