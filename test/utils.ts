@@ -1,7 +1,7 @@
 
 /// Creates a meta call from given arguments and auxiliary types.
 export function createMetaCall(evmId, nonce, feeAmount, feeAddress, contractAddress, value, contractMethod, args, extraTypes) {
-    let types = {
+    const types = {
         EIP712Domain: [
             { name: 'name', type: 'string' },
             { name: 'version', type: 'string' },

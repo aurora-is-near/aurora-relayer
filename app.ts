@@ -6,7 +6,7 @@ import nearProvider from 'near-web3-provider';
 import { validateEIP712, encodeMetaCall } from './eip-712-helpers';
 
 function response(id, result, error) {
-    let resp = {
+    const resp = {
         jsonrpc: "2.0",
         id,
     };
@@ -58,7 +58,7 @@ export function createApp(argv, provider) {
             return;
         }
         try {
-            let result = await nearProvider.utils.rawFunctionCall(
+            const result = await nearProvider.utils.rawFunctionCall(
                 provider.account,
                 provider.evm_contract,
                 'meta_call',

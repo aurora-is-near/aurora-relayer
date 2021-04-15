@@ -14,9 +14,9 @@ export function validateEIP712(data, signature) {
 }
 
 function listEncodeArguments(args, typeName, types) {
-    let result = new Array();
+    const result = [];
     for (let i = 0; i < types[typeName].length; ++i) {
-        if (types.hasOwnProperty(types[typeName][i].type)) {
+        if (Object.prototype.hasOwnProperty.call(types, types[typeName][i].type)) {
             result.push(listEncodeArguments(args[types[typeName][i].name], types[typeName][i].type, types))
         } else {
             result.push(args[types[typeName][i].name]);
@@ -28,7 +28,7 @@ function listEncodeArguments(args, typeName, types) {
 function formMethodName(typeName, callName, types) {
     return `${callName}(${types[typeName].map(x => `${x.type} ${x.name}`).join(',')})` + 
         types[typeName].map(x => { 
-            if (types.hasOwnProperty(x.type)) { return formMethodName(x.type, x.type, types) }
+            if (Object.prototype.hasOwnProperty.call(types, x.type)) { return formMethodName(x.type, x.type, types) }
             else { return '' }
         }).join('')
 }
