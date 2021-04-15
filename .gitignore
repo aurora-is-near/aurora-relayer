@@ -1,8 +1,11 @@
 # macOS
 .DS_Store
 
-# Editor metadata
-.idea/
+# Visual Studio Code
+.vscode/
+
+# IDEA
+.idea
 
 # Editor backup files
 *~
