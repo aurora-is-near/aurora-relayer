@@ -15,5 +15,10 @@
     "noUnusedLocals": true,
     "noUnusedParameters": false,
     "resolveJsonModule": true
+  },
+  "typedocOptions": {
+    "entryPoints": ["index.ts"],
+    "includeVersion": false,
+    "hideGenerator": true
   }
 }

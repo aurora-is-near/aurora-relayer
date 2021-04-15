@@ -13,5 +13,8 @@
 # Node packages
 node_modules/
 
+# TypeDoc output
+docs/
+
 # Coverage
 coverage/
