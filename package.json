@@ -41,6 +41,7 @@
   "bugs": "https://github.com/aurora-is-near/aurora-relayer/issues",
   "repository": "https://github.com/aurora-is-near/aurora-relayer.git",
   "dependencies": {
+    "@aurora-is-near/engine": "git://github.com/aurora-is-near/aurora.js#4a8b4e5",
     "@types/ethereumjs-util": "^6.1.0",
     "@types/yargs": "^15.0.12",
     "borsh": "^0.3.1",
