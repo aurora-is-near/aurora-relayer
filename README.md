@@ -1,5 +1,9 @@
 # Web3 Proxy Server for the NEAR EVM
 
+[![Project license](https://img.shields.io/badge/License-Public%20Domain-blue.svg)](https://creativecommons.org/publicdomain/zero/1.0/)
+[![Discord](https://img.shields.io/discord/490367152054992913?label=Discord)](https://discord.gg/jNjHYUF8vw)
+[![Lints](https://github.com/aurora-is-near/aurora-relayer/actions/workflows/lints.yml/badge.svg)](https://github.com/aurora-is-near/aurora-relayer/actions/workflows/lints.yml)
+
 Implements a JSON-RPC server compatible with Ethereum's
 [Web3 API](https://eth.wiki/json-rpc/API) for NEAR's EVM environment.
 
