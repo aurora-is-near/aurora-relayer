@@ -5,7 +5,7 @@ import { exit } from 'process';
 import nearProvider from 'near-web3-provider';
 import { validateEIP712, encodeMetaCall } from './eip-712-helpers';
 
-function response(id, result, error) {
+function response(id: any, result: any, error: any) {
     const resp = {
         jsonrpc: "2.0",
         id,
@@ -18,7 +18,7 @@ function response(id, result, error) {
     return resp;
 }
 
-export function createApp(argv, provider) {
+export function createApp(argv: any, provider: any) {
     const app = express()
     app.use(bodyParser.json({ type: 'application/json' }));
     app.use(cors());

@@ -5,13 +5,13 @@ import { createApp } from './app';
 
 const argv = yargs
   .command('network', 'Network')
-  .default('network', process.env.NEAR_ENV || 'local')
+  .default('network', process.env['NEAR_ENV'] || 'local')
   .command('port', 'Port')
   .default('port', 8545)
   .command('master-account', 'Master Account ID')
-  .default('master-account', process.env.NEAR_MASTER_ACCOUNT || 'test.near')
+  .default('master-account', process.env['NEAR_MASTER_ACCOUNT'] || 'test.near')
   .command('evm-account', 'EVM Account ID')
-  .default('evm-account', process.env.NEAR_EVM_ACCOUNT || 'aurora.test.near')
+  .default('evm-account', process.env['NEAR_EVM_ACCOUNT'] || 'aurora.test.near')
   .boolean('noisy')
   .default('noisy', false)
   .boolean('fail-hard')
@@ -22,8 +22,8 @@ const network = NETWORKS.get(argv.network)!;
 const provider = new nearProvider.NearProvider({
   nodeUrl: network.nearEndpoint,
   networkId: network.id,
-  evmAccountId: argv.evmAccount || network.contractID,
-  masterAccountId: argv.masterAccount || 'test.near',
+  evmAccountId: argv['evmAccount'] || network.contractID,
+  masterAccountId: argv['masterAccount'] || 'test.near',
   keyPath: (network.id == 'local') ? '~/.near/local/validator_key.json' : undefined,
 });
 const app = createApp(argv, provider);

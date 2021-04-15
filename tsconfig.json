@@ -1,5 +1,5 @@
 {
-  "files": ["index.ts"],
+  "files": ["index.ts", "decs.d.ts"],
   "extends": "@tsconfig/node14/tsconfig.json",
   "compilerOptions": {
     "target": "es2020",

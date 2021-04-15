@@ -4,7 +4,7 @@ import * as rlp from 'rlp';
 import { utils } from 'near-web3-provider';
 
 /// Validate that given signed Data is EIP-712 and address has enough resources to pay for transaction.
-export function validateEIP712(data, signature) {
+export function validateEIP712(data: any, signature: any) {
     const recoveredAddress = recoverTypedSignature_v4({ data, sig: signature });
     // console.log(`>> ${recoveredAddress}`);
     if (!recoveredAddress) return false;
@@ -13,7 +13,7 @@ export function validateEIP712(data, signature) {
     return true;
 }
 
-function listEncodeArguments(args, typeName, types) {
+function listEncodeArguments(args: any, typeName: any, types: any): any {
     const result = [];
     for (let i = 0; i < types[typeName].length; ++i) {
         if (Object.prototype.hasOwnProperty.call(types, types[typeName][i].type)) {
@@ -25,9 +25,9 @@ function listEncodeArguments(args, typeName, types) {
     return result;
 }
 
-function formMethodName(typeName, callName, types) {
-    return `${callName}(${types[typeName].map(x => `${x.type} ${x.name}`).join(',')})` + 
-        types[typeName].map(x => { 
+function formMethodName(typeName: any, callName: any, types: any) {
+    return `${callName}(${types[typeName].map((x: any) => `${x.type} ${x.name}`).join(',')})` +
+        types[typeName].map((x: any) => {
             if (Object.prototype.hasOwnProperty.call(types, x.type)) { return formMethodName(x.type, x.type, types) }
             else { return '' }
         }).join('')
@@ -36,7 +36,7 @@ function formMethodName(typeName, callName, types) {
 /// Takes the EIP-712 message and prepares NEAR's EVM meta_call byte buffer.
 /// See format: https://github.com/near/nearcore/blob/master/runtime/near-evm-runner/src/meta_parsing.rs#L502
 /// TODO: this module should be moved into near-web3-provider.
-export function encodeMetaCall(data, signature): Buffer {
+export function encodeMetaCall(data: any, signature: any): Buffer {
     signature = Buffer.from(utils.remove0x(signature), 'hex');
     const args = listEncodeArguments(data.message.arguments, 'Arguments', data.types);
     const methodDef = formMethodName('Arguments', data.message.contractMethod.slice(0, data.message.contractMethod.indexOf('(')), data.types);
@@ -51,5 +51,5 @@ export function encodeMetaCall(data, signature): Buffer {
         methodDef,
         rlp.encode(args)
     );
-    return Buffer.from(metaCallArgs.encode);
+    return Buffer.from(metaCallArgs.encode());
 }
