@@ -5,6 +5,7 @@ import { exit } from 'process';
 import nearProvider from 'near-web3-provider';
 import { validateEIP712, encodeMetaCall } from './eip-712-helpers.js';
 import { keccakFromHexString } from 'ethereumjs-util';
+import { Engine } from '@aurora-is-near/engine';
 
 interface NearProvider {
     networkId: string;
@@ -107,6 +108,7 @@ function unimplemented() {
 }
 
 export async function routeRPC(provider: NearProvider, method: string, params: any[]): Promise<any> {
+    const engine = await Engine.connect({});
     switch (method) {
         case 'web3_clientVersion': return 'Aurora-Relayer';
         case 'web3_sha3': return `0x${Buffer.from(keccakFromHexString(params[0])).toString('hex')}`;
@@ -116,7 +118,10 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
         case 'eth_accounts': return [];
         case 'eth_blockNumber': return '0x0'; // TODO
         case 'eth_call': break;
-        case 'eth_chainId': return '0x1'; // EIP-695 FIXME
+        case 'eth_chainId': { // EIP-695
+            const chainID = (await engine.getChainID()).unwrap();
+            return chainID.toString();
+        }
         case 'eth_coinbase': return '0x0000000000000000000000000000000000000000';
         case 'eth_compileLLL': return unsupported();
         case 'eth_compileSerpent': return unsupported();
