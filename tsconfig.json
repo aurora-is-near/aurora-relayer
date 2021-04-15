@@ -1,27 +1,19 @@
 {
-    "compilerOptions": {
-        "esModuleInterop": true,
-        "lib": [
-            "es2019",
-        ],
-        "module": "commonjs",
-        "target": "es2019",
-        "moduleResolution": "node",
-        "alwaysStrict": true,
-        "outDir": "./lib",
-        "declaration": true,
-        "preserveSymlinks": true,
-        "preserveWatchOutput": true,
-        "pretty": false,
-        "forceConsistentCasingInFileNames": true,
-        "noFallthroughCasesInSwitch": true,
-        "noImplicitAny": false,
-        "noImplicitReturns": true,
-        "noUnusedLocals": true,
-        "experimentalDecorators": true,
-        "resolveJsonModule": true,
-    },
-    "files": [
-        "index.ts",
-    ],
+  "files": ["index.ts"],
+  "extends": "@tsconfig/node14/tsconfig.json",
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "es2020",
+    "moduleResolution": "node",
+    "declaration": true,
+    "isolatedModules": true,
+    "strict": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": false,
+    "resolveJsonModule": true
+  }
 }
