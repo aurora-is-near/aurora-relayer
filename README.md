@@ -56,7 +56,7 @@ Method | Status | Notes
 [`net_listening`] | ✅ |
 [`eth_protocolVersion`] | ✅ |
 [`eth_syncing`] | ✅ |
-[`eth_coinbase`] | |
+[`eth_coinbase`] | ✅ |
 [`eth_chainId`] | ✅ |
 [`eth_mining`] | ✅ |
 [`eth_hashrate`] | ✅ |
@@ -95,7 +95,7 @@ Method | Status | Notes
 [`eth_uninstallFilter`] | |
 [`eth_getFilterChanges`] | |
 [`eth_getFilterLogs`] | |
-[`eth_getLogs`] | |
+[`eth_getLogs`] | 🚧 |
 [`eth_getWork`] | ❌ | Unsupported.
 [`eth_submitWork`] | ❌ | Unsupported.
 [`eth_submitHashrate`] | ❌ | Unsupported.

@@ -122,10 +122,11 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
         }
         case 'eth_call': break; // TODO
         case 'eth_chainId': { // EIP-695
-            const chainID = (await engine.getChainID()).unwrap();
-            return chainID.toString();
+            return (await engine.getChainID()).unwrap().toString();
         }
-        case 'eth_coinbase': return '0x0000000000000000000000000000000000000000'; // TODO
+        case 'eth_coinbase': {
+            return (await engine.getCoinbase()).unwrap();
+        }
         case 'eth_compileLLL': return unsupported();
         case 'eth_compileSerpent': return unsupported();
         case 'eth_compileSolidity': return unsupported();
