@@ -49,28 +49,28 @@ http post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_blockNumber params:=
 
 Method | Status | Notes
 ------ | ------ | -----
-[`web3_clientVersion`] | |
-[`web3_sha3`] | |
+[`web3_clientVersion`] | ✅ |
+[`web3_sha3`] | ✅ |
 [`net_version`] | ✅ |
-[`net_peerCount`] | |
+[`net_peerCount`] | ✅ |
 [`net_listening`] | ✅ |
-[`eth_protocolVersion`] | |
-[`eth_syncing`] | |
+[`eth_protocolVersion`] | ✅ |
+[`eth_syncing`] | ✅ |
 [`eth_coinbase`] | |
 [`eth_chainId`] | ✅ |
-[`eth_mining`] | |
-[`eth_hashrate`] | |
-[`eth_gasPrice`] | |
+[`eth_mining`] | ✅ |
+[`eth_hashrate`] | ✅ |
+[`eth_gasPrice`] | ✅ |
 [`eth_accounts`] | |
 [`eth_blockNumber`] | ✅ |
-[`eth_getBalance`] | |
-[`eth_getStorageAt`] | |
+[`eth_getBalance`] | ✅ |
+[`eth_getStorageAt`] | ✅ |
 [`eth_getTransactionCount`] | |
 [`eth_getBlockTransactionCountByHash`] | |
 [`eth_getBlockTransactionCountByNumber`] | |
-[`eth_getUncleCountByBlockHash`] | |
-[`eth_getUncleCountByBlockNumber`] | |
-[`eth_getCode`] | |
+[`eth_getUncleCountByBlockHash`] | ✅ |
+[`eth_getUncleCountByBlockNumber`] | ✅ |
+[`eth_getCode`] | ✅ |
 [`eth_sign`] | |
 [`eth_signTransaction`] | |
 [`eth_sendTransaction`] | ✅ |

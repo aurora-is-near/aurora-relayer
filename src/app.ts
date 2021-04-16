@@ -115,71 +115,72 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
         case 'net_version': return '1';
         case 'net_peerCount': return '0x0';
         case 'net_listening': return false;
-        case 'eth_accounts': return [];
+        case 'eth_accounts': return []; // TODO
         case 'eth_blockNumber': {
             const chainID = (await engine.getBlockHeight()).unwrap();
             return `0x${chainID.toString(16)}`;
         }
-        case 'eth_call': break;
+        case 'eth_call': break; // TODO
         case 'eth_chainId': { // EIP-695
             const chainID = (await engine.getChainID()).unwrap();
             return chainID.toString();
         }
-        case 'eth_coinbase': return '0x0000000000000000000000000000000000000000';
+        case 'eth_coinbase': return '0x0000000000000000000000000000000000000000'; // TODO
         case 'eth_compileLLL': return unsupported();
         case 'eth_compileSerpent': return unsupported();
         case 'eth_compileSolidity': return unsupported();
-        case 'eth_estimateGas': break;
+        case 'eth_estimateGas': break; // TODO
         case 'eth_gasPrice': return '0x0';
         case 'eth_getBalance': {
             const balance = (await engine.getBalance(params[0])).unwrap();
             return `0x${balance.toString(16)}`;
         }
-        case 'eth_getBlockByHash': break;
-        case 'eth_getBlockByNumber': break;
-        case 'eth_getBlockTransactionCountByHash': break;
-        case 'eth_getBlockTransactionCountByNumber': break;
+        case 'eth_getBlockByHash': break; // TODO
+        case 'eth_getBlockByNumber': break; // TODO
+        case 'eth_getBlockTransactionCountByHash': break; // TODO
+        case 'eth_getBlockTransactionCountByNumber': break; // TODO
         case 'eth_getCode': {
             const code = (await engine.getCode(params[0])).unwrap();
-            return `0x${code.toString()}`;
+            return `0x${Buffer.from(code).toString('hex')}`;
         }
         case 'eth_getCompilers': return [];
-        case 'eth_getFilterChanges': break;
-        case 'eth_getFilterLogs': break;
-        case 'eth_getLogs': break;
-        case 'eth_getProof': break; // EIP-1186
+        case 'eth_getFilterChanges': break; // TODO
+        case 'eth_getFilterLogs': break; // TODO
+        case 'eth_getLogs': break; // TODO
+        case 'eth_getProof': break; // EIP-1186 TODO
         case 'eth_getStorageAt': {
             const result = (await engine.getStorageAt(params[0], params[1])).unwrap();
             return formatU256(result);
         }
-        case 'eth_getTransactionByBlockHashAndIndex': break;
-        case 'eth_getTransactionByBlockNumberAndIndex': break;
-        case 'eth_getTransactionByHash': break;
+        case 'eth_getTransactionByBlockHashAndIndex': break; // TODO
+        case 'eth_getTransactionByBlockNumberAndIndex': break; // TODO
+        case 'eth_getTransactionByHash': break; // TODO
         case 'eth_getTransactionCount': return '0x0'; // TODO
-        case 'eth_getTransactionReceipt': break;
-        case 'eth_getUncleByBlockHashAndIndex': break;
-        case 'eth_getUncleByBlockNumberAndIndex': break;
-        case 'eth_getUncleCountByBlockHash': return '0x';
-        case 'eth_getUncleCountByBlockNumber': return '0x';
+        case 'eth_getTransactionReceipt': break; // TODO
+        case 'eth_getUncleByBlockHashAndIndex': break; // TODO
+        case 'eth_getUncleByBlockNumberAndIndex': break; // TODO
+        case 'eth_getUncleCountByBlockHash': return '0x0';
+        case 'eth_getUncleCountByBlockNumber': return '0x0';
         case 'eth_getWork': return unsupported();
         case 'eth_hashrate': return '0x0';
         case 'eth_mining': return false;
-        case 'eth_newBlockFilter': return unimplemented();
-        case 'eth_newFilter': return unimplemented();
-        case 'eth_newPendingTransactionFilter': return unimplemented();
-        case 'eth_pendingTransactions': break;
+        case 'eth_newBlockFilter': return unimplemented(); // TODO
+        case 'eth_newFilter': return unimplemented(); // TODO
+        case 'eth_newPendingTransactionFilter': return unimplemented(); // TODO
+        case 'eth_pendingTransactions': break; // TODO
         case 'eth_protocolVersion': return '1'; // FIXME
-        case 'eth_sendRawTransaction': break;
-        case 'eth_sendTransaction': break;
-        case 'eth_sign': break;
-        case 'eth_signTransaction': break;
-        case 'eth_signTypedData': break; // EIP-712
+        case 'eth_sendRawTransaction': break; // TODO
+        case 'eth_sendTransaction': break; // TODO
+        case 'eth_sign': break; // TODO
+        case 'eth_signTransaction': break; // TODO
+        case 'eth_signTypedData': break; // EIP-712 TODO
         case 'eth_submitHashrate': return unsupported();
         case 'eth_submitWork': return unsupported();
         case 'eth_syncing': return false;
         case 'eth_uninstallFilter': return unimplemented();
         case 'near_retrieveNear': break;
         case 'near_transferNear': break;
+        default: return unsupported();
     }
     return await (provider as any).routeRPC(method, params);
 }
