@@ -110,11 +110,16 @@ function unimplemented() {
 export async function routeRPC(provider: NearProvider, method: string, params: any[]): Promise<any> {
     const engine = await Engine.connect({});
     switch (method) {
+        // web3_*
         case 'web3_clientVersion': return 'Aurora-Relayer';
         case 'web3_sha3': return `0x${Buffer.from(keccakFromHexString(params[0])).toString('hex')}`;
-        case 'net_version': return '1';
-        case 'net_peerCount': return '0x0';
+
+        // net_*
         case 'net_listening': return false;
+        case 'net_peerCount': return '0x0';
+        case 'net_version': return '1';
+
+        // eth_*
         case 'eth_accounts': break; // TODO
         case 'eth_blockNumber': {
             const chainID = (await engine.getBlockHeight()).unwrap();
@@ -182,8 +187,12 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
         case 'eth_submitWork': return unsupported();
         case 'eth_syncing': return false;
         case 'eth_uninstallFilter': return unimplemented();
+
+        // near_*
         case 'near_retrieveNear': break;
         case 'near_transferNear': break;
+
+        // *
         default: return unsupported();
     }
     return await (provider as any).routeRPC(method, params);
