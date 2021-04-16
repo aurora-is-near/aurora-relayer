@@ -176,7 +176,7 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
         case 'eth_newBlockFilter': return unimplemented(); // TODO
         case 'eth_newFilter': return unimplemented(); // TODO
         case 'eth_newPendingTransactionFilter': return unimplemented(); // TODO
-        case 'eth_pendingTransactions': break; // TODO
+        case 'eth_pendingTransactions': return [];
         case 'eth_protocolVersion': return '1'; // FIXME
         case 'eth_sendRawTransaction': break; // TODO
         case 'eth_sendTransaction': break; // TODO
