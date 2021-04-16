@@ -5,7 +5,7 @@ import { exit } from 'process';
 import nearProvider from 'near-web3-provider';
 import { validateEIP712, encodeMetaCall } from './eip-712-helpers.js';
 import { keccakFromHexString } from 'ethereumjs-util';
-import { Engine } from '@aurora-is-near/engine';
+import { Engine, formatU256 } from '@aurora-is-near/engine';
 
 interface NearProvider {
     networkId: string;
@@ -136,13 +136,19 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
         case 'eth_getBlockByNumber': break;
         case 'eth_getBlockTransactionCountByHash': break;
         case 'eth_getBlockTransactionCountByNumber': break;
-        case 'eth_getCode': break;
+        case 'eth_getCode': {
+            const code = (await engine.getCode(params[0])).unwrap();
+            return `0x${code.toString()}`;
+        }
         case 'eth_getCompilers': return [];
         case 'eth_getFilterChanges': break;
         case 'eth_getFilterLogs': break;
         case 'eth_getLogs': break;
         case 'eth_getProof': break; // EIP-1186
-        case 'eth_getStorageAt': break;
+        case 'eth_getStorageAt': {
+            const result = (await engine.getStorageAt(params[0], params[1])).unwrap();
+            return formatU256(result);
+        }
         case 'eth_getTransactionByBlockHashAndIndex': break;
         case 'eth_getTransactionByBlockNumberAndIndex': break;
         case 'eth_getTransactionByHash': break;
