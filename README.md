@@ -61,11 +61,11 @@ Method | Status | Notes
 [`eth_mining`] | ✅ |
 [`eth_hashrate`] | ✅ |
 [`eth_gasPrice`] | ✅ |
-[`eth_accounts`] | |
+[`eth_accounts`] | 🚧 |
 [`eth_blockNumber`] | ✅ |
 [`eth_getBalance`] | ✅ |
 [`eth_getStorageAt`] | ✅ |
-[`eth_getTransactionCount`] | |
+[`eth_getTransactionCount`] | ✅ |
 [`eth_getBlockTransactionCountByHash`] | |
 [`eth_getBlockTransactionCountByNumber`] | |
 [`eth_getUncleCountByBlockHash`] | ✅ |

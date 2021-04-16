@@ -115,7 +115,7 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
         case 'net_version': return '1';
         case 'net_peerCount': return '0x0';
         case 'net_listening': return false;
-        case 'eth_accounts': return []; // TODO
+        case 'eth_accounts': break; // TODO
         case 'eth_blockNumber': {
             const chainID = (await engine.getBlockHeight()).unwrap();
             return `0x${chainID.toString(16)}`;
@@ -156,7 +156,10 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
         case 'eth_getTransactionByBlockHashAndIndex': break; // TODO
         case 'eth_getTransactionByBlockNumberAndIndex': break; // TODO
         case 'eth_getTransactionByHash': break; // TODO
-        case 'eth_getTransactionCount': return '0x0'; // TODO
+        case 'eth_getTransactionCount': {
+            const nonce = (await engine.getNonce(params[0])).unwrap();
+            return formatU256(nonce);
+        }
         case 'eth_getTransactionReceipt': break; // TODO
         case 'eth_getUncleByBlockHashAndIndex': break; // TODO
         case 'eth_getUncleByBlockNumberAndIndex': break; // TODO
