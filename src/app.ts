@@ -128,7 +128,10 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
         case 'eth_compileSolidity': return unsupported();
         case 'eth_estimateGas': break;
         case 'eth_gasPrice': return '0x0';
-        case 'eth_getBalance': break;
+        case 'eth_getBalance': {
+            const balance = (await engine.getBalance(params[0])).unwrap();
+            return `0x${balance.toString()}`;
+        }
         case 'eth_getBlockByHash': break;
         case 'eth_getBlockByNumber': break;
         case 'eth_getBlockTransactionCountByHash': break;
