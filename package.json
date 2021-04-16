@@ -17,6 +17,8 @@
     "lib/index.d.ts",
     "lib/app.js",
     "lib/app.d.ts",
+    "lib/errors.js",
+    "lib/errors.d.ts",
     "lib/eip-712-helpers.js",
     "lib/eip-712-helpers.d.ts"
   ],
