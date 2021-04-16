@@ -116,7 +116,10 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
         case 'net_peerCount': return '0x0';
         case 'net_listening': return false;
         case 'eth_accounts': return [];
-        case 'eth_blockNumber': return '0x0'; // TODO
+        case 'eth_blockNumber': {
+            const chainID = (await engine.getBlockHeight()).unwrap();
+            return `0x${chainID.toString(16)}`;
+        }
         case 'eth_call': break;
         case 'eth_chainId': { // EIP-695
             const chainID = (await engine.getChainID()).unwrap();
@@ -130,7 +133,7 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
         case 'eth_gasPrice': return '0x0';
         case 'eth_getBalance': {
             const balance = (await engine.getBalance(params[0])).unwrap();
-            return `0x${balance.toString()}`;
+            return `0x${balance.toString(16)}`;
         }
         case 'eth_getBlockByHash': break;
         case 'eth_getBlockByNumber': break;
