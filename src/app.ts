@@ -137,7 +137,10 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
         }
 
         // eth_*
-        case 'eth_accounts': break; // TODO
+        case 'eth_accounts': {
+            expectArgs(params, 0, 0);
+            return await engine.keyStore.getSigningAddresses();
+        }
         case 'eth_blockNumber': {
             expectArgs(params, 0, 0);
             const height = (await engine.getBlockHeight()).unwrap();

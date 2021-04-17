@@ -56,7 +56,7 @@ Method | Status | Notes
 [`net_listening`] | ✅ |
 [`net_peerCount`] | ✅ |
 [`net_version`] | ✅ |
-[`eth_accounts`] | 🚧 |
+[`eth_accounts`] | ✅ |
 [`eth_blockNumber`] | ✅ |
 [`eth_call`] | ✅ |
 [`eth_chainId`] | ✅ |
