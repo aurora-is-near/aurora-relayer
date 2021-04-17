@@ -25,7 +25,7 @@ const provider = new nearProvider.NearProvider({
   networkId: network.id,
   evmAccountId: argv['evmAccount'] || network.contractID,
   masterAccountId: argv['masterAccount'] || 'test.near',
-  keyPath: (network.id == 'local') ? '~/.near/local/validator_key.json' : undefined,
+  keyPath: (network.id == 'local') && '~/.near/validator_key.json',
 });
 const app = createApp(argv, provider);
 

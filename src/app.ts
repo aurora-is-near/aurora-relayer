@@ -108,7 +108,7 @@ export function createApp(argv: any, provider: NearProvider) {
 }
 
 export async function routeRPC(provider: NearProvider, method: string, params: any[]): Promise<any> {
-    const engine = await Engine.connect({});
+    const engine = await Engine.connect({}, process.env);
     //console.log(method, params); // DEBUG
     switch (method) {
         // web3_*
