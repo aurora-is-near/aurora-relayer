@@ -58,52 +58,52 @@ Method | Status | Notes
 [`net_version`] | ✅ |
 [`eth_accounts`] | ✅ |
 [`eth_blockNumber`] | ✅ |
-[`eth_call`] | ✅ |
+[`eth_call`] | 🚧 |
 [`eth_chainId`] | ✅ |
 [`eth_coinbase`] | ✅ |
 [`eth_compileLLL`] | ❌ | Unsupported.
 [`eth_compileSerpent`] | ❌ | Unsupported.
 [`eth_compileSolidity`] | ❌ | Unsupported.
-[`eth_estimateGas`] | |
+[`eth_estimateGas`] | 🚧 |
 [`eth_gasPrice`] | ✅ |
 [`eth_getBalance`] | ✅ |
-[`eth_getBlockByHash`] | |
-[`eth_getBlockByNumber`] | |
-[`eth_getBlockTransactionCountByHash`] | |
-[`eth_getBlockTransactionCountByNumber`] | |
+[`eth_getBlockByHash`] | 🚧 |
+[`eth_getBlockByNumber`] | 🚧 |
+[`eth_getBlockTransactionCountByHash`] | 🚧 |
+[`eth_getBlockTransactionCountByNumber`] | 🚧 |
 [`eth_getCode`] | ✅ |
 [`eth_getCompilers`] | ✅ |
-[`eth_getFilterChanges`] | |
-[`eth_getFilterLogs`] | |
+[`eth_getFilterChanges`] | 🚧 |
+[`eth_getFilterLogs`] | 🚧 |
 [`eth_getLogs`] | 🚧 |
-[`eth_getProof`] | | EIP-1186
+[`eth_getProof`] | 🚧 | EIP-1186
 [`eth_getStorageAt`] | ✅ |
-[`eth_getTransactionByBlockHashAndIndex`] | |
-[`eth_getTransactionByBlockNumberAndIndex`] | |
-[`eth_getTransactionByHash`] | |
+[`eth_getTransactionByBlockHashAndIndex`] | 🚧 |
+[`eth_getTransactionByBlockNumberAndIndex`] | 🚧 |
+[`eth_getTransactionByHash`] | 🚧 |
 [`eth_getTransactionCount`] | ✅ |
-[`eth_getTransactionReceipt`] | |
-[`eth_getUncleByBlockHashAndIndex`] | |
-[`eth_getUncleByBlockNumberAndIndex`] | |
+[`eth_getTransactionReceipt`] | 🚧 |
+[`eth_getUncleByBlockHashAndIndex`] | 🚧 |
+[`eth_getUncleByBlockNumberAndIndex`] | 🚧 |
 [`eth_getUncleCountByBlockHash`] | ✅ |
 [`eth_getUncleCountByBlockNumber`] | ✅ |
 [`eth_getWork`] | ❌ | Unsupported.
 [`eth_hashrate`] | ✅ |
 [`eth_mining`] | ✅ |
-[`eth_newBlockFilter`] | |
-[`eth_newFilter`] | |
-[`eth_newPendingTransactionFilter`] | |
+[`eth_newBlockFilter`] | 🚧 |
+[`eth_newFilter`] | 🚧 |
+[`eth_newPendingTransactionFilter`] | 🚧 |
 [`eth_pendingTransactions`] | ✅ | [Undocumented](https://github.com/ethereum/go-ethereum/issues/1648#issuecomment-130591933).
 [`eth_protocolVersion`] | ✅ |
-[`eth_sendRawTransaction`] | ✅ |
-[`eth_sendTransaction`] | ✅ |
-[`eth_sign`] | |
-[`eth_signTransaction`] | |
-[`eth_signTypedData`] | | EIP-712
+[`eth_sendRawTransaction`] | 🚧 |
+[`eth_sendTransaction`] | 🚧 |
+[`eth_sign`] | 🚧 |
+[`eth_signTransaction`] | 🚧 |
+[`eth_signTypedData`] | 🚧 | EIP-712
 [`eth_submitHashrate`] | ❌ | Unsupported.
 [`eth_submitWork`] | ❌ | Unsupported.
 [`eth_syncing`] | ✅ |
-[`eth_uninstallFilter`] | |
+[`eth_uninstallFilter`] | 🚧 |
 [`db_getHex`] | ❌ | Deprecated.
 [`db_getString`] | ❌ | Deprecated.
 [`db_putHex`] | ❌ | Deprecated.
