@@ -64,7 +64,7 @@ Method | Status | Notes
 [`eth_compileLLL`] | ❌ | Unsupported.
 [`eth_compileSerpent`] | ❌ | Unsupported.
 [`eth_compileSolidity`] | ❌ | Unsupported.
-[`eth_estimateGas`] | 🚧 |
+[`eth_estimateGas`] | ✅ |
 [`eth_gasPrice`] | ✅ |
 [`eth_getBalance`] | ✅ |
 [`eth_getBlockByHash`] | 🚧 |

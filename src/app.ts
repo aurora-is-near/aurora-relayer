@@ -159,7 +159,10 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
         case 'eth_compileLLL': return unsupported(method);
         case 'eth_compileSerpent': return unsupported(method);
         case 'eth_compileSolidity': return unsupported(method);
-        case 'eth_estimateGas': break; // TODO
+        case 'eth_estimateGas': {
+            expectArgs(params, 1, 2);
+            return '0x0';
+        }
         case 'eth_gasPrice': {
             expectArgs(params, 0, 0);
             return '0x0';
