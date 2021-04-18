@@ -117,8 +117,8 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
             return 'Aurora-Relayer/0.0.0'; // TODO
         }
         case 'web3_sha3': {
-            expectArgs(params, 1, 1);
-            return `0x${Buffer.from(keccakFromHexString(params[0])).toString('hex')}`;
+            const [input] = expectArgs(params, 1, 1);
+            return `0x${Buffer.from(keccakFromHexString(input)).toString('hex')}`;
         }
 
         // net_*
@@ -168,27 +168,29 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
             return '0x0';
         }
         case 'eth_getBalance': {
-            expectArgs(params, 1, 2);
-            const balance = (await engine.getBalance(params[0])).unwrap();
+            const [address] = expectArgs(params, 1, 2);
+            const balance = (await engine.getBalance(address)).unwrap();
             return `0x${balance.toString(16)}`;
         }
         case 'eth_getBlockByHash': break; // TODO
         case 'eth_getBlockByNumber': break; // TODO
         case 'eth_getBlockTransactionCountByHash': {
-            const blockHash = hexToBase58(params[0]);
+            const [blockID] = expectArgs(params, 1, 1);
+            const blockHash = blockID.startsWith('0x') ? hexToBase58(blockID) : blockID;
             const result = await engine.getBlockTransactionCount(blockHash);
             if (result.isErr()) return null;
             return `0x${result.unwrap().toString(16)}`;
         }
         case 'eth_getBlockTransactionCountByNumber': {
-            const blockHeight = parseInt(params[0], 16); // TODO: "latest", etc
+            const [blockID] = expectArgs(params, 1, 1);
+            const blockHeight = blockID.startsWith('0x') ? parseInt(params[0], 16) : blockID;
             const result = await engine.getBlockTransactionCount(blockHeight);
             if (result.isErr()) return null;
             return `0x${result.unwrap().toString(16)}`;
         }
         case 'eth_getCode': {
-            expectArgs(params, 1, 2);
-            const code = (await engine.getCode(params[0])).unwrap();
+            const [address] = expectArgs(params, 1, 2);
+            const code = (await engine.getCode(address)).unwrap();
             return `0x${Buffer.from(code).toString('hex')}`;
         }
         case 'eth_getCompilers': {
@@ -200,16 +202,16 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
         case 'eth_getLogs': break; // TODO
         case 'eth_getProof': return unsupported(method); // EIP-1186 TODO?
         case 'eth_getStorageAt': {
-            expectArgs(params, 1, 3);
-            const result = (await engine.getStorageAt(params[0], params[1])).unwrap();
+            const [address, key] = expectArgs(params, 1, 3);
+            const result = (await engine.getStorageAt(address, key)).unwrap();
             return formatU256(result);
         }
         case 'eth_getTransactionByBlockHashAndIndex': break; // TODO
         case 'eth_getTransactionByBlockNumberAndIndex': break; // TODO
         case 'eth_getTransactionByHash': break; // TODO
         case 'eth_getTransactionCount': {
-            expectArgs(params, 1, 2, "cannot request transaction count without specifying address");
-            const nonce = (await engine.getNonce(params[0])).unwrap();
+            const [address] = expectArgs(params, 1, 2, "cannot request transaction count without specifying address");
+            const nonce = (await engine.getNonce(address)).unwrap();
             return `0x${nonce.toString(16)}`;
         }
         case 'eth_getTransactionReceipt': break; // TODO

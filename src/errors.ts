@@ -7,10 +7,13 @@ export function unimplemented(method: string): void {
     throw new UnimplementedMethod(method);
 }
 
-export function expectArgs(args: any[] | undefined, min: number, max: number, minMsg?: string): void {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function expectArgs(args: any[] | undefined, min: number, max: number, minMsg?: string): any[] {
     if (args && args.length < min) throw new MissingArgument(min - 1, minMsg);
     if (args && args.length > max) throw new TooManyArguments(max);
     //if (args.length > max) throw new InvalidArguments();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return args as any[];
 }
 
 export abstract class CodedError extends Error {
