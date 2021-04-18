@@ -185,10 +185,10 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
             expectArgs(params, 0, 0);
             return [];
         }
-        case 'eth_getFilterChanges': break; // TODO
-        case 'eth_getFilterLogs': break; // TODO
+        case 'eth_getFilterChanges': return unimplemented(method); // TODO
+        case 'eth_getFilterLogs': return unimplemented(method); // TODO
         case 'eth_getLogs': break; // TODO
-        case 'eth_getProof': break; // EIP-1186 TODO
+        case 'eth_getProof': return unsupported(method); // EIP-1186 TODO?
         case 'eth_getStorageAt': {
             expectArgs(params, 1, 3);
             const result = (await engine.getStorageAt(params[0], params[1])).unwrap();
@@ -203,14 +203,14 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
             return `0x${nonce.toString(16)}`;
         }
         case 'eth_getTransactionReceipt': break; // TODO
-        case 'eth_getUncleByBlockHashAndIndex': break; // TODO
-        case 'eth_getUncleByBlockNumberAndIndex': break; // TODO
+        case 'eth_getUncleByBlockHashAndIndex': return unimplemented(method); // TODO
+        case 'eth_getUncleByBlockNumberAndIndex': return unimplemented(method); // TODO
         case 'eth_getUncleCountByBlockHash': {
-            expectArgs(params, 0, 0);
+            expectArgs(params, 1, 1);
             return '0x0';
         }
         case 'eth_getUncleCountByBlockNumber': {
-            expectArgs(params, 0, 0);
+            expectArgs(params, 1, 1);
             return '0x0';
         }
         case 'eth_getWork': return unsupported(method);
@@ -235,8 +235,8 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
         }
         case 'eth_sendRawTransaction': break; // TODO
         case 'eth_sendTransaction': break; // TODO
-        case 'eth_sign': break; // TODO
-        case 'eth_signTransaction': break; // TODO
+        case 'eth_sign': return unimplemented(method); // TODO
+        case 'eth_signTransaction': return unimplemented(method); // TODO
         case 'eth_signTypedData': break; // EIP-712 TODO
         case 'eth_submitHashrate': return unsupported(method);
         case 'eth_submitWork': return unsupported(method);
@@ -244,7 +244,7 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
             expectArgs(params, 0, 0);
             return false;
         }
-        case 'eth_uninstallFilter': return unimplemented(method);
+        case 'eth_uninstallFilter': return unimplemented(method); // TODO
 
         // near_*
         case 'near_retrieveNear': break;

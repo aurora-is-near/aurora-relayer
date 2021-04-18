@@ -76,7 +76,7 @@ Method | Status | Notes
 [`eth_getFilterChanges`] | 🚧 |
 [`eth_getFilterLogs`] | 🚧 |
 [`eth_getLogs`] | 🚧 |
-[`eth_getProof`] | 🚧 | EIP-1186
+[`eth_getProof`] | ❌ | EIP-1186
 [`eth_getStorageAt`] | ✅ |
 [`eth_getTransactionByBlockHashAndIndex`] | 🚧 |
 [`eth_getTransactionByBlockNumberAndIndex`] | 🚧 |
