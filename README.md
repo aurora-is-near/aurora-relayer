@@ -69,7 +69,7 @@ Method | Status | Notes
 [`eth_getBalance`] | ✅ |
 [`eth_getBlockByHash`] | 🚧 |
 [`eth_getBlockByNumber`] | 🚧 |
-[`eth_getBlockTransactionCountByHash`] | 🚧 |
+[`eth_getBlockTransactionCountByHash`] | ✅ |
 [`eth_getBlockTransactionCountByNumber`] | ✅ |
 [`eth_getCode`] | ✅ |
 [`eth_getCompilers`] | ✅ |
