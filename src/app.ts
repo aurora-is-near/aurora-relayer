@@ -172,8 +172,20 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
             const balance = (await engine.getBalance(address)).unwrap();
             return `0x${balance.toString(16)}`;
         }
-        case 'eth_getBlockByHash': break; // TODO
-        case 'eth_getBlockByNumber': break; // TODO
+        case 'eth_getBlockByHash': {
+            const [blockID, _fullObject] = expectArgs(params, 1, 2);
+            const blockHash = blockID.startsWith('0x') ? hexToBase58(blockID) : blockID;
+            const result = await engine.getBlock(blockHash);
+            if (result.isErr()) return null;
+            return result.unwrap().toJSON();
+        }
+        case 'eth_getBlockByNumber': {
+            const [blockID, _fullObject] = expectArgs(params, 1, 2);
+            const blockHeight = blockID.startsWith('0x') ? parseInt(blockID, 16) : blockID;
+            const result = await engine.getBlock(blockHeight);
+            if (result.isErr()) return null;
+            return result.unwrap().toJSON();
+        }
         case 'eth_getBlockTransactionCountByHash': {
             const [blockID] = expectArgs(params, 1, 1);
             const blockHash = blockID.startsWith('0x') ? hexToBase58(blockID) : blockID;

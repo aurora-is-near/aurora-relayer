@@ -67,8 +67,8 @@ Method | Status | Notes
 [`eth_estimateGas`] | ✅ |
 [`eth_gasPrice`] | ✅ |
 [`eth_getBalance`] | ✅ |
-[`eth_getBlockByHash`] | 🚧 |
-[`eth_getBlockByNumber`] | 🚧 |
+[`eth_getBlockByHash`] | ✅ |
+[`eth_getBlockByNumber`] | ✅ |
 [`eth_getBlockTransactionCountByHash`] | ✅ |
 [`eth_getBlockTransactionCountByNumber`] | ✅ |
 [`eth_getCode`] | ✅ |
