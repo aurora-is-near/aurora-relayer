@@ -47,7 +47,7 @@ function errorCode(error: Error) {
     return -32000;
 }
 
-export function createApp(options: any, provider: NearProvider) {
+export async function createApp(options: any, engine: any, provider: NearProvider) {
     const app = express()
     app.use(bodyParser.json({ type: 'application/json' }));
     app.use(cors());
@@ -57,7 +57,7 @@ export function createApp(options: any, provider: NearProvider) {
         const data = req.body;
         // TODO: validate data input is correct JSON RPC.
         try {
-            const result = await routeRPC(provider, data.method, data.params);
+            const result = await routeRPC(provider, engine, data.method, data.params);
             if (options.debug) {
                 console.log(data, req.params);
                 console.log(result);
@@ -108,8 +108,7 @@ export function createApp(options: any, provider: NearProvider) {
     return app;
 }
 
-export async function routeRPC(provider: NearProvider, method: string, params: any[]): Promise<any> {
-    const engine = await Engine.connect({}, process.env);
+export async function routeRPC(provider: NearProvider, engine: Engine, method: string, params: any[]): Promise<any> {
     //console.log(method, params); // DEBUG
     switch (method) {
         // web3_*

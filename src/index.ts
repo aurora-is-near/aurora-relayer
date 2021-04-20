@@ -3,7 +3,7 @@
 
 import { createApp } from './app.js';
 
-import { ConnectEnv, NETWORKS } from '@aurora-is-near/engine';
+import { ConnectEnv, Engine, NETWORKS } from '@aurora-is-near/engine';
 import { program } from 'commander';
 import nearProvider from 'near-web3-provider';
 
@@ -42,16 +42,23 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
   if (options.debug) console.log(options);
 
   const network = NETWORKS.get(options.network)!;
+  const engine = await Engine.connect({
+    network: network.id,
+    endpoint: options.endpoint || network.nearEndpoint,
+    contract: options.engine || network.contractID,
+    signer: options.signer,
+  }, env);
   const provider = new nearProvider.NearProvider({
-    nodeUrl: options.endpoint || network.nearEndpoint,
     networkId: network.id,
+    nodeUrl: options.endpoint || network.nearEndpoint,
     evmAccountId: options.engine || network.contractID,
-    masterAccountId: options.signer || 'test.near',
+    masterAccountId: options.signer,
     keyPath: (network.id == 'local') && '~/.near/validator_key.json',
   });
 
   const port = parseInt(options.port);
-  createApp(options, provider).listen(port, () => {
+  const app = await createApp(options, engine, provider);
+  app.listen(port, () => {
     console.log(`Web3 JSON-RPC proxy for the NEAR ${network.label} listening at http://localhost:${port}...`)
   });
 }
