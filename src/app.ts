@@ -5,7 +5,7 @@ import { exit } from 'process';
 import nearProvider from 'near-web3-provider';
 import { validateEIP712, encodeMetaCall } from './eip-712-helpers.js';
 import { keccakFromHexString } from 'ethereumjs-util';
-import { Engine, formatU256, hexToBase58 } from '@aurora-is-near/engine';
+import { BlockOptions, Engine, formatU256, hexToBase58 } from '@aurora-is-near/engine';
 import * as errors from './errors.js';
 import { expectArgs, unsupported, unimplemented } from './errors.js';
 
@@ -173,16 +173,18 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
             return `0x${balance.toString(16)}`;
         }
         case 'eth_getBlockByHash': {
-            const [blockID, _fullObject] = expectArgs(params, 1, 2);
+            const [blockID, fullObject] = expectArgs(params, 1, 2);
             const blockHash = blockID.startsWith('0x') ? hexToBase58(blockID) : blockID;
-            const result = await engine.getBlock(blockHash);
+            const options = { transactions: fullObject ? 'full' : 'id' } as BlockOptions;
+            const result = await engine.getBlock(blockHash, options);
             if (result.isErr()) return null;
             return result.unwrap().toJSON();
         }
         case 'eth_getBlockByNumber': {
-            const [blockID, _fullObject] = expectArgs(params, 1, 2);
+            const [blockID, fullObject] = expectArgs(params, 1, 2);
             const blockHeight = blockID.startsWith('0x') ? parseInt(blockID, 16) : blockID;
-            const result = await engine.getBlock(blockHeight);
+            const options: BlockOptions = { transactions: fullObject ? 'full' : 'id' } as BlockOptions;
+            const result = await engine.getBlock(blockHeight, options);
             if (result.isErr()) return null;
             return result.unwrap().toJSON();
         }
