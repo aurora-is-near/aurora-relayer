@@ -221,7 +221,7 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
         }
         case 'eth_getBlockTransactionCountByNumber': {
             const [blockID] = expectArgs(params, 1, 1);
-            const blockHeight = blockID.startsWith('0x') ? parseInt(params[0], 16) : blockID;
+            const blockHeight = blockID.startsWith('0x') ? parseInt(blockID, 16) : blockID;
             const result = await engine.getBlockTransactionCount(blockHeight);
             if (result.isErr()) return null;
             return `0x${result.unwrap().toString(16)}`;
@@ -253,15 +253,25 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
             return `0x${nonce.toString(16)}`;
         }
         case 'eth_getTransactionReceipt': break; // TODO
-        case 'eth_getUncleByBlockHashAndIndex': return unimplemented(method); // TODO
-        case 'eth_getUncleByBlockNumberAndIndex': return unimplemented(method); // TODO
+        case 'eth_getUncleByBlockHashAndIndex': {
+            expectArgs(params, 2, 2);
+            return null; // uncle blocks are never found
+        }
+        case 'eth_getUncleByBlockNumberAndIndex': {
+            expectArgs(params, 2, 2);
+            return null; // uncle blocks are never found
+        }
         case 'eth_getUncleCountByBlockHash': {
-            expectArgs(params, 1, 1);
-            return '0x0';
+            const [blockID] = expectArgs(params, 1, 1);
+            const blockHash = blockID.startsWith('0x') ? hexToBase58(blockID) : blockID;
+            const result = await engine.hasBlock(blockHash);
+            return result && result.isOk() ? '0x0' : null;
         }
         case 'eth_getUncleCountByBlockNumber': {
-            expectArgs(params, 1, 1);
-            return '0x0';
+            const [blockID] = expectArgs(params, 1, 1);
+            const blockHeight = blockID.startsWith('0x') ? parseInt(blockID, 16) : blockID;
+            const result = await engine.hasBlock(blockHeight);
+            return result && result.isOk() ? '0x0' : null;
         }
         case 'eth_getWork': return unsupported(method);
         case 'eth_hashrate': {

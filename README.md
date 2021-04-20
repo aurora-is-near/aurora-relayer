@@ -83,8 +83,8 @@ Method | Status | Notes
 [`eth_getTransactionByHash`] | 🚧 |
 [`eth_getTransactionCount`] | ✅ |
 [`eth_getTransactionReceipt`] | 🚧 |
-[`eth_getUncleByBlockHashAndIndex`] | 🚧 |
-[`eth_getUncleByBlockNumberAndIndex`] | 🚧 |
+[`eth_getUncleByBlockHashAndIndex`] | ✅ |
+[`eth_getUncleByBlockNumberAndIndex`] | ✅ |
 [`eth_getUncleCountByBlockHash`] | ✅ |
 [`eth_getUncleCountByBlockNumber`] | ✅ |
 [`eth_getWork`] | ❌ | Unsupported.
