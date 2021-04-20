@@ -61,9 +61,9 @@ Method | Status | Notes
 [`eth_call`] | 🚧 |
 [`eth_chainId`] | ✅ |
 [`eth_coinbase`] | ✅ |
-[`eth_compileLLL`] | ❌ | Unsupported.
-[`eth_compileSerpent`] | ❌ | Unsupported.
-[`eth_compileSolidity`] | ❌ | Unsupported.
+[`eth_compileLLL`] | ❌ | Unsupported
+[`eth_compileSerpent`] | ❌ | Unsupported
+[`eth_compileSolidity`] | ❌ | Unsupported
 [`eth_estimateGas`] | ✅ |
 [`eth_gasPrice`] | ✅ |
 [`eth_getBalance`] | ✅ |
@@ -87,37 +87,37 @@ Method | Status | Notes
 [`eth_getUncleByBlockNumberAndIndex`] | ✅ |
 [`eth_getUncleCountByBlockHash`] | ✅ |
 [`eth_getUncleCountByBlockNumber`] | ✅ |
-[`eth_getWork`] | ❌ | Unsupported.
+[`eth_getWork`] | ❌ | Unsupported
 [`eth_hashrate`] | ✅ |
 [`eth_mining`] | ✅ |
 [`eth_newBlockFilter`] | 🚧 |
 [`eth_newFilter`] | 🚧 |
 [`eth_newPendingTransactionFilter`] | 🚧 |
-[`eth_pendingTransactions`] | ✅ | [Undocumented](https://github.com/ethereum/go-ethereum/issues/1648#issuecomment-130591933).
+[`eth_pendingTransactions`] | ✅ | [Undocumented](https://github.com/ethereum/go-ethereum/issues/1648#issuecomment-130591933)
 [`eth_protocolVersion`] | ✅ |
 [`eth_sendRawTransaction`] | 🚧 |
 [`eth_sendTransaction`] | 🚧 |
 [`eth_sign`] | 🚧 |
 [`eth_signTransaction`] | 🚧 |
 [`eth_signTypedData`] | 🚧 | EIP-712
-[`eth_submitHashrate`] | ❌ | Unsupported.
-[`eth_submitWork`] | ❌ | Unsupported.
+[`eth_submitHashrate`] | ❌ | Unsupported
+[`eth_submitWork`] | ❌ | Unsupported
 [`eth_syncing`] | ✅ |
 [`eth_uninstallFilter`] | 🚧 |
-[`db_getHex`] | ❌ | Deprecated.
-[`db_getString`] | ❌ | Deprecated.
-[`db_putHex`] | ❌ | Deprecated.
-[`db_putString`] | ❌ | Deprecated.
-[`shh_addToGroup`] | ❌ | Discontinued.
-[`shh_getFilterChanges`] | ❌ | Discontinued.
-[`shh_getMessages`] | ❌ | Discontinued.
-[`shh_hasIdentity`] | ❌ | Discontinued.
-[`shh_newFilter`] | ❌ | Discontinued.
-[`shh_newGroup`] | ❌ | Discontinued.
-[`shh_newIdentity`] | ❌ | Discontinued.
-[`shh_post`] | ❌ | Discontinued.
-[`shh_uninstallFilter`] | ❌ | Discontinued.
-[`shh_version`] | ❌ | Discontinued.
+[`db_getHex`] | ❌ | Deprecated
+[`db_getString`] | ❌ | Deprecated
+[`db_putHex`] | ❌ | Deprecated
+[`db_putString`] | ❌ | Deprecated
+[`shh_addToGroup`] | ❌ | Discontinued
+[`shh_getFilterChanges`] | ❌ | Discontinued
+[`shh_getMessages`] | ❌ | Discontinued
+[`shh_hasIdentity`] | ❌ | Discontinued
+[`shh_newFilter`] | ❌ | Discontinued
+[`shh_newGroup`] | ❌ | Discontinued
+[`shh_newIdentity`] | ❌ | Discontinued
+[`shh_post`] | ❌ | Discontinued
+[`shh_uninstallFilter`] | ❌ | Discontinued
+[`shh_version`] | ❌ | Discontinued
 
 **Legend**: ❌ = not supported. 🚧 = work in progress. ✅ = supported.
 
