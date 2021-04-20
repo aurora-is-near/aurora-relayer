@@ -49,7 +49,7 @@
   "dependencies": {
     "@aurora-is-near/engine": "git://github.com/aurora-is-near/aurora.js#e25e60a",
     "@types/ethereumjs-util": "^6.1.0",
-    "@types/yargs": "^16.0.1",
+    "commander": "^7.2.0",
     "cors": "^2.8.5",
     "eth-sig-util": "^3.0.0",
     "ethereumjs-abi": "^0.6.8",
@@ -59,8 +59,7 @@
     "near-web3-provider": "https://github.com/aurora-is-near/near-web3-provider",
     "rlp": "^2.2.6",
     "supertest": "^6.0.1",
-    "ts-jest": "^26.4.4",
-    "yargs": "^16.2.0"
+    "ts-jest": "^26.4.4"
   },
   "devDependencies": {
     "@tsconfig/node14": "^1.0.0",
@@ -68,7 +67,7 @@
     "@types/cors": "^2.8.10",
     "@types/express": "^4.17.9",
     "@types/jest": "^26.0.22",
-    "@types/node": "^14.14.16",
+    "@types/node": "^14.14.37",
     "@types/supertest": "^2.0.11",
     "@typescript-eslint/eslint-plugin": "^4.22.0",
     "@typescript-eslint/parser": "^4.22.0",

@@ -1,13 +1,16 @@
-import express from 'express';
-import bodyParser from 'body-parser';
-import cors from 'cors';
-import { exit } from 'process';
-import nearProvider from 'near-web3-provider';
+/* This is free and unencumbered software released into the public domain. */
+
 import { validateEIP712, encodeMetaCall } from './eip-712-helpers.js';
-import { keccakFromHexString } from 'ethereumjs-util';
-import { AccountID, BlockOptions, Engine, formatU256, hexToBase58, intToHex } from '@aurora-is-near/engine';
 import * as errors from './errors.js';
 import { expectArgs, unsupported, unimplemented } from './errors.js';
+
+import { AccountID, BlockOptions, Engine, formatU256, hexToBase58, intToHex } from '@aurora-is-near/engine';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import { keccakFromHexString } from 'ethereumjs-util';
+import express from 'express';
+import nearProvider from 'near-web3-provider';
+//import { exit } from 'process';
 
 interface NearProvider {
     networkId: string;
@@ -44,7 +47,7 @@ function errorCode(error: Error) {
     return -32000;
 }
 
-export function createApp(argv: any, provider: NearProvider) {
+export function createApp(options: any, provider: NearProvider) {
     const app = express()
     app.use(bodyParser.json({ type: 'application/json' }));
     app.use(cors());
@@ -55,19 +58,17 @@ export function createApp(argv: any, provider: NearProvider) {
         // TODO: validate data input is correct JSON RPC.
         try {
             const result = await routeRPC(provider, data.method, data.params);
-            if (argv.noisy) {
+            if (options.debug) {
                 console.log(data, req.params);
                 console.log(result);
             }
             res.send(response(data.id, result, null));
         } catch (error) {
-            if (argv.failHard || argv.noisy) {
+            if (options.debug) {
                 console.error(data, req.params);
                 console.error(data, error);
             }
-            if (argv.failHard) {
-                exit(0);
-            }
+            // if (argv.failHard) exit(0);
             res.send(response(data.id, null, {
                 code: errorCode(error),
                 message: error.message,
@@ -91,7 +92,7 @@ export function createApp(argv: any, provider: NearProvider) {
                 '10000000000000',
                 '0'
             );
-            if (argv.noisy) {
+            if (options.verbose) {
                 console.log(data.data, data.signature);
                 console.log(result);
             }

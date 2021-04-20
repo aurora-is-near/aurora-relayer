@@ -1,3 +1,4 @@
+/* This is free and unencumbered software released into the public domain. */
 
 export function unsupported(method: string): void {
     throw new UnsupportedMethod(method);
