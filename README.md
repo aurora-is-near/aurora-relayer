@@ -78,8 +78,8 @@ Method | Status | Notes
 [`eth_getLogs`] | 🚧 |
 [`eth_getProof`] | ❌ | EIP-1186
 [`eth_getStorageAt`] | ✅ |
-[`eth_getTransactionByBlockHashAndIndex`] | 🚧 |
-[`eth_getTransactionByBlockNumberAndIndex`] | 🚧 |
+[`eth_getTransactionByBlockHashAndIndex`] | ✅ |
+[`eth_getTransactionByBlockNumberAndIndex`] | ✅ |
 [`eth_getTransactionByHash`] | 🚧 |
 [`eth_getTransactionCount`] | ✅ |
 [`eth_getTransactionReceipt`] | 🚧 |
