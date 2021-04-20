@@ -5,7 +5,7 @@ import { exit } from 'process';
 import nearProvider from 'near-web3-provider';
 import { validateEIP712, encodeMetaCall } from './eip-712-helpers.js';
 import { keccakFromHexString } from 'ethereumjs-util';
-import { BlockOptions, Engine, formatU256, hexToBase58 } from '@aurora-is-near/engine';
+import { AccountID, BlockOptions, Engine, formatU256, hexToBase58, intToHex } from '@aurora-is-near/engine';
 import * as errors from './errors.js';
 import { expectArgs, unsupported, unimplemented } from './errors.js';
 
@@ -175,18 +175,42 @@ export async function routeRPC(provider: NearProvider, method: string, params: a
         case 'eth_getBlockByHash': {
             const [blockID, fullObject] = expectArgs(params, 1, 2);
             const blockHash = blockID.startsWith('0x') ? hexToBase58(blockID) : blockID;
-            const options = { transactions: fullObject ? 'full' : 'id' } as BlockOptions;
+            const options: BlockOptions = {
+                contractID: AccountID.parse('aurora.test.near').unwrap(), // FIXME
+                transactions: fullObject ? 'full' : 'id',
+            };
             const result = await engine.getBlock(blockHash, options);
             if (result.isErr()) return null;
-            return result.unwrap().toJSON();
+            const block = result.unwrap();
+            const response = block.toJSON();
+            if (fullObject) {
+                response.transactions.forEach((tx: any, i: number) => {
+                    tx.blockHash = block.hash;
+                    tx.blockNumber = intToHex(block.number);
+                    tx.transactionIndex = intToHex(i);
+                });
+            }
+            return response;
         }
         case 'eth_getBlockByNumber': {
             const [blockID, fullObject] = expectArgs(params, 1, 2);
             const blockHeight = blockID.startsWith('0x') ? parseInt(blockID, 16) : blockID;
-            const options: BlockOptions = { transactions: fullObject ? 'full' : 'id' } as BlockOptions;
+            const options: BlockOptions = {
+                contractID: AccountID.parse('aurora.test.near').unwrap(), // FIXME
+                transactions: fullObject ? 'full' : 'id',
+            };
             const result = await engine.getBlock(blockHeight, options);
             if (result.isErr()) return null;
-            return result.unwrap().toJSON();
+            const block = result.unwrap();
+            const response = block.toJSON();
+            if (fullObject) {
+                response.transactions.forEach((tx: any, i: number) => {
+                    tx.blockHash = block.hash;
+                    tx.blockNumber = intToHex(block.number);
+                    tx.transactionIndex = intToHex(i);
+                });
+            }
+            return response;
         }
         case 'eth_getBlockTransactionCountByHash': {
             const [blockID] = expectArgs(params, 1, 1);
