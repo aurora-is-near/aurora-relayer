@@ -55,6 +55,7 @@
     "ethereumjs-util": "^7.0.10",
     "express": "^4.17.1",
     "express-rate-limit": "^5.2.6",
+    "helmet": "^4.5.0",
     "jest": "^26.6.3",
     "near-web3-provider": "https://github.com/aurora-is-near/near-web3-provider",
     "rlp": "^2.2.6",

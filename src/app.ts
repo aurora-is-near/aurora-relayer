@@ -10,6 +10,7 @@ import cors from 'cors';
 import { keccakFromHexString } from 'ethereumjs-util';
 import express from 'express';
 import expressRateLimit from 'express-rate-limit';
+import helmet from 'helmet';
 import nearProvider from 'near-web3-provider';
 //import { exit } from 'process';
 
@@ -50,8 +51,10 @@ function errorCode(error: Error) {
 
 export async function createApp(options: any, engine: any, provider: NearProvider) {
     const app = express();
+    app.disable('x-powered-by');
     app.use(bodyParser.json({ type: 'application/json' }));
     app.use(cors());
+    app.use(helmet.noSniff()); // X-Content-Type-Options: nosniff
 
     app.use(expressRateLimit({
         windowMs: 60 * 1000, // 1 minute
