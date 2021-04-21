@@ -9,6 +9,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import { keccakFromHexString } from 'ethereumjs-util';
 import express from 'express';
+import expressRateLimit from 'express-rate-limit';
 import nearProvider from 'near-web3-provider';
 //import { exit } from 'process';
 
@@ -51,6 +52,18 @@ export async function createApp(options: any, engine: any, provider: NearProvide
     const app = express();
     app.use(bodyParser.json({ type: 'application/json' }));
     app.use(cors());
+
+    app.use(expressRateLimit({
+        windowMs: 60 * 1000, // 1 minute
+        max: 60,
+        headers: false,
+        draft_polli_ratelimit_headers: true,
+        handler: (req, res) => {
+            res.status(429)
+                .set('Content-Type', 'text/plain')
+                .send("Too many requests, please try again later.");
+        },
+    }));
 
     app.post('/', async (req, res) => {
         res.header('Content-Type', 'application/json');

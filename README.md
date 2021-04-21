@@ -22,7 +22,7 @@ npm install
 To run the proxy server, first start [nearcore] and then execute:
 
 ```bash
-npm run start
+npm start
 ```
 
 [nearcore]: https://docs.near.org/docs/community/contribute/contribute-nearcore
@@ -32,7 +32,7 @@ npm run start
 To run the proxy server, replace `you.betanet` with your BetaNet account:
 
 ```bash
-NEAR_ENV=betanet NEAR_MASTER_ACCOUNT=you.betanet npm run start
+NEAR_ENV=betanet NEAR_MASTER_ACCOUNT=you.betanet npm start
 ```
 
 ### Endpoint URL
@@ -46,6 +46,8 @@ http post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_blockNumber params:=
 ```
 
 [HTTPie]: https://httpie.io
+
+## Configuration
 
 ## Status
 
