@@ -4,7 +4,7 @@ import { validateEIP712, encodeMetaCall } from './eip-712-helpers.js';
 import * as errors from './errors.js';
 import { expectArgs, unsupported, unimplemented } from './errors.js';
 
-import { AccountID, BlockOptions, Engine, formatU256, hexToBase58, intToHex } from '@aurora-is-near/engine';
+import { BlockOptions, Engine, formatU256, hexToBase58, intToHex } from '@aurora-is-near/engine';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import { keccakFromHexString } from 'ethereumjs-util';
@@ -176,7 +176,7 @@ export async function routeRPC(provider: NearProvider, engine: Engine, method: s
             const [blockID, fullObject] = expectArgs(params, 1, 2);
             const blockHash = blockID.startsWith('0x') ? hexToBase58(blockID) : blockID;
             const options: BlockOptions = {
-                contractID: AccountID.parse('aurora.test.near').unwrap(), // FIXME
+                contractID: engine.contractID,
                 transactions: fullObject ? 'full' : 'id',
             };
             const result = await engine.getBlock(blockHash, options);
@@ -196,7 +196,7 @@ export async function routeRPC(provider: NearProvider, engine: Engine, method: s
             const [blockID, fullObject] = expectArgs(params, 1, 2);
             const blockHeight = blockID.startsWith('0x') ? parseInt(blockID, 16) : blockID;
             const options: BlockOptions = {
-                contractID: AccountID.parse('aurora.test.near').unwrap(), // FIXME
+                contractID: engine.contractID,
                 transactions: fullObject ? 'full' : 'id',
             };
             const result = await engine.getBlock(blockHeight, options);
@@ -249,7 +249,7 @@ export async function routeRPC(provider: NearProvider, engine: Engine, method: s
             const blockHash = blockID.startsWith('0x') ? hexToBase58(blockID) : blockID;
             const transactionIndex = parseInt(transactionIdx, 16);
             const options: BlockOptions = {
-                contractID: AccountID.parse('aurora.test.near').unwrap(), // FIXME
+                contractID: engine.contractID,
                 transactions: 'full',
             };
             const result = await engine.getBlock(blockHash, options);
@@ -270,7 +270,7 @@ export async function routeRPC(provider: NearProvider, engine: Engine, method: s
             const blockHeight = blockID.startsWith('0x') ? parseInt(blockID, 16) : blockID;
             const transactionIndex = parseInt(transactionIdx, 16);
             const options: BlockOptions = {
-                contractID: AccountID.parse('aurora.test.near').unwrap(), // FIXME
+                contractID: engine.contractID,
                 transactions: 'full',
             };
             const result = await engine.getBlock(blockHeight, options);
