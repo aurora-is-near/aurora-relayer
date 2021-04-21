@@ -48,7 +48,7 @@ function errorCode(error: Error) {
 }
 
 export async function createApp(options: any, engine: any, provider: NearProvider) {
-    const app = express()
+    const app = express();
     app.use(bodyParser.json({ type: 'application/json' }));
     app.use(cors());
 
