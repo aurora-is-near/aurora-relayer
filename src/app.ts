@@ -2,6 +2,7 @@
 
 import { validateEIP712, encodeMetaCall } from './eip-712-helpers.js';
 import { CodedError } from './errors.js';
+import { requestID } from './middleware.js';
 import { Server } from './server.js';
 
 import { Engine } from '@aurora-is-near/engine';
@@ -50,6 +51,7 @@ export async function createApp(options: any, engine: Engine, provider: NearProv
     app.use(cors());
     app.use(helmet.noSniff()); // X-Content-Type-Options: nosniff
 
+    app.use(requestID());
     app.use(expressRateLimit({
         windowMs: 60 * 1000, // 1 minute
         max: 60,
