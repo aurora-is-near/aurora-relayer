@@ -97,10 +97,13 @@ export async function createApp(options: any, engine: Engine, provider: NearProv
 }
 
 class Method extends jayson.Method {
+    public readonly server;
+
     constructor(
         public handler?: jayson.MethodHandlerType,
-        public options?: jayson.MethodOptions) {
-            super(handler, options);
+        options?: jayson.MethodOptions) {
+            super(handler, {});
+            this.server = options?.useContext as any; // HACK
         }
 
     getHandler(): jayson.MethodHandlerType {
@@ -112,14 +115,16 @@ class Method extends jayson.Method {
     }
 
     execute(server: jayson.Server, requestParams: jayson.RequestParamsLike, _context: any, callback: jayson.JSONRPCCallbackType): any {
-        try {
-            const result = (this.handler as any).call(this, ...((requestParams || []) as any[]));
-            return (callback as any)(undefined, result);
-        } catch (error) {
-            console.error(error);
-            const errorCode = (error instanceof CodedError) ? error.code : -32000;
-            return (callback as any)(server.error(errorCode, error.message));
-        }
+        const args = (requestParams || []) as any[];
+        const result: Promise<any> = (this.handler as any).call(this.server, ...args);
+        result
+            .then((value: any) => (callback as any)(undefined, value))
+            .catch((error: any) => {
+                console.error(error);
+                const errorCode = (error instanceof CodedError) ? error.code : -32000;
+                return (callback as any)(server.error(errorCode, error.message));
+            });
+        return null;
     }
 }
 
@@ -131,5 +136,6 @@ function createServer(options: any, engine: Engine, provider: NearProvider): con
         .filter((id: string) => id !== 'constructor')
         .map((id: string) => [id, (server as any)[id]]);
     const methodMap: MethodMap = Object.fromEntries(methodList);
-    return (new jayson.Server(methodMap, { methodConstructor: Method })).middleware();
+    const jaysonServer = new jayson.Server(methodMap, { methodConstructor: Method, useContext: server as any });
+    return jaysonServer.middleware();
 }
