@@ -97,7 +97,7 @@ Method | Status | Notes
 [`eth_newPendingTransactionFilter`] | 🚧 |
 [`eth_pendingTransactions`] | ✅ | [Undocumented](https://github.com/ethereum/go-ethereum/issues/1648#issuecomment-130591933)
 [`eth_protocolVersion`] | ✅ |
-[`eth_sendRawTransaction`] | 🚧 |
+[`eth_sendRawTransaction`] | ✅ |
 [`eth_sendTransaction`] | 🚧 |
 [`eth_sign`] | 🚧 |
 [`eth_signTransaction`] | 🚧 |

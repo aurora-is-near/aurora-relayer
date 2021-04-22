@@ -315,7 +315,8 @@ export class Server implements Service {
     }
 
     async eth_sendRawTransaction(transaction: Data): Promise<Data> {
-        return await (this.provider as any).routeRPC('eth_sendRawTransaction', [transaction]); // TODO
+        const output = (await this.engine.rawCall(transaction)).unwrap();
+        return `0x${output ? Buffer.from(output).toString('hex') : ''}`;
     }
 
     async eth_sendTransaction(transaction: TransactionForSend): Promise<Data> {
