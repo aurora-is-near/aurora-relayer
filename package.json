@@ -17,10 +17,12 @@
     "lib/index.d.ts",
     "lib/app.js",
     "lib/app.d.ts",
+    "lib/eip-712-helpers.js",
+    "lib/eip-712-helpers.d.ts",
     "lib/errors.js",
     "lib/errors.d.ts",
-    "lib/eip-712-helpers.js",
-    "lib/eip-712-helpers.d.ts"
+    "lib/server.js",
+    "lib/server.d.ts"
   ],
   "bin": {
     "aurora-relayer": "lib/index.js"
@@ -56,6 +58,7 @@
     "express": "^4.17.1",
     "express-rate-limit": "^5.2.6",
     "helmet": "^4.5.0",
+    "jayson": "git://github.com/aurora-is-near/jayson#d4bd9da",
     "jest": "^26.6.3",
     "near-web3-provider": "https://github.com/aurora-is-near/near-web3-provider",
     "rlp": "^2.2.6",

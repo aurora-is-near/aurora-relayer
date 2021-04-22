@@ -16,6 +16,5 @@ interface NearProvider {
     walletUrl: string;
     explorerUrl: string;
 }
-export declare function createApp(options: any, engine: any, provider: NearProvider): Promise<import("express-serve-static-core").Express>;
-export declare function routeRPC(provider: NearProvider, engine: Engine, method: string, params: any[]): Promise<any>;
+export declare function createApp(options: any, engine: Engine, provider: NearProvider): Promise<any>;
 export {};

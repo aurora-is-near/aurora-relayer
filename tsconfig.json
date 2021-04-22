@@ -1,5 +1,8 @@
 {
-  "files": ["src/index.ts", "src/decs.d.ts"],
+  "files": [
+    "src/index.ts",
+    "src/decs.d.ts",
+  ],
   "extends": "@tsconfig/node14/tsconfig.json",
   "compilerOptions": {
     "outDir": "./lib",
