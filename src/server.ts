@@ -186,8 +186,9 @@ export class Server implements Service {
         return [];
     }
 
-    async eth_getLogs(filter: FilterOptions): Promise<LogObject[]> {
-        return await (this.provider as any).routeRPC('eth_getLogs', [filter]); // TODO
+    async eth_getLogs(_filter: FilterOptions): Promise<LogObject[]> {
+        unimplemented('eth_getLogs'); // TODO
+        return [];
     }
 
     async eth_getProof(_address: Data, _keys: Data[], _blockNumber: Quantity | Tag): Promise<ProofResult> { // EIP-1186

@@ -49,7 +49,7 @@ export declare class Server implements Service {
     eth_getCompilers(): Promise<string[]>;
     eth_getFilterChanges(_filterID: Quantity): Promise<LogObject[]>;
     eth_getFilterLogs(_filterID: Quantity): Promise<LogObject[]>;
-    eth_getLogs(filter: FilterOptions): Promise<LogObject[]>;
+    eth_getLogs(_filter: FilterOptions): Promise<LogObject[]>;
     eth_getProof(_address: Data, _keys: Data[], _blockNumber: Quantity | Tag): Promise<ProofResult>;
     eth_getStorageAt(address: Data, key: Quantity, blockNumber: Quantity | Tag): Promise<Data>;
     eth_getTransactionByBlockHashAndIndex(blockHash: Data, transactionIndex: Quantity): Promise<TransactionResult | null>;
