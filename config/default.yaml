@@ -1,0 +1,8 @@
+---
+port: 8545
+network: local
+engine: aurora.test.near
+signer: test.near
+blacklist:
+  ipv4:
+  ipv6:

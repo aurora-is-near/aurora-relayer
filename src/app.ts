@@ -1,5 +1,6 @@
 /* This is free and unencumbered software released into the public domain. */
 
+import { Config } from './config.js';
 import { validateEIP712, encodeMetaCall } from './eip-712-helpers.js';
 import { CodedError } from './errors.js';
 import middleware from './middleware.js';
@@ -43,18 +44,18 @@ function response(id: string, result: any, error: any) {
     return resp;
 }
 
-export async function createApp(options: any, engine: Engine, provider: NearProvider): Promise<any> {
+export async function createApp(config: Config, engine: Engine, provider: NearProvider): Promise<any> {
     const app = express();
     app.disable('x-powered-by');
 
     app.use(middleware.setRequestID());
-    app.use(middleware.logger());
-    app.use(middleware.blacklistIPs([]));
-    app.use(middleware.rateLimit());
+    app.use(middleware.logger(config));
+    app.use(middleware.blacklistIPs(config));
+    app.use(middleware.rateLimit(config));
     app.use(cors());           // Access-Control-Allow-Origin: *
     app.use(helmet.noSniff()); // X-Content-Type-Options: nosniff
     app.use(bodyParser.json({ type: 'application/json' }));
-    app.use(createServer(options, engine, provider));
+    app.use(createServer(config, engine, provider));
     app.use(middleware.handleErrors());
 
     app.post('/relay', async (req, res) => {
@@ -73,7 +74,7 @@ export async function createApp(options: any, engine: Engine, provider: NearProv
                 '10000000000000',
                 '0'
             );
-            if (options.verbose) {
+            if (config.verbose) {
                 console.log(data.data, data.signature);
                 console.log(result);
             }

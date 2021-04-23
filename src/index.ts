@@ -2,9 +2,11 @@
 /* This is free and unencumbered software released into the public domain. */
 
 import { createApp } from './app.js';
+import { Config, parseConfig } from './config.js';
 
-import { ConnectEnv, Engine, NETWORKS } from '@aurora-is-near/engine';
+import { ConnectEnv, Engine } from '@aurora-is-near/engine';
 import { program } from 'commander';
+import externalConfig from 'config';
 import nearProvider from 'near-web3-provider';
 
 declare global {
@@ -15,52 +17,47 @@ declare global {
   }
 }
 
-interface Options {
-  debug: boolean;
-  verbose: boolean;
-  port: string;
-  network: string;
-  endpoint?: string;
-  engine: string;
-  signer: string;
-}
-
 main(process.argv, process.env);
 
 async function main(argv: string[], env: NodeJS.ProcessEnv) {
   program
     .option('-d, --debug', 'enable debug output')
     .option('-v, --verbose', 'enable verbose output')
-    .option("--port <port>", "specify port to listen to", '8545')
-    .option("--network <network>", "specify NEAR network ID", env.NEAR_ENV || 'local')
+    .option("--port <port>", "specify port to listen to")
+    .option("--network <network>", "specify NEAR network ID", env.NEAR_ENV)
     .option("--endpoint <url>", "specify NEAR RPC endpoint URL", env.NEAR_URL)
-    .option("--engine <account>", "specify Aurora Engine account ID", env.AURORA_ENGINE || 'aurora.test.near')
-    .option("--signer <account>", "specify signer account ID", env.NEAR_MASTER_ACCOUNT || 'test.near')
+    .option("--engine <account>", "specify Aurora Engine account ID", env.AURORA_ENGINE)
+    .option("--signer <account>", "specify signer account ID", env.NEAR_MASTER_ACCOUNT)
     .parse(argv);
 
-  const options = program.opts() as Options;
-  if (options.debug) console.error(options);
+  const [network, config] = parseConfig(program.opts() as Config, externalConfig as unknown as Config);
 
-  const network = NETWORKS.get(options.network)!;
+  if (config.debug) {
+    for (const source of externalConfig.util.getConfigSources()) {
+      console.error(`Loaded configuration file ${source.name}.`);
+    }
+    console.error("Configuration:", config);
+  }
+
   const engine = await Engine.connect({
     network: network.id,
-    endpoint: options.endpoint || network.nearEndpoint,
-    contract: options.engine || network.contractID,
-    signer: options.signer,
+    endpoint: config.endpoint,
+    contract: config.engine,
+    signer: config.signer,
   }, env);
-  const provider = new nearProvider.NearProvider({
+
+  const provider = new nearProvider.NearProvider({ // deprecated
     networkId: network.id,
-    nodeUrl: options.endpoint || network.nearEndpoint,
-    evmAccountId: options.engine || network.contractID,
-    masterAccountId: options.signer,
+    nodeUrl: config.endpoint,
+    evmAccountId: config.engine,
+    masterAccountId: config.signer,
     keyPath: (network.id == 'local') && '~/.near/validator_key.json',
   });
 
-  const port = parseInt(options.port);
-  const app = await createApp(options, engine, provider);
-  app.listen(port, () => {
-    if (options.verbose || options.debug) {
-      console.error(`Web3 JSON-RPC proxy for the NEAR ${network.label} listening at http://localhost:${port}...`)
+  const app = await createApp(config, engine, provider);
+  app.listen(config.port, () => {
+    if (config.verbose || config.debug) {
+      console.error(`Relayer for the NEAR ${network.label} listening at http://localhost:${config.port}...`)
     }
   });
 }

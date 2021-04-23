@@ -1,12 +1,8 @@
-/// <reference types="pino-http" />
-/// <reference types="qs" />
-/// <reference types="express" />
-import expressPinoLogger from 'express-pino-logger';
-import expressRateLimit from 'express-rate-limit';
+import { Config } from './config.js';
 export declare function setRequestID(): (req: any, res: any, next: any) => void;
-export declare function logger(): expressPinoLogger.HttpLogger;
-export declare function blacklistIPs(ipAddresses: string[]): import("express").RequestHandler<import("express-serve-static-core").ParamsDictionary, any, any, import("qs").ParsedQs, Record<string, any>>;
-export declare function rateLimit(): expressRateLimit.RateLimit;
+export declare function logger(_config: Config): any;
+export declare function blacklistIPs(config: Config): any;
+export declare function rateLimit(_config: Config): any;
 export declare function handleErrors(): (err: any, req: any, res: any, next: any) => void;
 declare const _default: {
     setRequestID: typeof setRequestID;
