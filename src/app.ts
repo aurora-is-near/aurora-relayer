@@ -2,7 +2,7 @@
 
 import { validateEIP712, encodeMetaCall } from './eip-712-helpers.js';
 import { CodedError } from './errors.js';
-import { requestID } from './middleware.js';
+import middleware from './middleware.js';
 import { Server } from './server.js';
 
 import { Engine } from '@aurora-is-near/engine';
@@ -10,8 +10,6 @@ import bodyParser from 'body-parser';
 import connect from 'connect';
 import cors from 'cors';
 import express from 'express';
-import pino from 'express-pino-logger';
-import expressRateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import jayson from 'jayson';
 import nearProvider from 'near-web3-provider';
@@ -48,24 +46,16 @@ function response(id: string, result: any, error: any) {
 export async function createApp(options: any, engine: Engine, provider: NearProvider): Promise<any> {
     const app = express();
     app.disable('x-powered-by');
-    app.use(bodyParser.json({ type: 'application/json' }));
-    app.use(cors());
-    app.use(helmet.noSniff()); // X-Content-Type-Options: nosniff
-    app.use(requestID());
-    app.use(expressRateLimit({
-        windowMs: 60 * 1000, // 1 minute
-        max: 60,
-        headers: false,
-        draft_polli_ratelimit_headers: true,
-        handler: (req, res) => {
-            res.status(429)
-                .set('Content-Type', 'text/plain')
-                .send("Too many requests, please try again later.");
-        },
-    }));
-    app.use(pino());
 
+    app.use(middleware.setRequestID());
+    app.use(middleware.logger());
+    app.use(middleware.blacklistIPs([]));
+    app.use(middleware.rateLimit());
+    app.use(cors());           // Access-Control-Allow-Origin: *
+    app.use(helmet.noSniff()); // X-Content-Type-Options: nosniff
+    app.use(bodyParser.json({ type: 'application/json' }));
     app.use(createServer(options, engine, provider));
+    app.use(middleware.handleErrors());
 
     app.post('/relay', async (req, res) => {
         res.header('Content-Type', 'application/json');
