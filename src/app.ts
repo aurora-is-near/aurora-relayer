@@ -10,6 +10,7 @@ import bodyParser from 'body-parser';
 import connect from 'connect';
 import cors from 'cors';
 import express from 'express';
+import pino from 'express-pino-logger';
 import expressRateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import jayson from 'jayson';
@@ -50,7 +51,6 @@ export async function createApp(options: any, engine: Engine, provider: NearProv
     app.use(bodyParser.json({ type: 'application/json' }));
     app.use(cors());
     app.use(helmet.noSniff()); // X-Content-Type-Options: nosniff
-
     app.use(requestID());
     app.use(expressRateLimit({
         windowMs: 60 * 1000, // 1 minute
@@ -63,6 +63,7 @@ export async function createApp(options: any, engine: Engine, provider: NearProv
                 .send("Too many requests, please try again later.");
         },
     }));
+    app.use(pino());
 
     app.use(createServer(options, engine, provider));
 
