@@ -8,6 +8,7 @@ import { ConnectEnv, Engine } from '@aurora-is-near/engine';
 import { program } from 'commander';
 import externalConfig from 'config';
 import nearProvider from 'near-web3-provider';
+import pino from 'pino';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -54,7 +55,10 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
     keyPath: (network.id == 'local') && '~/.near/validator_key.json',
   });
 
-  const app = await createApp(config, engine, provider);
+  const logger = pino();
+  logger.info("starting server");
+
+  const app = await createApp(config, logger, engine, provider);
   app.listen(config.port, () => {
     if (config.verbose || config.debug) {
       console.error(`Relayer for the NEAR ${network.label} listening at http://localhost:${config.port}...`)

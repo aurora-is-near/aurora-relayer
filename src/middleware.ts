@@ -11,6 +11,8 @@ import expressRateLimit from 'express-rate-limit';
 import { customAlphabet } from 'nanoid';
 const nanoid = customAlphabet('6789BCDFGHJKLMNPQRTWbcdfghjkmnpqrtwz', 16);
 
+import { Logger } from 'pino';
+
 export function setRequestID() {
     return (req: any, res: any, next: any): void => {
         const id = req.headers['x-request-id'] || nanoid();
@@ -20,8 +22,8 @@ export function setRequestID() {
     };
 }
 
-export function logger(_config: Config): any {
-    return expressPinoLogger();
+export function logger(logger: Logger): any {
+    return expressPinoLogger({ logger });
 }
 
 export function blacklistIPs(config: Config): any {

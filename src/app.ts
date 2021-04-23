@@ -15,6 +15,7 @@ import helmet from 'helmet';
 import jayson from 'jayson';
 import nearProvider from 'near-web3-provider';
 //import { exit } from 'process';
+import { Logger } from 'pino';
 
 interface NearProvider {
     networkId: string;
@@ -44,12 +45,12 @@ function response(id: string, result: any, error: any) {
     return resp;
 }
 
-export async function createApp(config: Config, engine: Engine, provider: NearProvider): Promise<any> {
+export async function createApp(config: Config, logger: Logger, engine: Engine, provider: NearProvider): Promise<any> {
     const app = express();
     app.disable('x-powered-by');
 
     app.use(middleware.setRequestID());
-    app.use(middleware.logger(config));
+    app.use(middleware.logger(logger));
     app.use(middleware.blacklistIPs(config));
     app.use(middleware.rateLimit(config));
     app.use(cors());           // Access-Control-Allow-Origin: *

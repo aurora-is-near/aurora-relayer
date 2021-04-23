@@ -1,5 +1,6 @@
 import { Config } from './config.js';
 import { Engine } from '@aurora-is-near/engine';
+import { Logger } from 'pino';
 interface NearProvider {
     networkId: string;
     evm_contract: string;
@@ -17,5 +18,5 @@ interface NearProvider {
     walletUrl: string;
     explorerUrl: string;
 }
-export declare function createApp(config: Config, engine: Engine, provider: NearProvider): Promise<any>;
+export declare function createApp(config: Config, logger: Logger, engine: Engine, provider: NearProvider): Promise<any>;
 export {};
