@@ -39,7 +39,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
     .parse(argv);
 
   const options = program.opts() as Options;
-  if (options.debug) console.log(options);
+  if (options.debug) console.error(options);
 
   const network = NETWORKS.get(options.network)!;
   const engine = await Engine.connect({
@@ -59,6 +59,8 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
   const port = parseInt(options.port);
   const app = await createApp(options, engine, provider);
   app.listen(port, () => {
-    console.log(`Web3 JSON-RPC proxy for the NEAR ${network.label} listening at http://localhost:${port}...`)
+    if (options.verbose || options.debug) {
+      console.error(`Web3 JSON-RPC proxy for the NEAR ${network.label} listening at http://localhost:${port}...`)
+    }
   });
 }
