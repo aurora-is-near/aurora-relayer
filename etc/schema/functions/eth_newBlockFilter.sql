@@ -5,9 +5,9 @@ DECLARE
   block_id blockno;
   filter_id bigint;
 BEGIN
-  SELECT max(id) FROM block INTO STRICT block_id;
+  SELECT MAX(id) FROM block INTO STRICT block_id;
   INSERT INTO filter (created_at, created_by, polled_block)
-    VALUES (now(), client_ip, block_id)
+    VALUES (NOW(), client_ip, block_id)
     RETURNING id INTO STRICT filter_id;
   RETURN filter_id;
 END;

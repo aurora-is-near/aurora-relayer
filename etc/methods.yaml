@@ -47,6 +47,7 @@ eth_blockNumber:
   comment:
   link: https://eth.wiki/json-rpc/API#eth_blockNumber
   implementations:
+    - etc/schema/functions/eth_blockNumber.sql
     - src/servers/ephemeral.ts
 
 eth_call:
@@ -131,6 +132,7 @@ eth_getBlockTransactionCountByHash:
   comment:
   link: https://eth.wiki/json-rpc/API#eth_getBlockTransactionCountByHash
   implementations:
+    - etc/schema/functions/eth_getBlockTransactionCountByHash.sql
     - src/servers/ephemeral.ts
 
 eth_getBlockTransactionCountByNumber:
@@ -138,6 +140,7 @@ eth_getBlockTransactionCountByNumber:
   comment:
   link: https://eth.wiki/json-rpc/API#eth_getBlockTransactionCountByNumber
   implementations:
+    - etc/schema/functions/eth_getBlockTransactionCountByNumber.sql
     - src/servers/ephemeral.ts
 
 eth_getCode:
@@ -215,6 +218,7 @@ eth_getTransactionCount:
   comment:
   link: https://eth.wiki/json-rpc/API#eth_getTransactionCount
   implementations:
+    - etc/schema/functions/eth_getTransactionCount.sql
     - src/servers/ephemeral.ts
 
 eth_getTransactionReceipt:
@@ -243,6 +247,7 @@ eth_getUncleCountByBlockHash:
   comment:
   link: https://eth.wiki/json-rpc/API#eth_getUncleCountByBlockHash
   implementations:
+    - etc/schema/functions/eth_getUncleCountByBlockHash.sql
     - src/servers/ephemeral.ts
 
 eth_getUncleCountByBlockNumber:
@@ -250,6 +255,7 @@ eth_getUncleCountByBlockNumber:
   comment:
   link: https://eth.wiki/json-rpc/API#eth_getUncleCountByBlockNumber
   implementations:
+    - etc/schema/functions/eth_getUncleCountByBlockNumber.sql
     - src/servers/ephemeral.ts
 
 eth_getWork:

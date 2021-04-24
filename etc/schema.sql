@@ -2,6 +2,12 @@
 \i etc/schema/tables/block.sql
 \i etc/schema/tables/filter.sql
 \i etc/schema/tables/transaction.sql
+\i etc/schema/functions/eth_blockNumber.sql
+\i etc/schema/functions/eth_getBlockTransactionCountByHash.sql
+\i etc/schema/functions/eth_getBlockTransactionCountByNumber.sql
+\i etc/schema/functions/eth_getTransactionCount.sql
+\i etc/schema/functions/eth_getUncleCountByBlockHash.sql
+\i etc/schema/functions/eth_getUncleCountByBlockNumber.sql
 \i etc/schema/functions/eth_newBlockFilter.sql
 \i etc/schema/functions/eth_newPendingTransactionFilter.sql
 \i etc/schema/functions/eth_uninstallFilter.sql
