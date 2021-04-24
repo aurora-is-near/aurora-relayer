@@ -1,46 +1,23 @@
 /* This is free and unencumbered software released into the public domain. */
 
-import * as api from './api.js';
-import { Config } from './config.js';
-import { unimplemented, unsupported } from './errors.js';
-import { NearProvider } from './provider.js';
+import { SkeletonServer } from './skeleton.js';
+
+import * as api from '../api.js';
+import { Config } from '../config.js';
+import { unimplemented } from '../errors.js';
+import { NearProvider } from '../provider.js';
 
 import { Address, BlockOptions, Engine, formatU256, hexToBase58, hexToBytes, intToHex } from '@aurora-is-near/engine';
-import { keccakFromHexString } from 'ethereumjs-util';
 
-export class Server implements api.Service {
+export class EphemeralServer extends SkeletonServer {
+    public readonly filters: Map<number, any> = new Map();
+
     constructor(
-        public readonly sql: any,
-        public readonly engine: Engine,
-        public readonly provider: NearProvider,
-        public readonly config: Config) {}
-
-    // web3_*
-
-    async web3_clientVersion(): Promise<string> {
-        return 'Aurora-Relayer/0.0.0'; // TODO
+            public readonly engine: Engine,
+            public readonly provider: NearProvider,
+            public readonly config: Config) {
+        super();
     }
-
-    async web3_sha3(input: api.Data): Promise<api.Data> {
-        return `0x${Buffer.from(keccakFromHexString(input)).toString('hex')}`;
-    }
-
-    // net_*
-
-    async net_listening(): Promise<boolean> {
-        return true;
-    }
-
-    async net_peerCount(): Promise<api.Quantity> {
-        return '0x0';
-    }
-
-    async net_version(): Promise<string> {
-        const chainID = (await this.engine.getChainID()).unwrap();
-        return `0x${chainID.toString(16)}`;
-    }
-
-    // eth_*
 
     async eth_accounts(): Promise<api.Data[]> {
         return (await this.engine.keyStore.getSigningAddresses()).map(a => a.toString());
@@ -62,29 +39,6 @@ export class Server implements api.Service {
 
     async eth_coinbase(): Promise<api.Data> {
         return (await this.engine.getCoinbase()).unwrap().toString();
-    }
-
-    async eth_compileLLL(_code: string): Promise<api.Data> {
-        unsupported('eth_compileLLL');
-        return '';
-    }
-
-    async eth_compileSerpent(_code: string): Promise<api.Data> {
-        unsupported('eth_compileSerpent');
-        return '';
-    }
-
-    async eth_compileSolidity(_code: string): Promise<api.Data> {
-        unsupported('eth_compileSolidity');
-        return '';
-    }
-
-    async eth_estimateGas(_transaction: api.TransactionForCall, _blockNumber?: api.Quantity | api.Tag): Promise<api.Quantity> {
-        return '0x0';
-    }
-
-    async eth_gasPrice(): Promise<api.Quantity> {
-        return '0x0';
     }
 
     async eth_getBalance(address: api.Data, blockNumber?: api.Quantity | api.Tag): Promise<api.Quantity> {
@@ -153,10 +107,6 @@ export class Server implements api.Service {
         return `0x${Buffer.from(code).toString('hex')}`;
     }
 
-    async eth_getCompilers(): Promise<string[]> {
-        return [];
-    }
-
     async eth_getFilterChanges(filterID: api.Quantity): Promise<api.LogObject[]> {
         const filterID_ = parseInt(filterID, 16);
         if (filterID_ === 0) {
@@ -178,11 +128,6 @@ export class Server implements api.Service {
     async eth_getLogs(_filter: api.FilterOptions): Promise<api.LogObject[]> {
         unimplemented('eth_getLogs'); // TODO
         return [];
-    }
-
-    async eth_getProof(_address: api.Data, _keys: api.Data[], _blockNumber: api.Quantity | api.Tag): Promise<api.ProofResult> { // EIP-1186
-        unsupported('eth_getProof'); // EIP-1186 TODO?
-        return {};
     }
 
     async eth_getStorageAt(address: api.Data, key: api.Quantity, blockNumber: api.Quantity | api.Tag): Promise<api.Data> {
@@ -250,14 +195,6 @@ export class Server implements api.Service {
         return await (this.provider as any).routeRPC('eth_getapi.TransactionReceipt', [transactionHash]); // TODO
     }
 
-    async eth_getUncleByBlockHashAndIndex(_blockHash: api.Data, _uncleIndex: api.Quantity): Promise<api.BlockResult | null> {
-        return null; // uncle blocks are never found
-    }
-
-    async eth_getUncleByBlockNumberAndIndex(_blockNumber: api.Quantity | api.Tag, _uncleIndex: api.Quantity): Promise<api.BlockResult | null> {
-        return null; // uncle blocks are never found
-    }
-
     async eth_getUncleCountByBlockHash(blockHash: api.Data): Promise<api.Quantity | null> {
         const blockHash_ = blockHash.startsWith('0x') ? hexToBase58(blockHash) : blockHash;
         const result = await this.engine.hasBlock(blockHash_);
@@ -268,19 +205,6 @@ export class Server implements api.Service {
         const blockNumber_ = blockNumber.startsWith('0x') ? parseInt(blockNumber, 16) : blockNumber;
         const result = await this.engine.hasBlock(blockNumber_);
         return result && result.isOk() ? '0x0' : null;
-    }
-
-    async eth_getWork(): Promise<api.Data[]> {
-        unsupported('eth_getWork');
-        return [];
-    }
-
-    async eth_hashrate(): Promise<api.Quantity> {
-        return '0x0';
-    }
-
-    async eth_mining(): Promise<false> {
-        return false;
     }
 
     async eth_newBlockFilter(): Promise<api.Quantity> {
@@ -295,14 +219,6 @@ export class Server implements api.Service {
 
     async eth_newPendingTransactionFilter(): Promise<api.Quantity> {
         return '0x0'; // designates the empty filter
-    }
-
-    async eth_pendingTransactions(): Promise<Record<string, string | number | null>[]> { // undocumented
-        return [];
-    }
-
-    async eth_protocolVersion(): Promise<string> {
-        return '0x41';
     }
 
     async eth_sendRawTransaction(transaction: api.Data): Promise<api.Data> {
@@ -327,20 +243,6 @@ export class Server implements api.Service {
     async eth_signTypedData(_address: api.Data, _data: api.TypedData): Promise<api.Data> { // EIP-712
         unimplemented('eth_signTypedData'); // TODO
         return `0x`;
-    }
-
-    async eth_submitHashrate(_hashrate: api.Quantity, _clientID: api.Quantity): Promise<false> {
-        unsupported('eth_submitHashrate');
-        return false;
-    }
-
-    async eth_submitWork(_nonce: api.Data, _powHash: api.Data, _mixDigest: api.Data): Promise<false> {
-        unsupported('eth_submitWork');
-        return false;
-    }
-
-    async eth_syncing(): Promise<false> {
-        return false;
     }
 
     async eth_uninstallFilter(filterID: api.Quantity): Promise<boolean> {

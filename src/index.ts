@@ -25,7 +25,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
   program
     .option('-d, --debug', 'enable debug output')
     .option('-v, --verbose', 'enable verbose output')
-    .option("--database <url>", `specify PostgreSQL database URL (default: "postgres://localhost")`)
+    .option("--database <url>", `specify PostgreSQL database URL (default: none)`)
     .option("--port <port>", `specify port to listen to (default: ${8545})`)
     .option("--network <network>", `specify NEAR network ID (default: "${env.NEAR_ENV || "local"}")`)
     .option("--endpoint <url>", `specify NEAR RPC endpoint URL (default: "${env.NEAR_URL || ""}")`)
@@ -42,8 +42,10 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
     console.error("Configuration:", config);
   }
 
-  const sql = postgres(config.database);
-  await sql`SELECT 1`; // test connectivity
+  if (config.database) {
+    const sql = postgres(config.database);
+    await sql`SELECT 1`; // test connectivity
+  }
 
   const engine = await Engine.connect({
     network: network.id,

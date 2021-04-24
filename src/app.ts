@@ -4,7 +4,9 @@ import { Config } from './config.js';
 import { validateEIP712, encodeMetaCall } from './eip-712-helpers.js';
 import { CodedError } from './errors.js';
 import middleware from './middleware.js';
-import { Server } from './server.js';
+import { NearProvider } from './provider.js';
+import { DatabaseServer } from './servers/database.js';
+import { EphemeralServer } from './servers/ephemeral.js';
 
 import { Engine } from '@aurora-is-near/engine';
 import bodyParser from 'body-parser';
@@ -16,25 +18,6 @@ import jayson from 'jayson';
 import nearProvider from 'near-web3-provider';
 //import { exit } from 'process';
 import { Logger } from 'pino';
-import postgres from 'postgres';
-
-interface NearProvider {
-    networkId: string;
-    evm_contract: string;
-    isReadOnly: boolean;
-    url: string;
-    version: string;
-    nearProvider: any;
-    keyStore: any;
-    signer: any;
-    connection: any;
-    accountId: string;
-    account: any;
-    accountEvmAddress: string;
-    accounts: Map<string, any>;
-    walletUrl: string;
-    explorerUrl: string;
-}
 
 function response(id: string, result: any, error: any) {
     const resp = { jsonrpc: '2.0', id };
@@ -127,9 +110,9 @@ class Method extends jayson.Method {
 interface MethodMap { [methodName: string]: jayson.MethodLike }
 
 function createServer(config: Config, engine: Engine, provider: NearProvider): connect.HandleFunction {
-    const sql = postgres(config.database);
-    const server = new Server(sql, engine, provider, config as any);
-    const methodList = Object.getOwnPropertyNames(Server.prototype)
+    const serverClass = config.database ? DatabaseServer : EphemeralServer;
+    const server = new serverClass(engine, provider, config as any);
+    const methodList = Object.getOwnPropertyNames(serverClass.prototype)
         .filter((id: string) => id !== 'constructor')
         .map((id: string) => [id, (server as any)[id]]);
     const methodMap: MethodMap = Object.fromEntries(methodList);
