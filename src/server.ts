@@ -3,8 +3,7 @@
 import { unimplemented, unsupported } from './errors.js';
 import { BlockResult, Data, FilterOptions, LogObject, ProofResult, Quantity, Service, Tag, TransactionForCall, TransactionForSend, TransactionReceipt, TransactionResult, TypedData } from './service.js';
 
-//import { Address, BlockOptions, Engine, formatU256, hexToBase58, hexToBytes, intToHex } from '@aurora-is-near/engine';
-import { Address, BlockOptions, Engine, formatU256, hexToBase58, intToHex } from '@aurora-is-near/engine';
+import { Address, BlockOptions, Engine, formatU256, hexToBase58, hexToBytes, intToHex } from '@aurora-is-near/engine';
 import { keccakFromHexString } from 'ethereumjs-util';
 
 interface NearProvider {
@@ -178,12 +177,20 @@ export class Server implements Service {
         return [];
     }
 
-    async eth_getFilterChanges(_filterID: Quantity): Promise<LogObject[]> {
+    async eth_getFilterChanges(filterID: Quantity): Promise<LogObject[]> {
+        const filterID_ = parseInt(filterID, 16);
+        if (filterID_ === 0) {
+            return [];
+        }
         unimplemented('eth_getFilterChanges'); // TODO
         return [];
     }
 
-    async eth_getFilterLogs(_filterID: Quantity): Promise<LogObject[]> {
+    async eth_getFilterLogs(filterID: Quantity): Promise<LogObject[]> {
+        const filterID_ = parseInt(filterID, 16);
+        if (filterID_ === 0) {
+            return [];
+        }
         unimplemented('eth_getFilterLogs'); // TODO
         return [];
     }
@@ -247,7 +254,8 @@ export class Server implements Service {
     }
 
     async eth_getTransactionByHash(transactionHash: Data): Promise<TransactionResult | null> {
-        //const transactionHash_ = hexToBytes(transactionHash);
+        const transactionHash_ = hexToBytes(transactionHash);
+        console.debug(transactionHash_); // TODO
         return await (this.provider as any).routeRPC('eth_getTransactionByHash', [transactionHash]); // TODO
     }
 
@@ -306,8 +314,7 @@ export class Server implements Service {
     }
 
     async eth_newPendingTransactionFilter(): Promise<Quantity> {
-        unimplemented('eth_newPendingTransactionFilter'); // TODO
-        return `0x0`;
+        return '0x0'; // designates the empty filter
     }
 
     async eth_pendingTransactions(): Promise<Record<string, string | number | null>[]> { // undocumented
@@ -356,7 +363,11 @@ export class Server implements Service {
         return false;
     }
 
-    async eth_uninstallFilter(_filterID: Quantity): Promise<boolean> {
+    async eth_uninstallFilter(filterID: Quantity): Promise<boolean> {
+        const filterID_ = parseInt(filterID, 16);
+        if (filterID_ === 0) {
+            return true;
+        }
         unimplemented('eth_uninstallFilter'); // TODO
         return false;
     }

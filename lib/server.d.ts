@@ -48,8 +48,8 @@ export declare class Server implements Service {
     eth_getBlockTransactionCountByNumber(blockNumber: Quantity | Tag): Promise<Quantity | null>;
     eth_getCode(address: Data, _blockNumber: Quantity | Tag): Promise<Data>;
     eth_getCompilers(): Promise<string[]>;
-    eth_getFilterChanges(_filterID: Quantity): Promise<LogObject[]>;
-    eth_getFilterLogs(_filterID: Quantity): Promise<LogObject[]>;
+    eth_getFilterChanges(filterID: Quantity): Promise<LogObject[]>;
+    eth_getFilterLogs(filterID: Quantity): Promise<LogObject[]>;
     eth_getLogs(_filter: FilterOptions): Promise<LogObject[]>;
     eth_getProof(_address: Data, _keys: Data[], _blockNumber: Quantity | Tag): Promise<ProofResult>;
     eth_getStorageAt(address: Data, key: Quantity, blockNumber: Quantity | Tag): Promise<Data>;
@@ -78,6 +78,6 @@ export declare class Server implements Service {
     eth_submitHashrate(_hashrate: Quantity, _clientID: Quantity): Promise<false>;
     eth_submitWork(_nonce: Data, _powHash: Data, _mixDigest: Data): Promise<false>;
     eth_syncing(): Promise<false>;
-    eth_uninstallFilter(_filterID: Quantity): Promise<boolean>;
+    eth_uninstallFilter(filterID: Quantity): Promise<boolean>;
 }
 export {};
