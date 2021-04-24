@@ -118,6 +118,7 @@ eth_getBlockByHash:
   comment:
   link: https://eth.wiki/json-rpc/API#eth_getBlockByHash
   implementations:
+    - etc/schema/functions/eth_getBlockByHash.sql
     - src/servers/ephemeral.ts
 
 eth_getBlockByNumber:
@@ -125,6 +126,7 @@ eth_getBlockByNumber:
   comment:
   link: https://eth.wiki/json-rpc/API#eth_getBlockByNumber
   implementations:
+    - etc/schema/functions/eth_getBlockByNumber.sql
     - src/servers/ephemeral.ts
 
 eth_getBlockTransactionCountByHash:

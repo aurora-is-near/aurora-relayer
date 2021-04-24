@@ -1,8 +1,11 @@
 \i etc/schema/domains.sql
+\i etc/schema/types/block_result.sql
 \i etc/schema/tables/block.sql
 \i etc/schema/tables/filter.sql
 \i etc/schema/tables/transaction.sql
 \i etc/schema/functions/eth_blockNumber.sql
+\i etc/schema/functions/eth_getBlockByHash.sql
+\i etc/schema/functions/eth_getBlockByNumber.sql
 \i etc/schema/functions/eth_getBlockTransactionCountByHash.sql
 \i etc/schema/functions/eth_getBlockTransactionCountByNumber.sql
 \i etc/schema/functions/eth_getTransactionCount.sql
