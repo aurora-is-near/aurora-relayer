@@ -1,0 +1,375 @@
+---
+
+web3_clientVersion:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#web3_clientVersion
+  implementations:
+    - src/server.ts
+
+web3_sha3:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#web3_sha3
+  implementations:
+    - src/server.ts
+
+net_listening:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#net_listening
+  implementations:
+    - src/server.ts
+
+net_peerCount:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#net_peerCount
+  implementations:
+    - src/server.ts
+
+net_version:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#net_version
+  implementations:
+    - src/server.ts
+
+eth_accounts:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_accounts
+  implementations:
+    - src/server.ts
+
+eth_blockNumber:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_blockNumber
+  implementations:
+    - src/server.ts
+
+eth_call:
+  status: wip
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_call
+  implementations:
+    - src/server.ts
+
+eth_chainId:
+  status: ok
+  comment: EIP-695
+  link: https://eips.ethereum.org/EIPS/eip-695
+  implementations:
+    - src/server.ts
+
+eth_coinbase:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_coinbase
+  implementations:
+    - src/server.ts
+
+eth_compileLLL:
+  status: unsupported
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_compileLLL
+  implementations:
+    - src/server.ts
+
+eth_compileSerpent:
+  status: unsupported
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_compileSerpent
+  implementations:
+    - src/server.ts
+
+eth_compileSolidity:
+  status: unsupported
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_compileSolidity
+  implementations:
+    - src/server.ts
+
+eth_estimateGas:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_estimateGas
+  implementations:
+    - src/server.ts
+
+eth_gasPrice:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_gasPrice
+  implementations:
+    - src/server.ts
+
+eth_getBalance:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_getBalance
+  implementations:
+    - src/server.ts
+
+eth_getBlockByHash:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_getBlockByHash
+  implementations:
+    - src/server.ts
+
+eth_getBlockByNumber:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_getBlockByNumber
+  implementations:
+    - src/server.ts
+
+eth_getBlockTransactionCountByHash:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_getBlockTransactionCountByHash
+  implementations:
+    - src/server.ts
+
+eth_getBlockTransactionCountByNumber:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_getBlockTransactionCountByNumber
+  implementations:
+    - src/server.ts
+
+eth_getCode:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_getCode
+  implementations:
+    - src/server.ts
+
+eth_getCompilers:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_getCompilers
+  implementations:
+    - src/server.ts
+
+eth_getFilterChanges:
+  status: wip
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_getFilterChanges
+  implementations:
+    - src/server.ts
+
+eth_getFilterLogs:
+  status: wip
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_getFilterLogs
+  implementations:
+    - src/server.ts
+
+eth_getLogs:
+  status: wip
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_getLogs
+  implementations:
+    - src/server.ts
+
+eth_getProof:
+  status: unsupported
+  comment: EIP-1186
+  link: https://eips.ethereum.org/EIPS/eip-1186
+  implementations:
+    - src/server.ts
+
+eth_getStorageAt:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_getStorageAt
+  implementations:
+    - src/server.ts
+
+eth_getTransactionByBlockHashAndIndex:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_getTransactionByBlockHashAndIndex
+  implementations:
+    - src/server.ts
+
+eth_getTransactionByBlockNumberAndIndex:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_getTransactionByBlockNumberAndIndex
+  implementations:
+    - src/server.ts
+
+eth_getTransactionByHash:
+  status: wip
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_getTransactionByHash
+  implementations:
+    - src/server.ts
+
+eth_getTransactionCount:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_getTransactionCount
+  implementations:
+    - src/server.ts
+
+eth_getTransactionReceipt:
+  status: wip
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_getTransactionReceipt
+  implementations:
+    - src/server.ts
+
+eth_getUncleByBlockHashAndIndex:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_getUncleByBlockHashAndIndex
+  implementations:
+    - src/server.ts
+
+eth_getUncleByBlockNumberAndIndex:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_getUncleByBlockNumberAndIndex
+  implementations:
+    - src/server.ts
+
+eth_getUncleCountByBlockHash:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_getUncleCountByBlockHash
+  implementations:
+    - src/server.ts
+
+eth_getUncleCountByBlockNumber:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_getUncleCountByBlockNumber
+  implementations:
+    - src/server.ts
+
+eth_getWork:
+  status: unsupported
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_getWork
+  implementations:
+    - src/server.ts
+
+eth_hashrate:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_hashrate
+  implementations:
+    - src/server.ts
+
+eth_mining:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_mining
+  implementations:
+    - src/server.ts
+
+eth_newBlockFilter:
+  status: wip
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_newBlockFilter
+  implementations:
+    - etc/schema/functions/eth_newBlockFilter.sql
+    - src/server.ts
+
+eth_newFilter:
+  status: wip
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_newFilter
+  implementations:
+    - src/server.ts
+
+eth_newPendingTransactionFilter:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_newPendingTransactionFilter
+  implementations:
+    - etc/schema/functions/eth_newPendingTransactionFilter.sql
+    - src/server.ts
+
+eth_pendingTransactions:
+  status: ok
+  comment: "[Undocumented](https://github.com/ethereum/go-ethereum/issues/"
+  link: https://github.com/ethereum/wiki/issues/685
+  implementations:
+    - src/server.ts
+
+eth_protocolVersion:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_protocolVersion
+  implementations:
+    - src/server.ts
+
+eth_sendRawTransaction:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_sendRawTransaction
+  implementations:
+    - src/server.ts
+
+eth_sendTransaction:
+  status: wip
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_sendTransaction
+  implementations:
+    - src/server.ts
+
+eth_sign:
+  status: wip
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_sign
+  implementations:
+    - src/server.ts
+
+eth_signTransaction:
+  status: wip
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_signTransaction
+  implementations:
+    - src/server.ts
+
+eth_signTypedData:
+  status: wip
+  comment: EIP-712
+  link: https://eips.ethereum.org/EIPS/eip-712
+  implementations:
+    - src/server.ts
+
+eth_submitHashrate:
+  status: unsupported
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_submitHashrate
+  implementations:
+    - src/server.ts
+
+eth_submitWork:
+  status: unsupported
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_submitWork
+  implementations:
+    - src/server.ts
+
+eth_syncing:
+  status: ok
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_syncing
+  implementations:
+    - src/server.ts
+
+eth_uninstallFilter:
+  status: wip
+  comment:
+  link: https://eth.wiki/json-rpc/API#eth_uninstallFilter
+  implementations:
+    - etc/schema/functions/eth_uninstallFilter.sql
+    - src/server.ts
