@@ -1,7 +1,8 @@
-import { NetworkConfig } from '@aurora-is-near/engine';
+import { ConnectEnv, NetworkConfig } from '@aurora-is-near/engine';
 export interface Config {
     debug: boolean;
     verbose: boolean;
+    database: string;
     port: number | string;
     network: string;
     endpoint?: string;
@@ -12,4 +13,4 @@ export interface Config {
         ipv6?: string[];
     };
 }
-export declare function parseConfig(options: Config, config: Config): [NetworkConfig, Config];
+export declare function parseConfig(options: Config, config: Config, env: ConnectEnv): [NetworkConfig, Config];

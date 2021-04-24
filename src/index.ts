@@ -9,6 +9,7 @@ import { program } from 'commander';
 import externalConfig from 'config';
 import nearProvider from 'near-web3-provider';
 import pino from 'pino';
+import postgres from 'postgres';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -24,14 +25,15 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
   program
     .option('-d, --debug', 'enable debug output')
     .option('-v, --verbose', 'enable verbose output')
-    .option("--port <port>", "specify port to listen to")
-    .option("--network <network>", "specify NEAR network ID", env.NEAR_ENV)
-    .option("--endpoint <url>", "specify NEAR RPC endpoint URL", env.NEAR_URL)
-    .option("--engine <account>", "specify Aurora Engine account ID", env.AURORA_ENGINE)
-    .option("--signer <account>", "specify signer account ID", env.NEAR_MASTER_ACCOUNT)
+    .option("--database <url>", `specify PostgreSQL database URL (default: "postgres://localhost")`)
+    .option("--port <port>", `specify port to listen to (default: ${8545})`)
+    .option("--network <network>", `specify NEAR network ID (default: "${env.NEAR_ENV || "local"}")`)
+    .option("--endpoint <url>", `specify NEAR RPC endpoint URL (default: "${env.NEAR_URL || ""}")`)
+    .option("--engine <account>", `specify Aurora Engine account ID (default: "${env.AURORA_ENGINE || "aurora.test.near"}")`)
+    .option("--signer <account>", `specify signer account ID (default: "${env.NEAR_MASTER_ACCOUNT || "test.near"}")`)
     .parse(argv);
 
-  const [network, config] = parseConfig(program.opts() as Config, externalConfig as unknown as Config);
+  const [network, config] = parseConfig(program.opts() as Config, externalConfig as unknown as Config, env);
 
   if (config.debug) {
     for (const source of externalConfig.util.getConfigSources()) {
@@ -39,6 +41,9 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
     }
     console.error("Configuration:", config);
   }
+
+  const sql = postgres(config.database);
+  await sql`SELECT 1`; // test connectivity
 
   const engine = await Engine.connect({
     network: network.id,

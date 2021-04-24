@@ -21,10 +21,11 @@ interface ServerOptions {
     dummy: string;
 }
 export declare class Server implements Service {
+    readonly sql: any;
     readonly engine: Engine;
     readonly provider: NearProvider;
     readonly options: ServerOptions;
-    constructor(engine: Engine, provider: NearProvider, options: ServerOptions);
+    constructor(sql: any, engine: Engine, provider: NearProvider, options: ServerOptions);
     web3_clientVersion(): Promise<string>;
     web3_sha3(input: Data): Promise<Data>;
     net_listening(): Promise<boolean>;

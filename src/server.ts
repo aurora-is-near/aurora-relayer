@@ -3,6 +3,7 @@
 import { unimplemented, unsupported } from './errors.js';
 import { BlockResult, Data, FilterOptions, LogObject, ProofResult, Quantity, Service, Tag, TransactionForCall, TransactionForSend, TransactionReceipt, TransactionResult, TypedData } from './service.js';
 
+//import { Address, BlockOptions, Engine, formatU256, hexToBase58, hexToBytes, intToHex } from '@aurora-is-near/engine';
 import { Address, BlockOptions, Engine, formatU256, hexToBase58, intToHex } from '@aurora-is-near/engine';
 import { keccakFromHexString } from 'ethereumjs-util';
 
@@ -30,6 +31,7 @@ interface ServerOptions {
 
 export class Server implements Service {
     constructor(
+        public readonly sql: any,
         public readonly engine: Engine,
         public readonly provider: NearProvider,
         public readonly options: ServerOptions) {}
@@ -245,6 +247,7 @@ export class Server implements Service {
     }
 
     async eth_getTransactionByHash(transactionHash: Data): Promise<TransactionResult | null> {
+        //const transactionHash_ = hexToBytes(transactionHash);
         return await (this.provider as any).routeRPC('eth_getTransactionByHash', [transactionHash]); // TODO
     }
 

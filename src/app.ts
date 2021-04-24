@@ -16,6 +16,7 @@ import jayson from 'jayson';
 import nearProvider from 'near-web3-provider';
 //import { exit } from 'process';
 import { Logger } from 'pino';
+import postgres from 'postgres';
 
 interface NearProvider {
     networkId: string;
@@ -125,8 +126,9 @@ class Method extends jayson.Method {
 
 interface MethodMap { [methodName: string]: jayson.MethodLike }
 
-function createServer(options: any, engine: Engine, provider: NearProvider): connect.HandleFunction {
-    const server = new Server(engine, provider, options);
+function createServer(config: Config, engine: Engine, provider: NearProvider): connect.HandleFunction {
+    const sql = postgres(config.database);
+    const server = new Server(sql, engine, provider, config as any);
     const methodList = Object.getOwnPropertyNames(Server.prototype)
         .filter((id: string) => id !== 'constructor')
         .map((id: string) => [id, (server as any)[id]]);
