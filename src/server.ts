@@ -1,39 +1,19 @@
 /* This is free and unencumbered software released into the public domain. */
 
+import * as api from './api.js';
+import { Config } from './config.js';
 import { unimplemented, unsupported } from './errors.js';
-import { BlockResult, Data, FilterOptions, LogObject, ProofResult, Quantity, Service, Tag, TransactionForCall, TransactionForSend, TransactionReceipt, TransactionResult, TypedData } from './service.js';
+import { NearProvider } from './provider.js';
 
 import { Address, BlockOptions, Engine, formatU256, hexToBase58, hexToBytes, intToHex } from '@aurora-is-near/engine';
 import { keccakFromHexString } from 'ethereumjs-util';
 
-interface NearProvider {
-    networkId: string;
-    evm_contract: string;
-    isReadOnly: boolean;
-    url: string;
-    version: string;
-    nearProvider: any;
-    keyStore: any;
-    signer: any;
-    connection: any;
-    accountId: string;
-    account: any;
-    accountEvmAddress: string;
-    accounts: Map<string, any>;
-    walletUrl: string;
-    explorerUrl: string;
-}
-
-interface ServerOptions {
-    dummy: string; // TODO
-}
-
-export class Server implements Service {
+export class Server implements api.Service {
     constructor(
         public readonly sql: any,
         public readonly engine: Engine,
         public readonly provider: NearProvider,
-        public readonly options: ServerOptions) {}
+        public readonly config: Config) {}
 
     // web3_*
 
@@ -41,7 +21,7 @@ export class Server implements Service {
         return 'Aurora-Relayer/0.0.0'; // TODO
     }
 
-    async web3_sha3(input: Data): Promise<Data> {
+    async web3_sha3(input: api.Data): Promise<api.Data> {
         return `0x${Buffer.from(keccakFromHexString(input)).toString('hex')}`;
     }
 
@@ -51,7 +31,7 @@ export class Server implements Service {
         return true;
     }
 
-    async net_peerCount(): Promise<Quantity> {
+    async net_peerCount(): Promise<api.Quantity> {
         return '0x0';
     }
 
@@ -62,58 +42,58 @@ export class Server implements Service {
 
     // eth_*
 
-    async eth_accounts(): Promise<Data[]> {
+    async eth_accounts(): Promise<api.Data[]> {
         return (await this.engine.keyStore.getSigningAddresses()).map(a => a.toString());
     }
 
-    async eth_blockNumber(): Promise<Quantity> {
+    async eth_blockNumber(): Promise<api.Quantity> {
         const height = (await this.engine.getBlockHeight()).unwrap();
         return `0x${height.toString(16)}`;
     }
 
-    async eth_call(transaction: TransactionForCall, blockNumber?: Quantity | Tag): Promise<Data> {
+    async eth_call(transaction: api.TransactionForCall, blockNumber?: api.Quantity | api.Tag): Promise<api.Data> {
         return await (this.provider as any).routeRPC('eth_call', [transaction, blockNumber]); // TODO
     }
 
-    async eth_chainId(): Promise<Quantity> { // EIP-695
+    async eth_chainId(): Promise<api.Quantity> { // EIP-695
         const chainID = (await this.engine.getChainID()).unwrap();
         return `0x${chainID.toString(16)}`;
     }
 
-    async eth_coinbase(): Promise<Data> {
+    async eth_coinbase(): Promise<api.Data> {
         return (await this.engine.getCoinbase()).unwrap().toString();
     }
 
-    async eth_compileLLL(_code: string): Promise<Data> {
+    async eth_compileLLL(_code: string): Promise<api.Data> {
         unsupported('eth_compileLLL');
         return '';
     }
 
-    async eth_compileSerpent(_code: string): Promise<Data> {
+    async eth_compileSerpent(_code: string): Promise<api.Data> {
         unsupported('eth_compileSerpent');
         return '';
     }
 
-    async eth_compileSolidity(_code: string): Promise<Data> {
+    async eth_compileSolidity(_code: string): Promise<api.Data> {
         unsupported('eth_compileSolidity');
         return '';
     }
 
-    async eth_estimateGas(_transaction: TransactionForCall, _blockNumber?: Quantity | Tag): Promise<Quantity> {
+    async eth_estimateGas(_transaction: api.TransactionForCall, _blockNumber?: api.Quantity | api.Tag): Promise<api.Quantity> {
         return '0x0';
     }
 
-    async eth_gasPrice(): Promise<Quantity> {
+    async eth_gasPrice(): Promise<api.Quantity> {
         return '0x0';
     }
 
-    async eth_getBalance(address: Data, blockNumber?: Quantity | Tag): Promise<Quantity> {
+    async eth_getBalance(address: api.Data, blockNumber?: api.Quantity | api.Tag): Promise<api.Quantity> {
         const address_ = Address.parse(address).unwrap();
         const balance = (await this.engine.getBalance(address_)).unwrap();
         return `0x${balance.toString(16)}`;
     }
 
-    async eth_getBlockByHash(blockHash: Data, fullObject?: boolean): Promise<BlockResult | null> {
+    async eth_getBlockByHash(blockHash: api.Data, fullObject?: boolean): Promise<api.BlockResult | null> {
         const blockHash_ = blockHash.startsWith('0x') ? hexToBase58(blockHash) : blockHash;
         const options: BlockOptions = {
             contractID: this.engine.contractID,
@@ -133,7 +113,7 @@ export class Server implements Service {
         return response;
     }
 
-    async eth_getBlockByNumber(blockNumber: Quantity | Tag, fullObject?: boolean): Promise<BlockResult | null> {
+    async eth_getBlockByNumber(blockNumber: api.Quantity | api.Tag, fullObject?: boolean): Promise<api.BlockResult | null> {
         const blockNumber_ = blockNumber.startsWith('0x') ? parseInt(blockNumber, 16) : blockNumber;
         const options: BlockOptions = {
             contractID: this.engine.contractID,
@@ -153,21 +133,21 @@ export class Server implements Service {
         return response;
     }
 
-    async eth_getBlockTransactionCountByHash(blockHash: Data): Promise<Quantity | null> {
+    async eth_getBlockTransactionCountByHash(blockHash: api.Data): Promise<api.Quantity | null> {
         const blockHash_ = blockHash.startsWith('0x') ? hexToBase58(blockHash) : blockHash;
         const result = await this.engine.getBlockTransactionCount(blockHash_);
         if (result.isErr()) return null;
         return `0x${result.unwrap().toString(16)}`;
     }
 
-    async eth_getBlockTransactionCountByNumber(blockNumber: Quantity | Tag): Promise<Quantity | null> {
+    async eth_getBlockTransactionCountByNumber(blockNumber: api.Quantity | api.Tag): Promise<api.Quantity | null> {
         const blockNumber_ = blockNumber.startsWith('0x') ? parseInt(blockNumber, 16) : blockNumber;
         const result = await this.engine.getBlockTransactionCount(blockNumber_);
         if (result.isErr()) return null;
         return `0x${result.unwrap().toString(16)}`;
     }
 
-    async eth_getCode(address: Data, _blockNumber: Quantity | Tag): Promise<Data> {
+    async eth_getCode(address: api.Data, _blockNumber: api.Quantity | api.Tag): Promise<api.Data> {
         const address_ = Address.parse(address).unwrap();
         const code = (await this.engine.getCode(address_)).unwrap();
         return `0x${Buffer.from(code).toString('hex')}`;
@@ -177,7 +157,7 @@ export class Server implements Service {
         return [];
     }
 
-    async eth_getFilterChanges(filterID: Quantity): Promise<LogObject[]> {
+    async eth_getFilterChanges(filterID: api.Quantity): Promise<api.LogObject[]> {
         const filterID_ = parseInt(filterID, 16);
         if (filterID_ === 0) {
             return [];
@@ -186,7 +166,7 @@ export class Server implements Service {
         return [];
     }
 
-    async eth_getFilterLogs(filterID: Quantity): Promise<LogObject[]> {
+    async eth_getFilterLogs(filterID: api.Quantity): Promise<api.LogObject[]> {
         const filterID_ = parseInt(filterID, 16);
         if (filterID_ === 0) {
             return [];
@@ -195,23 +175,23 @@ export class Server implements Service {
         return [];
     }
 
-    async eth_getLogs(_filter: FilterOptions): Promise<LogObject[]> {
+    async eth_getLogs(_filter: api.FilterOptions): Promise<api.LogObject[]> {
         unimplemented('eth_getLogs'); // TODO
         return [];
     }
 
-    async eth_getProof(_address: Data, _keys: Data[], _blockNumber: Quantity | Tag): Promise<ProofResult> { // EIP-1186
+    async eth_getProof(_address: api.Data, _keys: api.Data[], _blockNumber: api.Quantity | api.Tag): Promise<api.ProofResult> { // EIP-1186
         unsupported('eth_getProof'); // EIP-1186 TODO?
         return {};
     }
 
-    async eth_getStorageAt(address: Data, key: Quantity, blockNumber: Quantity | Tag): Promise<Data> {
+    async eth_getStorageAt(address: api.Data, key: api.Quantity, blockNumber: api.Quantity | api.Tag): Promise<api.Data> {
         const address_ = Address.parse(address).unwrap();
         const result = (await this.engine.getStorageAt(address_, key)).unwrap();
         return formatU256(result);
     }
 
-    async eth_getTransactionByBlockHashAndIndex(blockHash: Data, transactionIndex: Quantity): Promise<TransactionResult | null> {
+    async eth_getTransactionByBlockHashAndIndex(blockHash: api.Data, transactionIndex: api.Quantity): Promise<api.TransactionResult | null> {
         const blockHash_ = blockHash.startsWith('0x') ? hexToBase58(blockHash) : blockHash;
         const transactionIndex_ = parseInt(transactionIndex, 16);
         const options: BlockOptions = {
@@ -232,7 +212,7 @@ export class Server implements Service {
         return transaction || null;
     }
 
-    async eth_getTransactionByBlockNumberAndIndex(blockNumber: Quantity | Tag, transactionIndex: Quantity): Promise<TransactionResult | null> {
+    async eth_getTransactionByBlockNumberAndIndex(blockNumber: api.Quantity | api.Tag, transactionIndex: api.Quantity): Promise<api.TransactionResult | null> {
         const blockNumber_ = blockNumber.startsWith('0x') ? parseInt(blockNumber, 16) : blockNumber;
         const transactionIndex_ = parseInt(transactionIndex, 16);
         const options: BlockOptions = {
@@ -253,49 +233,49 @@ export class Server implements Service {
         return transaction || null;
     }
 
-    async eth_getTransactionByHash(transactionHash: Data): Promise<TransactionResult | null> {
+    async eth_getTransactionByHash(transactionHash: api.Data): Promise<api.TransactionResult | null> {
         const transactionHash_ = hexToBytes(transactionHash);
         console.debug(transactionHash_); // TODO
         return await (this.provider as any).routeRPC('eth_getTransactionByHash', [transactionHash]); // TODO
     }
 
-    async eth_getTransactionCount(address: Data, _blockNumber: Quantity | Tag): Promise<Quantity> {
+    async eth_getTransactionCount(address: api.Data, _blockNumber: api.Quantity | api.Tag): Promise<api.Quantity> {
         //const [address] = expectArgs(params, 1, 2, "cannot request transaction count without specifying address");
         const address_ = Address.parse(address).unwrap();
         const nonce = (await this.engine.getNonce(address_)).unwrap();
         return `0x${nonce.toString(16)}`;
     }
 
-    async eth_getTransactionReceipt(transactionHash: string): Promise<TransactionReceipt | null> {
-        return await (this.provider as any).routeRPC('eth_getTransactionReceipt', [transactionHash]); // TODO
+    async eth_getTransactionReceipt(transactionHash: string): Promise<api.TransactionReceipt | null> {
+        return await (this.provider as any).routeRPC('eth_getapi.TransactionReceipt', [transactionHash]); // TODO
     }
 
-    async eth_getUncleByBlockHashAndIndex(_blockHash: Data, _uncleIndex: Quantity): Promise<BlockResult | null> {
+    async eth_getUncleByBlockHashAndIndex(_blockHash: api.Data, _uncleIndex: api.Quantity): Promise<api.BlockResult | null> {
         return null; // uncle blocks are never found
     }
 
-    async eth_getUncleByBlockNumberAndIndex(_blockNumber: Quantity | Tag, _uncleIndex: Quantity): Promise<BlockResult | null> {
+    async eth_getUncleByBlockNumberAndIndex(_blockNumber: api.Quantity | api.Tag, _uncleIndex: api.Quantity): Promise<api.BlockResult | null> {
         return null; // uncle blocks are never found
     }
 
-    async eth_getUncleCountByBlockHash(blockHash: Data): Promise<Quantity | null> {
+    async eth_getUncleCountByBlockHash(blockHash: api.Data): Promise<api.Quantity | null> {
         const blockHash_ = blockHash.startsWith('0x') ? hexToBase58(blockHash) : blockHash;
         const result = await this.engine.hasBlock(blockHash_);
         return result && result.isOk() ? '0x0' : null;
     }
 
-    async eth_getUncleCountByBlockNumber(blockNumber: Quantity | Tag): Promise<Quantity | null> {
+    async eth_getUncleCountByBlockNumber(blockNumber: api.Quantity | api.Tag): Promise<api.Quantity | null> {
         const blockNumber_ = blockNumber.startsWith('0x') ? parseInt(blockNumber, 16) : blockNumber;
         const result = await this.engine.hasBlock(blockNumber_);
         return result && result.isOk() ? '0x0' : null;
     }
 
-    async eth_getWork(): Promise<Data[]> {
+    async eth_getWork(): Promise<api.Data[]> {
         unsupported('eth_getWork');
         return [];
     }
 
-    async eth_hashrate(): Promise<Quantity> {
+    async eth_hashrate(): Promise<api.Quantity> {
         return '0x0';
     }
 
@@ -303,17 +283,17 @@ export class Server implements Service {
         return false;
     }
 
-    async eth_newBlockFilter(): Promise<Quantity> {
+    async eth_newBlockFilter(): Promise<api.Quantity> {
         unimplemented('eth_newBlockFilter'); // TODO
         return `0x0`;
     }
 
-    async eth_newFilter(_filter: FilterOptions): Promise<Quantity> {
+    async eth_newFilter(_filter: api.FilterOptions): Promise<api.Quantity> {
         unimplemented('eth_newFilter'); // TODO
         return `0x0`;
     }
 
-    async eth_newPendingTransactionFilter(): Promise<Quantity> {
+    async eth_newPendingTransactionFilter(): Promise<api.Quantity> {
         return '0x0'; // designates the empty filter
     }
 
@@ -325,36 +305,36 @@ export class Server implements Service {
         return '0x41';
     }
 
-    async eth_sendRawTransaction(transaction: Data): Promise<Data> {
+    async eth_sendRawTransaction(transaction: api.Data): Promise<api.Data> {
         const output = (await this.engine.rawCall(transaction)).unwrap();
         return `0x${output ? Buffer.from(output).toString('hex') : ''}`;
     }
 
-    async eth_sendTransaction(transaction: TransactionForSend): Promise<Data> {
+    async eth_sendTransaction(transaction: api.TransactionForSend): Promise<api.Data> {
         return await (this.provider as any).routeRPC('eth_sendTransaction', [transaction]); // TODO
     }
 
-    async eth_sign(_account: Data, _message: Data): Promise<Data> {
+    async eth_sign(_account: api.Data, _message: api.Data): Promise<api.Data> {
         unimplemented('eth_sign'); // TODO
         return `0x`;
     }
 
-    async eth_signTransaction(_transaction: TransactionForSend): Promise<Data> {
+    async eth_signTransaction(_transaction: api.TransactionForSend): Promise<api.Data> {
         unimplemented('eth_signTransaction'); // TODO
         return `0x`;
     }
 
-    async eth_signTypedData(_address: Data, _data: TypedData): Promise<Data> { // EIP-712
+    async eth_signTypedData(_address: api.Data, _data: api.TypedData): Promise<api.Data> { // EIP-712
         unimplemented('eth_signTypedData'); // TODO
         return `0x`;
     }
 
-    async eth_submitHashrate(_hashrate: Quantity, _clientID: Quantity): Promise<false> {
+    async eth_submitHashrate(_hashrate: api.Quantity, _clientID: api.Quantity): Promise<false> {
         unsupported('eth_submitHashrate');
         return false;
     }
 
-    async eth_submitWork(_nonce: Data, _powHash: Data, _mixDigest: Data): Promise<false> {
+    async eth_submitWork(_nonce: api.Data, _powHash: api.Data, _mixDigest: api.Data): Promise<false> {
         unsupported('eth_submitWork');
         return false;
     }
@@ -363,7 +343,7 @@ export class Server implements Service {
         return false;
     }
 
-    async eth_uninstallFilter(filterID: Quantity): Promise<boolean> {
+    async eth_uninstallFilter(filterID: api.Quantity): Promise<boolean> {
         const filterID_ = parseInt(filterID, 16);
         if (filterID_ === 0) {
             return true;
