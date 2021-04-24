@@ -15,3 +15,9 @@ CREATE TABLE transaction (
   r                 u256 NOT NULL,
   s                 u256 NOT NULL
 );
+
+CREATE INDEX transaction_block_idx ON transaction USING btree (block);
+
+CREATE INDEX transaction_from_idx ON transaction USING btree ("from");
+
+CREATE INDEX transaction_to_idx ON transaction USING btree ("to");

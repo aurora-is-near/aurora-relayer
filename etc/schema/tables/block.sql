@@ -14,3 +14,5 @@ CREATE TABLE block (
   state_root        hash NOT NULL,
   receipts_root     hash NOT NULL
 );
+
+CREATE INDEX block_timestamp_idx ON block USING btree (timestamp);

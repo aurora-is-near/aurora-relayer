@@ -11,3 +11,7 @@ CREATE TABLE filter (
   addresses         address[] NULL,
   topics            hash[] NULL
 );
+
+-- CREATE INDEX filter_addresses_idx ON filter USING gin (addresses);
+
+-- CREATE INDEX filter_topics_idx ON filter USING gin (topics);
