@@ -1,5 +1,4 @@
 ---
-database: postgres://localhost
 port: 8545
 network: local
 engine: aurora.test.near
