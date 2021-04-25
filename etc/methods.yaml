@@ -199,6 +199,7 @@ eth_getTransactionByBlockHashAndIndex:
   comment:
   link: https://eth.wiki/json-rpc/API#eth_getTransactionByBlockHashAndIndex
   implementations:
+    - etc/schema/functions/eth_getTransactionByBlockHashAndIndex.sql
     - src/servers/ephemeral.ts
 
 eth_getTransactionByBlockNumberAndIndex:
@@ -206,6 +207,7 @@ eth_getTransactionByBlockNumberAndIndex:
   comment:
   link: https://eth.wiki/json-rpc/API#eth_getTransactionByBlockNumberAndIndex
   implementations:
+    - etc/schema/functions/eth_getTransactionByBlockNumberAndIndex.sql
     - src/servers/ephemeral.ts
 
 eth_getTransactionByHash:
@@ -213,6 +215,7 @@ eth_getTransactionByHash:
   comment:
   link: https://eth.wiki/json-rpc/API#eth_getTransactionByHash
   implementations:
+    - etc/schema/functions/eth_getTransactionByHash.sql
     - src/servers/ephemeral.ts
 
 eth_getTransactionCount:
@@ -235,6 +238,7 @@ eth_getUncleByBlockHashAndIndex:
   comment:
   link: https://eth.wiki/json-rpc/API#eth_getUncleByBlockHashAndIndex
   implementations:
+    - etc/schema/functions/eth_getUncleByBlockHashAndIndex.sql
     - src/servers/skeleton.ts
 
 eth_getUncleByBlockNumberAndIndex:
@@ -242,6 +246,7 @@ eth_getUncleByBlockNumberAndIndex:
   comment:
   link: https://eth.wiki/json-rpc/API#eth_getUncleByBlockNumberAndIndex
   implementations:
+    - etc/schema/functions/eth_getUncleByBlockNumberAndIndex.sql
     - src/servers/skeleton.ts
 
 eth_getUncleCountByBlockHash:

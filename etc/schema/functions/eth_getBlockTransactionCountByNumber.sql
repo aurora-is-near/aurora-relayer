@@ -5,7 +5,8 @@ DECLARE
   result bigint;
 BEGIN
   SELECT COUNT(id) FROM transaction
-    WHERE block = block_id INTO STRICT result;
+    WHERE block = block_id
+    INTO STRICT result;
   RETURN result;
 END;
 $$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
