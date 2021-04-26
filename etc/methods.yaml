@@ -172,6 +172,7 @@ eth_getFilterLogs:
   comment:
   link: https://eth.wiki/json-rpc/API#eth_getFilterLogs
   implementations:
+    - etc/schema/functions/eth_getFilterLogs.sql
     - src/servers/ephemeral.ts
 
 eth_getLogs:

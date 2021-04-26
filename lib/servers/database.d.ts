@@ -4,5 +4,6 @@ export declare class DatabaseServer extends SkeletonServer {
     protected sql: any;
     _init(): Promise<void>;
     eth_getFilterChanges(filterID: api.Quantity): Promise<api.LogObject[]>;
+    eth_getFilterLogs(filterID: api.Quantity): Promise<api.LogObject[]>;
     eth_newBlockFilter(): Promise<api.Quantity>;
 }

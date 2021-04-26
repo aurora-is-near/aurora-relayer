@@ -13,6 +13,7 @@
 \i etc/schema/functions/eth_getBlockTransactionCountByHash.sql
 \i etc/schema/functions/eth_getBlockTransactionCountByNumber.sql
 \i etc/schema/functions/eth_getFilterChanges.sql
+\i etc/schema/functions/eth_getFilterLogs.sql
 \i etc/schema/functions/eth_getTransactionByBlockHashAndIndex.sql
 \i etc/schema/functions/eth_getTransactionByBlockNumberAndIndex.sql
 \i etc/schema/functions/eth_getTransactionByHash.sql

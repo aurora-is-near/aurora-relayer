@@ -6,8 +6,8 @@ DECLARE
   filter_id bigint;
 BEGIN
   SELECT MAX(id) FROM block INTO STRICT block_id;
-  INSERT INTO filter (type, created_at, created_by, polled_block)
-    VALUES ('block', NOW(), client_ip, block_id)
+  INSERT INTO filter (type, created_at, created_by, poll_block)
+    VALUES ('block', NOW(), client_ip, block_id + 1)
     RETURNING id INTO STRICT filter_id;
   RETURN filter_id;
 END;

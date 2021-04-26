@@ -6,9 +6,9 @@ CREATE TABLE filter (
   created_at        instant NOT NULL,
   created_by        inet NOT NULL,
   polled_at         instant NULL,
-  polled_block      blockno NULL REFERENCES block ON DELETE CASCADE,
-  from_block        blockno NULL REFERENCES block ON DELETE CASCADE,
-  to_block          blockno NULL REFERENCES block ON DELETE CASCADE,
+  poll_block        blockno NULL,
+  from_block        blockno NULL,
+  to_block          blockno NULL,
   addresses         address[] NULL,
   topics            hash[] NULL
 );
