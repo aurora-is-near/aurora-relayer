@@ -1,10 +1,12 @@
 \i etc/schema/domains.sql
 \i etc/schema/types/block_result.sql
 \i etc/schema/types/filter_result.sql
+\i etc/schema/types/filter_type.sql
 \i etc/schema/types/transaction_result.sql
 \i etc/schema/tables/block.sql
 \i etc/schema/tables/filter.sql
 \i etc/schema/tables/transaction.sql
+\i etc/schema/tables/event.sql
 \i etc/schema/functions/eth_blockNumber.sql
 \i etc/schema/functions/eth_getBlockByHash.sql
 \i etc/schema/functions/eth_getBlockByNumber.sql

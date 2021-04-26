@@ -5,14 +5,27 @@ import { SkeletonServer } from './skeleton.js';
 import * as api from '../api.js';
 //import { unimplemented } from '../errors.js';
 
-import { bytesToHex, intToHex } from '@aurora-is-near/engine';
+import { bytesToHex, exportJSON, intToHex } from '@aurora-is-near/engine';
 import postgres from 'postgres';
 
 export class DatabaseServer extends SkeletonServer {
     protected sql: any;
 
     async _init(): Promise<void> {
-        this.sql = postgres(this.config.database);
+        this.sql = postgres(this.config.database, {
+            transform: {
+                value: ((value: unknown) => {
+                    // Fix BYTEA elements in arrays being returned as ['\\x...'] instead of [Buffer]:
+                    if (Array.isArray(value)) {
+                        return value.map((element: unknown) => {
+                            return (typeof element === 'string' && element.startsWith('\\x')) ?
+                                Buffer.from(element.slice(2), 'hex') : element;
+                        });
+                    }
+                    return value;
+                })
+            },
+        });
         await this.sql.listen('block', (payload: string) => {
             const blockID = parseInt(payload);
             if (isNaN(blockID)) return; // ignore UFOs
@@ -29,10 +42,19 @@ export class DatabaseServer extends SkeletonServer {
             return [];
         }
 
-        const rows = await this.sql`SELECT * FROM eth_getFilterChanges_newBlockFilter(${ filterID_ }::bigint)`;
-        return rows.flatMap((row: Record<string, unknown>) => Object.values(row)).map(bytesToHex);
-
-        // TODO: support log filters
+        const [{ type }] = await this.sql`SELECT type FROM filter WHERE id = ${ filterID_ }`;
+        switch (type) {
+            case 'block': {
+                const rows = await this.sql`SELECT * FROM eth_getFilterChanges_newBlockFilter(${ filterID_ }::bigint)`;
+                return rows.flatMap((row: Record<string, unknown>) => Object.values(row)).map(bytesToHex);
+            }
+            case 'event': {
+                const rows = await this.sql`SELECT * FROM eth_getFilterChanges_newFilter(${ filterID_ }::bigint)`;
+                return exportJSON(rows);
+            }
+            case 'transaction':
+            default: return [];
+        }
     }
 
     async eth_newBlockFilter(): Promise<api.Quantity> {
