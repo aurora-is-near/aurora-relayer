@@ -5,11 +5,12 @@ import { SkeletonServer } from './skeleton.js';
 import * as api from '../api.js';
 //import { unimplemented } from '../errors.js';
 
+import { intToHex } from '@aurora-is-near/engine';
 //import { Address, BlockOptions, Engine, formatU256, hexToBase58, hexToBytes, intToHex } from '@aurora-is-near/engine';
 import postgres from 'postgres';
 
 export class DatabaseServer extends SkeletonServer {
-    public sql: any;
+    protected sql: any;
 
     async _init(): Promise<void> {
         this.sql = postgres(this.config.database);
@@ -32,7 +33,8 @@ export class DatabaseServer extends SkeletonServer {
     }
 
     async eth_newBlockFilter(): Promise<api.Quantity> {
-        return `0x0`; // TODO
+        const [{ id }] = await this.sql`SELECT eth_newBlockFilter(${'0.0.0.0'}) AS id`;
+        return intToHex(id);
     }
 
     // TODO: implement all RPC methods

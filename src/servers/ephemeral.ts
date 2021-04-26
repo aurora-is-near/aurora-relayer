@@ -8,10 +8,12 @@ import { unimplemented } from '../errors.js';
 import { Address, BlockOptions, BlockID, formatU256, hexToBase58, hexToBytes, intToHex } from '@aurora-is-near/engine';
 
 export class EphemeralServer extends SkeletonServer {
-    public readonly filters: Map<number, Filter> = new Map();
+    protected readonly filters: Map<number, Filter> = new Map();
+    protected filterID = 0;
+    protected latestBlockID: BlockID = 0;
 
     async _init(): Promise<void> {
-        // TODO
+        this.latestBlockID = parseInt(await this.eth_blockNumber(), 16);
     }
 
     async eth_accounts(): Promise<api.Data[]> {
@@ -203,8 +205,9 @@ export class EphemeralServer extends SkeletonServer {
     }
 
     async eth_newBlockFilter(): Promise<api.Quantity> {
-        unimplemented('eth_newBlockFilter'); // TODO
-        return `0x0`;
+        const id = ++this.filterID;
+        this.filters.set(id, { blockID: this.latestBlockID });
+        return intToHex(id);
     }
 
     async eth_newFilter(_filter: api.FilterOptions): Promise<api.Quantity> {

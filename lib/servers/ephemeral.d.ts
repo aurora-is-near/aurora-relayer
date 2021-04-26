@@ -1,7 +1,10 @@
 import { SkeletonServer } from './skeleton.js';
 import * as api from '../api.js';
+import { BlockID } from '@aurora-is-near/engine';
 export declare class EphemeralServer extends SkeletonServer {
-    readonly filters: Map<number, any>;
+    protected readonly filters: Map<number, Filter>;
+    protected filterID: number;
+    protected latestBlockID: BlockID;
     _init(): Promise<void>;
     eth_accounts(): Promise<api.Data[]>;
     eth_blockNumber(): Promise<api.Quantity>;
@@ -35,3 +38,7 @@ export declare class EphemeralServer extends SkeletonServer {
     eth_signTypedData(_address: api.Data, _data: api.TypedData): Promise<api.Data>;
     eth_uninstallFilter(filterID: api.Quantity): Promise<boolean>;
 }
+interface Filter {
+    blockID: BlockID;
+}
+export {};
