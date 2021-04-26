@@ -164,6 +164,7 @@ eth_getFilterChanges:
   comment:
   link: https://eth.wiki/json-rpc/API#eth_getFilterChanges
   implementations:
+    - etc/schema/functions/eth_getFilterChanges.sql
     - src/servers/ephemeral.ts
 
 eth_getFilterLogs:

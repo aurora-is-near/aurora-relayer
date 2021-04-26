@@ -5,8 +5,7 @@ import { SkeletonServer } from './skeleton.js';
 import * as api from '../api.js';
 //import { unimplemented } from '../errors.js';
 
-import { intToHex } from '@aurora-is-near/engine';
-//import { Address, BlockOptions, Engine, formatU256, hexToBase58, hexToBytes, intToHex } from '@aurora-is-near/engine';
+import { bytesToHex, intToHex } from '@aurora-is-near/engine';
 import postgres from 'postgres';
 
 export class DatabaseServer extends SkeletonServer {
@@ -29,11 +28,15 @@ export class DatabaseServer extends SkeletonServer {
         if (filterID_ === 0) {
             return [];
         }
-        return []; // TODO
+
+        const rows = await this.sql`SELECT * FROM eth_getFilterChanges_newBlockFilter(${ filterID_ }::bigint)`;
+        return rows.flatMap((row: Record<string, unknown>) => Object.values(row)).map(bytesToHex);
+
+        // TODO: support log filters
     }
 
     async eth_newBlockFilter(): Promise<api.Quantity> {
-        const [{ id }] = await this.sql`SELECT eth_newBlockFilter(${'0.0.0.0'}) AS id`;
+        const [{ id }] = await this.sql`SELECT eth_newBlockFilter(${'0.0.0.0'}) AS id`; // TODO: IPv4
         return intToHex(id);
     }
 
