@@ -3,12 +3,14 @@ import * as api from '../api.js';
 import { Config } from '../config.js';
 import { NearProvider } from '../provider.js';
 import { Engine } from '@aurora-is-near/engine';
+import { Logger } from 'pino';
 export declare class EphemeralServer extends SkeletonServer {
+    readonly config: Config;
+    readonly logger: Logger;
     readonly engine: Engine;
     readonly provider: NearProvider;
-    readonly config: Config;
     readonly filters: Map<number, any>;
-    constructor(engine: Engine, provider: NearProvider, config: Config);
+    constructor(config: Config, logger: Logger, engine: Engine, provider: NearProvider);
     eth_accounts(): Promise<api.Data[]>;
     eth_blockNumber(): Promise<api.Quantity>;
     eth_call(transaction: api.TransactionForCall, blockNumber?: api.Quantity | api.Tag): Promise<api.Data>;

@@ -8,14 +8,16 @@ import { unimplemented } from '../errors.js';
 import { NearProvider } from '../provider.js';
 
 import { Address, BlockOptions, Engine, formatU256, hexToBase58, hexToBytes, intToHex } from '@aurora-is-near/engine';
+import { Logger } from 'pino';
 
 export class EphemeralServer extends SkeletonServer {
     public readonly filters: Map<number, any> = new Map();
 
     constructor(
+            public readonly config: Config,
+            public readonly logger: Logger,
             public readonly engine: Engine,
-            public readonly provider: NearProvider,
-            public readonly config: Config) {
+            public readonly provider: NearProvider) {
         super();
     }
 

@@ -7,6 +7,7 @@ import middleware from './middleware.js';
 import { NearProvider } from './provider.js';
 import { DatabaseServer } from './servers/database.js';
 import { EphemeralServer } from './servers/ephemeral.js';
+import { SkeletonServer } from './servers/skeleton.js';
 
 import { Engine } from '@aurora-is-near/engine';
 import bodyParser from 'body-parser';
@@ -40,7 +41,7 @@ export async function createApp(config: Config, logger: Logger, engine: Engine, 
     app.use(cors());           // Access-Control-Allow-Origin: *
     app.use(helmet.noSniff()); // X-Content-Type-Options: nosniff
     app.use(bodyParser.json({ type: 'application/json' }));
-    app.use(createServer(config, engine, provider));
+    app.use(createServer(config, logger, engine, provider));
     app.use(middleware.handleErrors());
 
     app.post('/relay', async (req, res) => {
@@ -109,11 +110,11 @@ class Method extends jayson.Method {
 
 interface MethodMap { [methodName: string]: jayson.MethodLike }
 
-function createServer(config: Config, engine: Engine, provider: NearProvider): connect.HandleFunction {
+function createServer(config: Config, logger: Logger, engine: Engine, provider: NearProvider): connect.HandleFunction {
     const serverClass = config.database ? DatabaseServer : EphemeralServer;
-    const server = new serverClass(engine, provider, config as any);
-    const methodList = Object.getOwnPropertyNames(serverClass.prototype)
-        .filter((id: string) => id !== 'constructor')
+    const server = new serverClass(config, logger, engine, provider);
+    const methodList = Object.getOwnPropertyNames(SkeletonServer.prototype)
+        .filter((id: string) => id !== 'constructor' && id[0] != '_')
         .map((id: string) => [id, (server as any)[id]]);
     const methodMap: MethodMap = Object.fromEntries(methodList);
     const jaysonServer = new jayson.Server(methodMap, { methodConstructor: Method, useContext: server as any });
