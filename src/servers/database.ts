@@ -2,30 +2,17 @@
 
 import { SkeletonServer } from './skeleton.js';
 
-//import * as api from '../api.js';
-import { Config } from '../config.js';
+import * as api from '../api.js';
 //import { unimplemented } from '../errors.js';
-import { NearProvider } from '../provider.js';
 
 //import { Address, BlockOptions, Engine, formatU256, hexToBase58, hexToBytes, intToHex } from '@aurora-is-near/engine';
-import { Engine } from '@aurora-is-near/engine';
-import { Logger } from 'pino';
 import postgres from 'postgres';
 
 export class DatabaseServer extends SkeletonServer {
-    public readonly sql: any;
-
-    constructor(
-            public readonly config: Config,
-            public readonly logger: Logger,
-            public readonly engine: Engine,
-            public readonly provider: NearProvider) {
-        super();
-        this.sql = postgres(config.database);
-        this._init();
-    }
+    public sql: any;
 
     async _init(): Promise<void> {
+        this.sql = postgres(this.config.database);
         await this.sql.listen('block', (payload: string) => {
             const blockID = parseInt(payload);
             if (isNaN(blockID)) return; // ignore UFOs
@@ -36,5 +23,17 @@ export class DatabaseServer extends SkeletonServer {
         });
     }
 
-    // TODO
+    async eth_getFilterChanges(filterID: api.Quantity): Promise<api.LogObject[]> {
+        const filterID_ = parseInt(filterID, 16);
+        if (filterID_ === 0) {
+            return [];
+        }
+        return []; // TODO
+    }
+
+    async eth_newBlockFilter(): Promise<api.Quantity> {
+        return `0x0`; // TODO
+    }
+
+    // TODO: implement all RPC methods
 }

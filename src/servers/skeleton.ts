@@ -1,11 +1,25 @@
 /* This is free and unencumbered software released into the public domain. */
 
 import * as api from '../api.js';
+import { Config } from '../config.js';
 import { unimplemented, unsupported } from '../errors.js';
+import { NearProvider } from '../provider.js';
 
+import { Engine } from '@aurora-is-near/engine';
 import { keccakFromHexString } from 'ethereumjs-util';
+import { Logger } from 'pino';
 
-export class SkeletonServer implements api.Service {
+export abstract class SkeletonServer implements api.Service {
+    constructor(
+            public readonly config: Config,
+            public readonly logger: Logger,
+            public readonly engine: Engine,
+            public readonly provider: NearProvider) {
+        this._init();
+    }
+
+    abstract _init(): Promise<void>;
+
     // web3_*
 
     async web3_clientVersion(): Promise<string> {

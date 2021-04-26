@@ -3,22 +3,15 @@
 import { SkeletonServer } from './skeleton.js';
 
 import * as api from '../api.js';
-import { Config } from '../config.js';
 import { unimplemented } from '../errors.js';
-import { NearProvider } from '../provider.js';
 
-import { Address, BlockOptions, Engine, formatU256, hexToBase58, hexToBytes, intToHex } from '@aurora-is-near/engine';
-import { Logger } from 'pino';
+import { Address, BlockOptions, BlockID, formatU256, hexToBase58, hexToBytes, intToHex } from '@aurora-is-near/engine';
 
 export class EphemeralServer extends SkeletonServer {
-    public readonly filters: Map<number, any> = new Map();
+    public readonly filters: Map<number, Filter> = new Map();
 
-    constructor(
-            public readonly config: Config,
-            public readonly logger: Logger,
-            public readonly engine: Engine,
-            public readonly provider: NearProvider) {
-        super();
+    async _init(): Promise<void> {
+        // TODO
     }
 
     async eth_accounts(): Promise<api.Data[]> {
@@ -255,4 +248,8 @@ export class EphemeralServer extends SkeletonServer {
         unimplemented('eth_uninstallFilter'); // TODO
         return false;
     }
+}
+
+interface Filter {
+    blockID: BlockID;
 }

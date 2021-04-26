@@ -1,14 +1,8 @@
 import { SkeletonServer } from './skeleton.js';
-import { Config } from '../config.js';
-import { NearProvider } from '../provider.js';
-import { Engine } from '@aurora-is-near/engine';
-import { Logger } from 'pino';
+import * as api from '../api.js';
 export declare class DatabaseServer extends SkeletonServer {
-    readonly config: Config;
-    readonly logger: Logger;
-    readonly engine: Engine;
-    readonly provider: NearProvider;
-    readonly sql: any;
-    constructor(config: Config, logger: Logger, engine: Engine, provider: NearProvider);
+    sql: any;
     _init(): Promise<void>;
+    eth_getFilterChanges(filterID: api.Quantity): Promise<api.LogObject[]>;
+    eth_newBlockFilter(): Promise<api.Quantity>;
 }
