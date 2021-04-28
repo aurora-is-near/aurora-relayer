@@ -8,8 +8,8 @@ import { ConnectEnv, Engine } from '@aurora-is-near/engine';
 import { program } from 'commander';
 import externalConfig from 'config';
 import nearProvider from 'near-web3-provider';
+import pg from 'pg';
 import pino from 'pino';
-import postgres from 'postgres';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -43,8 +43,9 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
   }
 
   if (config.database) {
-    const sql = postgres(config.database);
-    await sql`SELECT 1`; // test connectivity
+    const sql = new pg.Client(config.database);
+    await sql.connect();
+    await sql.query('SELECT 1'); // test connectivity
   }
 
   const engine = await Engine.connect({

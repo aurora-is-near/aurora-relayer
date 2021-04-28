@@ -7,7 +7,7 @@ import * as api from '../api.js';
 import { compileTopics } from '../topics.js';
 
 import { Address, BlockID, bytesToHex, exportJSON, hexToBytes, intToHex } from '@aurora-is-near/engine';
-import postgres from 'postgres';
+import pg from 'pg';
 
 import sql from 'sql-bricks';
 const sqlConvert = (sql as any).convert;
@@ -19,35 +19,27 @@ const sqlConvert = (sql as any).convert;
 };
 
 export class DatabaseServer extends SkeletonServer {
-    protected sql: any;
+    protected sql?: pg.Client;
 
     async _init(): Promise<void> {
-        this.sql = postgres(this.config.database, {
-            transform: {
-                value: ((value: unknown) => {
-                    // Fix BYTEA elements in arrays being returned as ['\\x...'] instead of [Buffer]:
-                    if (Array.isArray(value)) {
-                        return value.map((element: unknown) => {
-                            return (typeof element === 'string' && element.startsWith('\\x')) ?
-                                Buffer.from(element.slice(2), 'hex') : element;
-                        });
-                    }
-                    return value;
-                })
-            },
-        });
-        await this.sql.listen('block', (payload: string) => {
-            const blockID = parseInt(payload);
-            if (isNaN(blockID)) return; // ignore UFOs
+        this.sql = new pg.Client(this.config.database);
+        await this.sql.connect();
+        this.sql.on('notification', (message: pg.Notification) => {
+            if (!message.payload) return;
+            if (message.channel === 'block') {
+                const blockID = parseInt(message.payload);
+                if (isNaN(blockID)) return; // ignore UFOs
 
-            this.logger.info({ block: { id: blockID } }, "block received");
+                this.logger.info({ block: { id: blockID } }, "block received");
 
-            // TODO: notify subscribers
+                // TODO: notify subscribers
+            }
         });
+        this.sql.query('LISTEN block');
     }
 
     async eth_blockNumber(): Promise<api.Quantity> {
-        const [{ result }] = await this.sql`SELECT eth_blockNumber() AS result`;
+        const { rows: [{ result }] } = await this.sql!.query('SELECT eth_blockNumber()::int AS result');
         return intToHex(result);
     }
 
@@ -57,14 +49,15 @@ export class DatabaseServer extends SkeletonServer {
             return [];
         }
 
-        const [{ type }] = await this.sql`SELECT type FROM filter WHERE id = ${ filterID_ }`;
+        const { rows: [{ type }] } = await this.sql!.query('SELECT type FROM filter WHERE id = $1', [filterID_]);
         switch (type) {
             case 'block': {
-                const rows = await this.sql`SELECT * FROM eth_getFilterChanges_block(${ filterID_ }::bigint)`;
-                return rows.flatMap((row: Record<string, unknown>) => Object.values(row)).map(bytesToHex);
+                const { rows } = await this.sql!.query('SELECT * FROM eth_getFilterChanges_block($1::bigint)', [filterID_]);
+                const buffers = rows.flatMap((row: Record<string, unknown>) => Object.values(row)) as Buffer[];
+                return buffers.map(bytesToHex);
             }
             case 'event': {
-                const rows = await this.sql`SELECT * FROM eth_getFilterChanges_event(${ filterID_ }::bigint)`;
+                const { rows } = await this.sql!.query('SELECT * FROM eth_getFilterChanges_event($1::bigint)', [filterID_]);
                 return exportJSON(rows);
             }
             case 'transaction':
@@ -78,14 +71,15 @@ export class DatabaseServer extends SkeletonServer {
             return [];
         }
 
-        const [{ type }] = await this.sql`SELECT type FROM filter WHERE id = ${ filterID_ }`;
+        const { rows: [{ type }] } = await this.sql!.query('SELECT type FROM filter WHERE id = $1', [filterID_]);
         switch (type) {
             case 'block': {
-                const rows = await this.sql`SELECT * FROM eth_getFilterLogs_block(${ filterID_ }::bigint)`;
-                return rows.flatMap((row: Record<string, unknown>) => Object.values(row)).map(bytesToHex);
+                const { rows } = await this.sql!.query('SELECT * FROM eth_getFilterLogs_block($1::bigint)', [filterID_]);
+                const buffers = rows.flatMap((row: Record<string, unknown>) => Object.values(row)) as Buffer[];
+                return buffers.map(bytesToHex);
             }
             case 'event': {
-                const rows = await this.sql`SELECT * FROM eth_getFilterLogs_event(${ filterID_ }::bigint)`;
+                const { rows } = await this.sql!.query('SELECT * FROM eth_getFilterLogs_event($1::bigint)', [filterID_]);
                 return exportJSON(rows);
             }
             case 'transaction':
@@ -94,7 +88,7 @@ export class DatabaseServer extends SkeletonServer {
     }
 
     async eth_getLogs(filter: api.FilterOptions): Promise<api.LogObject[]> {
-        const [{ id: latestBlockID }] = await this.sql`SELECT eth_blockNumber() AS id`;
+        const { rows: [{ id: latestBlockID }] } = await this.sql!.query('SELECT eth_blockNumber()::int AS id');
         const where = [];
         if (filter.blockHash !== undefined && filter.blockHash !== null) { // EIP-234
             where.push({ 'b.hash': hexToBytes(filter.blockHash) });
@@ -130,7 +124,7 @@ export class DatabaseServer extends SkeletonServer {
     }
 
     async eth_newBlockFilter(): Promise<api.Quantity> {
-        const [{ id }] = await this.sql`SELECT eth_newBlockFilter(${'0.0.0.0'}) AS id`; // TODO: IPv4
+        const { rows: [{ id }] } = await this.sql!.query('SELECT eth_newBlockFilter($1)::int AS id', ['0.0.0.0']); // TODO: IPv4
         return intToHex(id);
     }
 
