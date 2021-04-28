@@ -5,7 +5,7 @@ import { SkeletonServer } from './skeleton.js';
 import * as api from '../api.js';
 import { unimplemented } from '../errors.js';
 
-import { Address, BlockOptions, BlockID, formatU256, hexToBase58, hexToBytes, intToHex } from '@aurora-is-near/engine';
+import { Address, BlockOptions, BlockID, formatU256, hexToBase58, hexToBytes, intToHex, bytesToHex } from '@aurora-is-near/engine';
 
 export class EphemeralServer extends SkeletonServer {
     protected readonly filters: Map<number, Filter> = new Map();
@@ -22,7 +22,7 @@ export class EphemeralServer extends SkeletonServer {
 
     async eth_blockNumber(): Promise<api.Quantity> {
         const height = (await this.engine.getBlockHeight()).unwrap();
-        return `0x${height.toString(16)}`;
+        return intToHex(height);
     }
 
     async eth_call(transaction: api.TransactionForCall, blockNumber?: api.Quantity | api.Tag): Promise<api.Data> {
@@ -31,7 +31,7 @@ export class EphemeralServer extends SkeletonServer {
 
     async eth_chainId(): Promise<api.Quantity> { // EIP-695
         const chainID = (await this.engine.getChainID()).unwrap();
-        return `0x${chainID.toString(16)}`;
+        return intToHex(chainID);
     }
 
     async eth_coinbase(): Promise<api.Data> {
@@ -41,7 +41,7 @@ export class EphemeralServer extends SkeletonServer {
     async eth_getBalance(address: api.Data, blockNumber?: api.Quantity | api.Tag): Promise<api.Quantity> {
         const address_ = Address.parse(address).unwrap();
         const balance = (await this.engine.getBalance(address_)).unwrap();
-        return `0x${balance.toString(16)}`;
+        return intToHex(balance);
     }
 
     async eth_getBlockByHash(blockHash: api.Data, fullObject?: boolean): Promise<api.BlockResult | null> {
@@ -87,21 +87,19 @@ export class EphemeralServer extends SkeletonServer {
     async eth_getBlockTransactionCountByHash(blockHash: api.Data): Promise<api.Quantity | null> {
         const blockHash_ = blockHash.startsWith('0x') ? hexToBase58(blockHash) : blockHash;
         const result = await this.engine.getBlockTransactionCount(blockHash_);
-        if (result.isErr()) return null;
-        return `0x${result.unwrap().toString(16)}`;
+        return result?.isOk() ? intToHex(result.unwrap()) : null;
     }
 
     async eth_getBlockTransactionCountByNumber(blockNumber: api.Quantity | api.Tag): Promise<api.Quantity | null> {
         const blockNumber_ = blockNumber.startsWith('0x') ? parseInt(blockNumber, 16) : blockNumber;
         const result = await this.engine.getBlockTransactionCount(blockNumber_);
-        if (result.isErr()) return null;
-        return `0x${result.unwrap().toString(16)}`;
+        return result?.isOk() ? intToHex(result.unwrap()) : null;
     }
 
     async eth_getCode(address: api.Data, _blockNumber: api.Quantity | api.Tag): Promise<api.Data> {
         const address_ = Address.parse(address).unwrap();
         const code = (await this.engine.getCode(address_)).unwrap();
-        return `0x${Buffer.from(code).toString('hex')}`;
+        return bytesToHex(code);
     }
 
     async eth_getFilterChanges(filterID: api.Quantity): Promise<api.LogObject[]> {
@@ -185,7 +183,7 @@ export class EphemeralServer extends SkeletonServer {
         //const [address] = expectArgs(params, 1, 2, "cannot request transaction count without specifying address");
         const address_ = Address.parse(address).unwrap();
         const nonce = (await this.engine.getNonce(address_)).unwrap();
-        return `0x${nonce.toString(16)}`;
+        return intToHex(nonce);
     }
 
     async eth_getTransactionReceipt(transactionHash: string): Promise<api.TransactionReceipt | null> {
@@ -195,13 +193,13 @@ export class EphemeralServer extends SkeletonServer {
     async eth_getUncleCountByBlockHash(blockHash: api.Data): Promise<api.Quantity | null> {
         const blockHash_ = blockHash.startsWith('0x') ? hexToBase58(blockHash) : blockHash;
         const result = await this.engine.hasBlock(blockHash_);
-        return result && result.isOk() ? '0x0' : null;
+        return result?.isOk() ? intToHex(0) : null;
     }
 
     async eth_getUncleCountByBlockNumber(blockNumber: api.Quantity | api.Tag): Promise<api.Quantity | null> {
         const blockNumber_ = blockNumber.startsWith('0x') ? parseInt(blockNumber, 16) : blockNumber;
         const result = await this.engine.hasBlock(blockNumber_);
-        return result && result.isOk() ? '0x0' : null;
+        return result?.isOk() ? intToHex(0) : null;
     }
 
     async eth_newBlockFilter(): Promise<api.Quantity> {
@@ -212,16 +210,16 @@ export class EphemeralServer extends SkeletonServer {
 
     async eth_newFilter(_filter: api.FilterOptions): Promise<api.Quantity> {
         unimplemented('eth_newFilter'); // TODO
-        return `0x0`;
+        return intToHex(0);
     }
 
     async eth_newPendingTransactionFilter(): Promise<api.Quantity> {
-        return '0x0'; // designates the empty filter
+        return intToHex(0); // designates the empty filter
     }
 
     async eth_sendRawTransaction(transaction: api.Data): Promise<api.Data> {
         const output = (await this.engine.rawCall(transaction)).unwrap();
-        return `0x${output ? Buffer.from(output).toString('hex') : ''}`;
+        return bytesToHex(output);
     }
 
     async eth_sendTransaction(transaction: api.TransactionForSend): Promise<api.Data> {

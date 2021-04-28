@@ -5,7 +5,7 @@ import { Config } from '../config.js';
 import { unimplemented, unsupported } from '../errors.js';
 import { NearProvider } from '../provider.js';
 
-import { Engine } from '@aurora-is-near/engine';
+import { bytesToHex, Engine, intToHex } from '@aurora-is-near/engine';
 import { keccakFromHexString } from 'ethereumjs-util';
 import { Logger } from 'pino';
 
@@ -27,7 +27,7 @@ export abstract class SkeletonServer implements api.Service {
     }
 
     async web3_sha3(input: api.Data): Promise<api.Data> {
-        return `0x${Buffer.from(keccakFromHexString(input)).toString('hex')}`;
+        return bytesToHex(keccakFromHexString(input));
     }
 
     // net_*
@@ -37,7 +37,7 @@ export abstract class SkeletonServer implements api.Service {
     }
 
     async net_peerCount(): Promise<api.Quantity> {
-        return '0x0';
+        return intToHex(0);
     }
 
     async net_version(): Promise<string> {
@@ -53,7 +53,7 @@ export abstract class SkeletonServer implements api.Service {
 
     async eth_blockNumber(): Promise<api.Quantity> {
         unimplemented('eth_blockNumber');
-        return '0x0';
+        return intToHex(0);
     }
 
     async eth_call(_transaction: api.TransactionForCall, _blockNumber?: api.Quantity | api.Tag): Promise<api.Data> {
@@ -63,7 +63,7 @@ export abstract class SkeletonServer implements api.Service {
 
     async eth_chainId(): Promise<api.Quantity> { // EIP-695
         unimplemented('eth_chainId');
-        return '0x0';
+        return intToHex(0);
     }
 
     async eth_coinbase(): Promise<api.Data> {
@@ -87,16 +87,16 @@ export abstract class SkeletonServer implements api.Service {
     }
 
     async eth_estimateGas(_transaction: api.TransactionForCall, _blockNumber?: api.Quantity | api.Tag): Promise<api.Quantity> {
-        return '0x0';
+        return intToHex(0);
     }
 
     async eth_gasPrice(): Promise<api.Quantity> {
-        return '0x0';
+        return intToHex(0);
     }
 
     async eth_getBalance(_address: api.Data, _blockNumber?: api.Quantity | api.Tag): Promise<api.Quantity> {
         unimplemented('eth_getBalance');
-        return '0x0';
+        return intToHex(0);
     }
 
     async eth_getBlockByHash(_blockHash: api.Data, _fullObject?: boolean): Promise<api.BlockResult | null> {
@@ -170,7 +170,7 @@ export abstract class SkeletonServer implements api.Service {
 
     async eth_getTransactionCount(_address: api.Data, _blockNumber: api.Quantity | api.Tag): Promise<api.Quantity> {
         unimplemented('eth_getTransactionCount');
-        return '0x0';
+        return intToHex(0);
     }
 
     async eth_getTransactionReceipt(_transactionHash: string): Promise<api.TransactionReceipt | null> {
@@ -202,7 +202,7 @@ export abstract class SkeletonServer implements api.Service {
     }
 
     async eth_hashrate(): Promise<api.Quantity> {
-        return '0x0';
+        return intToHex(0);
     }
 
     async eth_mining(): Promise<false> {
@@ -211,16 +211,16 @@ export abstract class SkeletonServer implements api.Service {
 
     async eth_newBlockFilter(): Promise<api.Quantity> {
         unimplemented('eth_newBlockFilter');
-        return '0x0';
+        return intToHex(0);
     }
 
     async eth_newFilter(_filter: api.FilterOptions): Promise<api.Quantity> {
         unimplemented('eth_newFilter');
-        return '0x0';
+        return intToHex(0);
     }
 
     async eth_newPendingTransactionFilter(): Promise<api.Quantity> {
-        return '0x0'; // designates the empty filter
+        return intToHex(0); // designates the empty filter
     }
 
     async eth_pendingTransactions(): Promise<Record<string, string | number | null>[]> { // undocumented
@@ -228,7 +228,7 @@ export abstract class SkeletonServer implements api.Service {
     }
 
     async eth_protocolVersion(): Promise<string> {
-        return '0x41';
+        return intToHex(0x41);
     }
 
     async eth_sendRawTransaction(_transaction: api.Data): Promise<api.Data> {
@@ -243,17 +243,17 @@ export abstract class SkeletonServer implements api.Service {
 
     async eth_sign(_account: api.Data, _message: api.Data): Promise<api.Data> {
         unimplemented('eth_sign');
-        return `0x`;
+        return '0x';
     }
 
     async eth_signTransaction(_transaction: api.TransactionForSend): Promise<api.Data> {
         unimplemented('eth_signTransaction');
-        return `0x`;
+        return '0x';
     }
 
     async eth_signTypedData(_address: api.Data, _data: api.TypedData): Promise<api.Data> { // EIP-712
         unimplemented('eth_signTypedData');
-        return `0x`;
+        return '0x';
     }
 
     async eth_submitHashrate(_hashrate: api.Quantity, _clientID: api.Quantity): Promise<false> {
