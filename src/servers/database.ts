@@ -4,9 +4,19 @@ import { SkeletonServer } from './skeleton.js';
 
 import * as api from '../api.js';
 //import { unimplemented } from '../errors.js';
+import { compileTopics } from '../topics.js';
 
-import { bytesToHex, exportJSON, intToHex } from '@aurora-is-near/engine';
+import { Address, BlockID, bytesToHex, exportJSON, hexToBytes, intToHex } from '@aurora-is-near/engine';
 import postgres from 'postgres';
+
+import sql from 'sql-bricks';
+const sqlConvert = (sql as any).convert;
+(sql as any).convert = (val: unknown) => {
+    if (val instanceof Uint8Array) {
+        return `'\\x${Buffer.from(val).toString('hex')}'`;
+    }
+    return sqlConvert(val);
+};
 
 export class DatabaseServer extends SkeletonServer {
     protected sql: any;
@@ -34,6 +44,11 @@ export class DatabaseServer extends SkeletonServer {
 
             // TODO: notify subscribers
         });
+    }
+
+    async eth_blockNumber(): Promise<api.Quantity> {
+        const [{ result }] = await this.sql`SELECT eth_blockNumber() AS result`;
+        return intToHex(result);
     }
 
     async eth_getFilterChanges(filterID: api.Quantity): Promise<api.LogObject[]> {
@@ -78,10 +93,64 @@ export class DatabaseServer extends SkeletonServer {
         }
     }
 
+    async eth_getLogs(filter: api.FilterOptions): Promise<api.LogObject[]> {
+        const [{ id: latestBlockID }] = await this.sql`SELECT eth_blockNumber() AS id`;
+        const where = [];
+        if (filter.blockHash !== undefined && filter.blockHash !== null) { // EIP-234
+            where.push({ 'b.hash': hexToBytes(filter.blockHash) });
+        }
+        else {
+            const fromBlock = resolveBlockSpec(latestBlockID, filter.fromBlock);
+            if (fromBlock) {
+                where.push(sql.gte('b.id', fromBlock));
+            }
+            const toBlock = resolveBlockSpec(latestBlockID, filter.toBlock);
+            if (toBlock) {
+                where.push(sql.lte('b.id', toBlock));
+            }
+        }
+        if (filter.address) {
+            const addresses = (Array.isArray(filter.address) ? filter.address : [filter.address])
+                .map((address: string) => Address.parse(address).unwrap());
+            where.push(sql.in('t.from', addresses.map((address: Address) => address.toBytes())));
+        }
+        if (filter.topics) {
+            const clauses = compileTopics(filter.topics);
+            if (clauses) {
+                where.push(clauses);
+            }
+        }
+
+        const query = sql.select('e.*').from('event e')
+            .leftJoin('transaction t', {'e.transaction': 't.id'})
+            .leftJoin('block b', {'t.block': 'b.id'})
+            .where(sql.and(...where));
+        console.debug(query.toString()); // TODO: execute query
+        return [];
+    }
+
     async eth_newBlockFilter(): Promise<api.Quantity> {
         const [{ id }] = await this.sql`SELECT eth_newBlockFilter(${'0.0.0.0'}) AS id`; // TODO: IPv4
         return intToHex(id);
     }
 
     // TODO: implement all RPC methods
+}
+
+function resolveBlockSpec(latestBlockID: BlockID, blockSpec?: string): BlockID {
+    if (blockSpec === undefined || blockSpec === null) {
+        return latestBlockID;
+    }
+    switch (blockSpec) {
+        case 'earliest': return 0;
+        case 'latest': return latestBlockID;
+        case 'pending': return latestBlockID;
+        default: {
+            const blockID = parseInt(blockSpec, 16);
+            if (isNaN(blockID)) {
+                throw Error(`invalid block ID: ${ blockSpec }`)
+            }
+            return blockID;
+        }
+    }
 }

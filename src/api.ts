@@ -45,12 +45,14 @@ export interface TransactionResult {
 
 export type TransactionReceipt = Record<string, Data | Quantity | LogObject[] | null>;
 
+export type FilterTopic = FilterTopic[] | Data | null;
+
 export interface FilterOptions {
     fromBlock?: Quantity | Tag;
     toBlock?: Quantity | Tag;
     address: Data | Data[];
-    topics?: Data[];
-    blockhash?: Data;
+    topics?: FilterTopic[];
+    blockHash?: Data;
 }
 
 export type ProofResult = Record<string, any>; // TODO

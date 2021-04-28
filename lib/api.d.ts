@@ -37,12 +37,13 @@ export interface TransactionResult {
     s: Data;
 }
 export declare type TransactionReceipt = Record<string, Data | Quantity | LogObject[] | null>;
+export declare type FilterTopic = FilterTopic[] | Data | null;
 export interface FilterOptions {
     fromBlock?: Quantity | Tag;
     toBlock?: Quantity | Tag;
     address: Data | Data[];
-    topics?: Data[];
-    blockhash?: Data;
+    topics?: FilterTopic[];
+    blockHash?: Data;
 }
 export declare type ProofResult = Record<string, any>;
 export declare type SyncStatus = Record<string, Quantity>;

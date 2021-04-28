@@ -29,7 +29,7 @@ BEGIN
         0,        -- transactionIndex TODO
         t.hash,   -- transactionHash
         0,        -- logIndex TODO
-        t.from,   -- address
+        t.from,   -- address FIXME
         e.topics, -- topics
         e.data,   -- data
         false     -- removed
