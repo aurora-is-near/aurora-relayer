@@ -39,9 +39,52 @@ export class DatabaseServer extends SkeletonServer {
         this.sql.query('LISTEN block');
     }
 
+    async eth_accounts(): Promise<api.Data[]> {
+        return [];
+    }
+
     async eth_blockNumber(): Promise<api.Quantity> {
         const { rows: [{ result }] } = await this.sql!.query('SELECT eth_blockNumber()::int AS result');
         return intToHex(result);
+    }
+
+    async eth_call(transaction: api.TransactionForCall, blockNumber?: api.Quantity | api.Tag): Promise<api.Data> {
+        return super.eth_call(transaction, blockNumber); // TODO
+    }
+
+    async eth_chainId(): Promise<api.Quantity> { // EIP-695
+        const chainID = (await this.engine.getChainID()).unwrap();
+        return intToHex(chainID);
+    }
+
+    async eth_coinbase(): Promise<api.Data> {
+        return (await this.engine.getCoinbase()).unwrap().toString();
+    }
+
+    async eth_getBalance(address: api.Data, blockNumber?: api.Quantity | api.Tag): Promise<api.Quantity> {
+        const address_ = Address.parse(address).unwrap();
+        const balance = (await this.engine.getBalance(address_)).unwrap();
+        return intToHex(balance);
+    }
+
+    async eth_getBlockByHash(blockHash: api.Data, fullObject?: boolean): Promise<api.BlockResult | null> {
+        return super.eth_getBlockByHash(blockHash, fullObject); // TODO
+    }
+
+    async eth_getBlockByNumber(blockNumber: api.Quantity | api.Tag, fullObject?: boolean): Promise<api.BlockResult | null> {
+        return super.eth_getBlockByNumber(blockNumber); // TODO
+    }
+
+    async eth_getBlockTransactionCountByHash(blockHash: api.Data): Promise<api.Quantity | null> {
+        return super.eth_getBlockTransactionCountByHash(blockHash); // TODO
+    }
+
+    async eth_getBlockTransactionCountByNumber(blockNumber: api.Quantity | api.Tag): Promise<api.Quantity | null> {
+        return super.eth_getBlockTransactionCountByNumber(blockNumber); // TODO
+    }
+
+    async eth_getCode(address: api.Data, blockNumber: api.Quantity | api.Tag): Promise<api.Data> {
+        return super.eth_getCode(address, blockNumber); // TODO
     }
 
     async eth_getFilterChanges(filterID: api.Quantity): Promise<api.LogObject[]> {
@@ -143,12 +186,74 @@ export class DatabaseServer extends SkeletonServer {
         return exportJSON(rows);
     }
 
+    async eth_getStorageAt(address: api.Data, key: api.Quantity, blockNumber: api.Quantity | api.Tag): Promise<api.Data> {
+        return super.eth_getStorageAt(address, key, blockNumber); // TODO
+    }
+
+    async eth_getTransactionByBlockHashAndIndex(blockHash: api.Data, transactionIndex: api.Quantity): Promise<api.TransactionResult | null> {
+        return super.eth_getTransactionByBlockHashAndIndex(blockHash, transactionIndex); // TODO
+    }
+
+    async eth_getTransactionByBlockNumberAndIndex(blockNumber: api.Quantity | api.Tag, transactionIndex: api.Quantity): Promise<api.TransactionResult | null> {
+        return super.eth_getTransactionByBlockNumberAndIndex(blockNumber, transactionIndex); // TODO
+    }
+
+    async eth_getTransactionByHash(transactionHash: api.Data): Promise<api.TransactionResult | null> {
+        return super.eth_getTransactionByHash(transactionHash); // TODO
+    }
+
+    async eth_getTransactionCount(address: api.Data, blockNumber: api.Quantity | api.Tag): Promise<api.Quantity> {
+        return super.eth_getTransactionCount(address, blockNumber); // TODO
+    }
+
+    async eth_getTransactionReceipt(transactionHash: string): Promise<api.TransactionReceipt | null> {
+        return super.eth_getTransactionReceipt(transactionHash); // TODO
+    }
+
+    async eth_getUncleCountByBlockHash(blockHash: api.Data): Promise<api.Quantity | null> {
+        return super.eth_getUncleCountByBlockHash(blockHash); // TODO
+    }
+
+    async eth_getUncleCountByBlockNumber(blockNumber: api.Quantity | api.Tag): Promise<api.Quantity | null> {
+        return super.eth_getUncleCountByBlockNumber(blockNumber); // TODO
+    }
+
     async eth_newBlockFilter(): Promise<api.Quantity> {
         const { rows: [{ id }] } = await this.sql!.query('SELECT eth_newBlockFilter($1)::int AS id', ['0.0.0.0']); // TODO: IPv4
         return intToHex(id);
     }
 
-    // TODO: implement all RPC methods
+    async eth_newFilter(filter: api.FilterOptions): Promise<api.Quantity> {
+        return super.eth_newFilter(filter); // TODO
+    }
+
+    async eth_newPendingTransactionFilter(): Promise<api.Quantity> {
+        return intToHex(0); // designates the empty filter
+    }
+
+    async eth_sendRawTransaction(transaction: api.Data): Promise<api.Data> {
+        return super.eth_sendRawTransaction(transaction); // TODO
+    }
+
+    async eth_sendTransaction(transaction: api.TransactionForSend): Promise<api.Data> {
+        return super.eth_sendTransaction(transaction); // TODO
+    }
+
+    async eth_sign(account: api.Data, message: api.Data): Promise<api.Data> {
+        return super.eth_sign(account, message); // TODO
+    }
+
+    async eth_signTransaction(transaction: api.TransactionForSend): Promise<api.Data> {
+        return super.eth_signTransaction(transaction); // TODO
+    }
+
+    async eth_signTypedData(address: api.Data, data: api.TypedData): Promise<api.Data> { // EIP-712
+        return super.eth_signTypedData(address, data); // TODO
+    }
+
+    async eth_uninstallFilter(filterID: api.Quantity): Promise<boolean> {
+        return super.eth_uninstallFilter(filterID); // TODO
+    }
 }
 
 function resolveBlockSpec(latestBlockID: BlockID, blockSpec?: string): BlockID {
