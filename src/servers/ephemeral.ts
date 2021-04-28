@@ -12,7 +12,7 @@ export class EphemeralServer extends SkeletonServer {
     protected filterID = 0;
     protected latestBlockID: BlockID = 0;
 
-    async _init(): Promise<void> {
+    protected async _init(): Promise<void> {
         this.latestBlockID = parseInt(await this.eth_blockNumber(), 16);
     }
 

@@ -18,7 +18,7 @@ export abstract class SkeletonServer implements api.Service {
         this._init();
     }
 
-    abstract _init(): Promise<void>;
+    protected abstract _init(): Promise<void>;
 
     // web3_*
 
