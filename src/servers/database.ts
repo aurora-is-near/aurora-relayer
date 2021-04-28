@@ -22,6 +22,7 @@ export class DatabaseServer extends SkeletonServer {
     protected sql?: pg.Client;
 
     async _init(): Promise<void> {
+        pg.types.setTypeParser(pg.types.builtins.INT8, (val) => BigInt(val));
         this.sql = new pg.Client(this.config.database);
         await this.sql.connect();
         this.sql.on('notification', (message: pg.Notification) => {
