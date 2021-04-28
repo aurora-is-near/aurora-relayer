@@ -116,12 +116,31 @@ export class DatabaseServer extends SkeletonServer {
             }
         }
 
-        const query = sql.select('e.*').from('event e')
+        const query =
+            sql.select(
+                'b.id AS "blockNumber"',
+                'b.hash AS "blockHash"',
+                '0 AS "transactionIndex"',     // TODO
+                't.hash AS "transactionHash"',
+                '0 AS "logIndex"',             // TODO
+                't.from AS "address"',         // FIXME
+                'e.topics AS "topics"',
+                'e.data AS "data"',
+                '0::boolean AS "removed"'
+            )
+            .from('event e')
             .leftJoin('transaction t', {'e.transaction': 't.id'})
             .leftJoin('block b', {'t.block': 'b.id'})
             .where(sql.and(...where));
-        console.debug(query.toString()); // TODO: execute query
-        return [];
+        if (this.config.debug) {
+            console.debug('eth_getLogs', 'query:', query.toParams());
+            console.debug('eth_getLogs', 'query:', query.toString());
+        }
+        const { rows } = await this.sql!.query(query.toParams());
+        if (this.config.debug) {
+            console.debug('eth_getLogs', 'result:', rows);
+        }
+        return exportJSON(rows);
     }
 
     async eth_newBlockFilter(): Promise<api.Quantity> {
