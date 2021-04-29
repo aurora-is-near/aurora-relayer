@@ -99,9 +99,9 @@ Method | Status | Notes
 [`eth_protocolVersion`] | ✅ |
 [`eth_sendRawTransaction`] | ✅ |
 [`eth_sendTransaction`] | 🚧 |
-[`eth_sign`] | 🚧 |
-[`eth_signTransaction`] | 🚧 |
-[`eth_signTypedData`] | 🚧 | EIP-712
+[`eth_sign`] | ❌ | Unsupported
+[`eth_signTransaction`] | ❌ | Unsupported
+[`eth_signTypedData`] | ❌ | Unsupported
 [`eth_submitHashrate`] | ❌ | Unsupported
 [`eth_submitWork`] | ❌ | Unsupported
 [`eth_syncing`] | ✅ |

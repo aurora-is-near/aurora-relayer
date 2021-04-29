@@ -241,17 +241,17 @@ export abstract class SkeletonServer implements api.Service {
     }
 
     async eth_sign(_account: api.Data, _message: api.Data): Promise<api.Data> {
-        unimplemented('eth_sign');
+        unsupported('eth_sign'); // no private keys under management here
         return '0x';
     }
 
     async eth_signTransaction(_transaction: api.TransactionForSend): Promise<api.Data> {
-        unimplemented('eth_signTransaction');
+        unsupported('eth_signTransaction'); // no private keys under management here
         return '0x';
     }
 
     async eth_signTypedData(_address: api.Data, _data: api.TypedData): Promise<api.Data> { // EIP-712
-        unimplemented('eth_signTypedData');
+        unsupported('eth_signTypedData'); // no private keys under management here
         return '0x';
     }
 

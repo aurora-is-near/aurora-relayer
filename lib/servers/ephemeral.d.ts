@@ -32,9 +32,6 @@ export declare class EphemeralServer extends SkeletonServer {
     eth_newPendingTransactionFilter(): Promise<api.Quantity>;
     eth_sendRawTransaction(transaction: api.Data): Promise<api.Data>;
     eth_sendTransaction(transaction: api.TransactionForSend): Promise<api.Data>;
-    eth_sign(_account: api.Data, _message: api.Data): Promise<api.Data>;
-    eth_signTransaction(_transaction: api.TransactionForSend): Promise<api.Data>;
-    eth_signTypedData(_address: api.Data, _data: api.TypedData): Promise<api.Data>;
     eth_uninstallFilter(filterID: api.Quantity): Promise<boolean>;
 }
 interface Filter {

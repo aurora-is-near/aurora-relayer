@@ -341,25 +341,25 @@ eth_sendTransaction:
     - src/servers/ephemeral.ts
 
 eth_sign:
-  status: wip
+  status: unsupported
   comment:
   link: https://eth.wiki/json-rpc/API#eth_sign
   implementations:
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_signTransaction:
-  status: wip
+  status: unsupported
   comment:
   link: https://eth.wiki/json-rpc/API#eth_signTransaction
   implementations:
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_signTypedData:
-  status: wip
+  status: unsupported
   comment: EIP-712
   link: https://eips.ethereum.org/EIPS/eip-712
   implementations:
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_submitHashrate:
   status: unsupported

@@ -222,21 +222,6 @@ export class EphemeralServer extends SkeletonServer {
         return await (this.provider as any).routeRPC('eth_sendTransaction', [transaction]); // TODO
     }
 
-    async eth_sign(_account: api.Data, _message: api.Data): Promise<api.Data> {
-        unimplemented('eth_sign'); // TODO
-        return `0x`;
-    }
-
-    async eth_signTransaction(_transaction: api.TransactionForSend): Promise<api.Data> {
-        unimplemented('eth_signTransaction'); // TODO
-        return `0x`;
-    }
-
-    async eth_signTypedData(_address: api.Data, _data: api.TypedData): Promise<api.Data> { // EIP-712
-        unimplemented('eth_signTypedData'); // TODO
-        return `0x`;
-    }
-
     async eth_uninstallFilter(filterID: api.Quantity): Promise<boolean> {
         const filterID_ = parseInt(filterID, 16);
         if (filterID_ === 0) {

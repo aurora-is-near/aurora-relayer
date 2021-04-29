@@ -128,7 +128,7 @@ export class DatabaseServer extends SkeletonServer {
         return intToHex(result);
     }
 
-    async eth_getCode(address: api.Data, _blockNumber: api.Quantity | api.Tag): Promise<api.Data> {
+    async eth_getCode(address: api.Data, _blockNumber: api.Quantity | api.Tag): Promise<api.Data> { // TODO: honor blockNumber
         const address_ = Address.parse(address).unwrap();
         const code = (await this.engine.getCode(address_)).unwrap();
         return bytesToHex(code);
@@ -284,7 +284,7 @@ export class DatabaseServer extends SkeletonServer {
         }
     }
 
-    async eth_getTransactionCount(address: api.Data, _blockNumber: api.Quantity | api.Tag): Promise<api.Quantity> {
+    async eth_getTransactionCount(address: api.Data, _blockNumber: api.Quantity | api.Tag): Promise<api.Quantity> { // TODO: honor blockNumber
         const address_ = Address.parse(address).unwrap();
         const nonce = (await this.engine.getNonce(address_)).unwrap();
         return intToHex(nonce);
@@ -356,18 +356,6 @@ export class DatabaseServer extends SkeletonServer {
 
     async eth_sendTransaction(transaction: api.TransactionForSend): Promise<api.Data> {
         return super.eth_sendTransaction(transaction); // TODO: implement
-    }
-
-    async eth_sign(account: api.Data, message: api.Data): Promise<api.Data> {
-        return super.eth_sign(account, message); // TODO: implement?
-    }
-
-    async eth_signTransaction(transaction: api.TransactionForSend): Promise<api.Data> {
-        return super.eth_signTransaction(transaction); // TODO: implement?
-    }
-
-    async eth_signTypedData(address: api.Data, data: api.TypedData): Promise<api.Data> { // EIP-712
-        return super.eth_signTypedData(address, data); // TODO: implement?
     }
 
     async eth_uninstallFilter(filterID: api.Quantity): Promise<boolean> {
