@@ -52,7 +52,7 @@ export interface FilterOptions {
     toBlock?: Quantity | Tag;
     address: Data | Data[];
     topics?: FilterTopic[];
-    blockHash?: Data;
+    blockHash?: Data; // EIP-234
 }
 
 export type ProofResult = Record<string, any>; // TODO

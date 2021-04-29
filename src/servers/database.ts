@@ -3,7 +3,7 @@
 import { SkeletonServer } from './skeleton.js';
 
 import * as api from '../api.js';
-//import { unimplemented } from '../errors.js';
+import { InvalidArguments } from '../errors.js';
 import { compileTopics } from '../topics.js';
 
 import { Address, BlockID, bytesToHex, exportJSON, formatU256, hexToBytes, intToHex } from '@aurora-is-near/engine';
@@ -179,25 +179,23 @@ export class DatabaseServer extends SkeletonServer {
     }
 
     async eth_getLogs(filter: api.FilterOptions): Promise<api.LogObject[]> {
-        const { rows: [{ id: latestBlockID }] } = await this._query('SELECT eth_blockNumber() AS id');
         const where = [];
         if (filter.blockHash !== undefined && filter.blockHash !== null) { // EIP-234
             where.push({ 'b.hash': hexToBytes(filter.blockHash) });
         }
         else {
-            const fromBlock = resolveBlockSpec(latestBlockID, filter.fromBlock);
+            const fromBlock = parseBlockSpec(filter.fromBlock);
             if (fromBlock) {
                 where.push(sql.gte('b.id', fromBlock));
             }
-            const toBlock = resolveBlockSpec(latestBlockID, filter.toBlock);
+            const toBlock = parseBlockSpec(filter.toBlock);
             if (toBlock) {
                 where.push(sql.lte('b.id', toBlock));
             }
         }
         if (filter.address) {
-            const addresses = (Array.isArray(filter.address) ? filter.address : [filter.address])
-                .map((address: string) => Address.parse(address).unwrap());
-            where.push(sql.in('t.to', addresses.map((address: Address) => address.toBytes()))); // FIXME: NULL
+            const addresses = parseAddresses(filter.address).map(address => Buffer.from(address.toBytes())); // FIXME: NULL
+            where.push(sql.in('t.to', addresses));
         }
         if (filter.topics) {
             const clauses = compileTopics(filter.topics);
@@ -306,12 +304,29 @@ export class DatabaseServer extends SkeletonServer {
     }
 
     async eth_newBlockFilter(): Promise<api.Quantity> {
-        const { rows: [{ id }] } = await this._query('SELECT eth_newBlockFilter($1) AS id', ['0.0.0.0']); // TODO: IPv4
+        const { rows: [{ id }] } = await this._query('SELECT eth_newBlockFilter($1::inet) AS id', ['0.0.0.0']); // TODO: IPv4
         return intToHex(id);
     }
 
     async eth_newFilter(filter: api.FilterOptions): Promise<api.Quantity> {
-        return super.eth_newFilter(filter); // TODO
+        const fromBlock = parseBlockSpec(filter.fromBlock);
+        const toBlock = parseBlockSpec(filter.toBlock);
+
+        const addresses = !filter.address || !filter.address.length ? null :
+            parseAddresses(filter.address).map(address => Buffer.from(address.toBytes()));
+        if (addresses && addresses.length > 10) { // TODO
+            throw new InvalidArguments();
+        }
+
+        const topics = filter.topics || null;
+        if (topics && topics.length > 4) {
+            throw new InvalidArguments();
+        }
+
+        const { rows: [{ id }] } = await this._query(
+            'SELECT eth_newFilter($1::inet, $2::blockno, $3::blockno, $4::address[], $5::jsonb) AS id',
+            ['0.0.0.0', fromBlock, toBlock, addresses, topics ? JSON.stringify(topics) : null]); // TODO: IPv4
+        return intToHex(id);
     }
 
     async eth_newPendingTransactionFilter(): Promise<api.Quantity> {
@@ -350,18 +365,22 @@ export class DatabaseServer extends SkeletonServer {
     }
 }
 
-function resolveBlockSpec(latestBlockID: BlockID, blockSpec?: string): BlockID {
-    if (blockSpec === undefined || blockSpec === null) {
-        return latestBlockID;
-    }
+function parseAddresses(input: api.Data | api.Data[]): Address[] {
+    return (Array.isArray(input) ? input : [input])
+        .map((address: string) => Address.parse(address).unwrap());
+}
+
+function parseBlockSpec(blockSpec?: api.Quantity | api.Tag | null): BlockID | null {
     switch (blockSpec) {
+        case undefined: return null;
+        case null: return null;
+        case 'pending': return null;
+        case 'latest': return null;
         case 'earliest': return 0;
-        case 'latest': return latestBlockID;
-        case 'pending': return latestBlockID;
         default: {
             const blockID = parseInt(blockSpec, 16);
             if (isNaN(blockID)) {
-                throw Error(`invalid block ID: ${ blockSpec }`)
+                throw new InvalidArguments();
             }
             return blockID;
         }

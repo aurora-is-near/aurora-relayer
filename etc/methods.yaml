@@ -301,6 +301,7 @@ eth_newFilter:
   comment:
   link: https://eth.wiki/json-rpc/API#eth_newFilter
   implementations:
+    - etc/schema/functions/eth_newFilter.sql
     - src/servers/ephemeral.ts
 
 eth_newPendingTransactionFilter:
