@@ -25,6 +25,20 @@ export class DatabaseServer extends SkeletonServer {
         const pgClient = new pg.Client(this.config.database);
         this.pgClient = pgClient;
         await pgClient.connect();
+
+        // Add type parsers for relevant numeric types:
+        (pgClient as any).setTypeParser(pg.types.builtins.INT8, (val: string) => BigInt(val));
+        (pgClient as any).setTypeParser(pg.types.builtins.NUMERIC, (val: string) => BigInt(val));
+        for (const typeName of ['blockno', 'chainid', 'u64', 'u256']) {
+            const query = sql.select('oid').from('pg_type').where({'typname': typeName});
+            const { rows } = await pgClient.query(query.toParams());
+            if (rows.length > 0) {
+                const [{ oid }] = rows;
+                (pgClient as any).setTypeParser(oid, (val: string) => BigInt(val));
+            }
+        }
+
+        // Listen to new block notifications:
         pgClient.on('notification', (message: pg.Notification) => {
             if (!message.payload) return;
             if (message.channel === 'block') {
@@ -37,16 +51,6 @@ export class DatabaseServer extends SkeletonServer {
             }
         });
         pgClient.query('LISTEN block');
-        (pgClient as any).setTypeParser(pg.types.builtins.INT8, (val: string) => BigInt(val));
-        (pgClient as any).setTypeParser(pg.types.builtins.NUMERIC, (val: string) => BigInt(val));
-        for (const typeName of ['blockno', 'chainid', 'u64', 'u256']) {
-            const query = sql.select('oid').from('pg_type').where({'typname': typeName});
-            const { rows } = await pgClient.query(query.toParams());
-            if (rows.length > 0) {
-                const [{ oid }] = rows;
-                (pgClient as any).setTypeParser(oid, (val: string) => BigInt(val));
-            }
-        }
     }
 
     protected _query(query: string | sql.SelectStatement, args?: unknown[]): Promise<pg.QueryResult<any>> {
