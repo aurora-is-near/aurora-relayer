@@ -11,7 +11,7 @@ BEGIN
       t.hash AS transactionHash,
       t.from AS from,
       t.to AS to,
-      0::u256 AS gasUsed,           -- TODO: tally?
+      t.gas_used AS gasUsed,
       0::u256 AS cumulativeGasUsed, -- TODO: tally?
       NULL AS contractAddress,      -- TODO: compute
       NULL AS logs,                 -- TODO: fetch event.id[]

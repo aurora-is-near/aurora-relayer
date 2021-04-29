@@ -1,9 +1,11 @@
 DROP TABLE IF EXISTS event CASCADE;
 
 CREATE TABLE event (
-  id                bigserial NOT NULL PRIMARY KEY,
   transaction       bigint NOT NULL REFERENCES transaction ON DELETE CASCADE,
   index             int NOT NULL,
+  id                bigserial NOT NULL PRIMARY KEY,
   topics            hash[] NULL,
   data              bytea NULL
 );
+
+CREATE UNIQUE INDEX event_transaction_index_idx ON event (transaction, index);
