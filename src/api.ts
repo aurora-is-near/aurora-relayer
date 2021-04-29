@@ -3,7 +3,7 @@
 export type Data = string;
 export type Quantity = string;
 export type Tag = 'latest' | 'earliest' | 'pending';
-export type TypedData = any; // TODO
+export type TypedData = unknown;
 
 export type BlockResult = Record<string, Quantity | Data | Data[] | TransactionResult[] | null>;
 
@@ -55,7 +55,7 @@ export interface FilterOptions {
     blockHash?: Data; // EIP-234
 }
 
-export type ProofResult = Record<string, any>; // TODO
+export type ProofResult = Record<string, unknown>;
 export type SyncStatus = Record<string, Quantity>;
 export type LogObject = Data | Record<string, boolean | Quantity | Data | Data[] | null>;
 

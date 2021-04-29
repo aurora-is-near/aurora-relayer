@@ -64,7 +64,7 @@ export class DatabaseServer extends SkeletonServer {
     }
 
     async eth_call(transaction: api.TransactionForCall, blockNumber?: api.Quantity | api.Tag): Promise<api.Data> {
-        return super.eth_call(transaction, blockNumber); // TODO
+        return super.eth_call(transaction, blockNumber); // TODO: implement
     }
 
     async eth_chainId(): Promise<api.Quantity> { // EIP-695
@@ -88,7 +88,7 @@ export class DatabaseServer extends SkeletonServer {
             const { rows } = await this._query('SELECT * FROM eth_getBlockByHash($1)', [blockHash_]);
             return exportJSON(rows.map((row: Record<string, unknown>) => {
                 row['uncles'] = [];
-                row['transactions'] = []; // TODO
+                row['transactions'] = []; // TODO: fetch
                 return row;
             }));
         } catch (error) {
@@ -105,7 +105,7 @@ export class DatabaseServer extends SkeletonServer {
             const { rows } = await this._query('SELECT * FROM eth_getBlockByNumber($1)', [blockNumber_]);
             return exportJSON(rows.map((row: Record<string, unknown>) => {
                 row['uncles'] = [];
-                row['transactions'] = []; // TODO
+                row['transactions'] = []; // TODO: fetch
                 return row;
             }));
         } catch (error) {
@@ -194,8 +194,11 @@ export class DatabaseServer extends SkeletonServer {
             }
         }
         if (filter.address) {
-            const addresses = parseAddresses(filter.address).map(address => Buffer.from(address.toBytes())); // FIXME: NULL
-            where.push(sql.in('t.to', addresses));
+            const addresses = parseAddresses(filter.address)
+                .map(address => Buffer.from(address.toBytes())); // TODO: handle 0x0 => NULL
+            if (addresses.length > 0) {
+                where.push(sql.in('t.to', addresses));
+            }
         }
         if (filter.topics) {
             const clauses = compileTopics(filter.topics);
@@ -292,7 +295,7 @@ export class DatabaseServer extends SkeletonServer {
         try {
             const { rows } = await this._query('SELECT * FROM eth_getTransactionReceipt($1)', [transactionHash_]);
             return (!rows || !rows.length) ? null : exportJSON(rows.map((row: Record<string, unknown>) => {
-                row['logs'] = []; // TODO
+                row['logs'] = []; // TODO: fetch
                 return row;
             })[0]);
         } catch (error) {
@@ -326,7 +329,7 @@ export class DatabaseServer extends SkeletonServer {
 
         const addresses = !filter.address || !filter.address.length ? null :
             parseAddresses(filter.address).map(address => Buffer.from(address.toBytes()));
-        if (addresses && addresses.length > 10) { // TODO
+        if (addresses && addresses.length > 10) { // TODO: DoS
             throw new InvalidArguments();
         }
 
@@ -352,19 +355,19 @@ export class DatabaseServer extends SkeletonServer {
     }
 
     async eth_sendTransaction(transaction: api.TransactionForSend): Promise<api.Data> {
-        return super.eth_sendTransaction(transaction); // TODO
+        return super.eth_sendTransaction(transaction); // TODO: implement
     }
 
     async eth_sign(account: api.Data, message: api.Data): Promise<api.Data> {
-        return super.eth_sign(account, message); // TODO
+        return super.eth_sign(account, message); // TODO: implement?
     }
 
     async eth_signTransaction(transaction: api.TransactionForSend): Promise<api.Data> {
-        return super.eth_signTransaction(transaction); // TODO
+        return super.eth_signTransaction(transaction); // TODO: implement?
     }
 
     async eth_signTypedData(address: api.Data, data: api.TypedData): Promise<api.Data> { // EIP-712
-        return super.eth_signTypedData(address, data); // TODO
+        return super.eth_signTypedData(address, data); // TODO: implement?
     }
 
     async eth_uninstallFilter(filterID: api.Quantity): Promise<boolean> {

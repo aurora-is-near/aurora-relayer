@@ -1,7 +1,7 @@
 export declare type Data = string;
 export declare type Quantity = string;
 export declare type Tag = 'latest' | 'earliest' | 'pending';
-export declare type TypedData = any;
+export declare type TypedData = unknown;
 export declare type BlockResult = Record<string, Quantity | Data | Data[] | TransactionResult[] | null>;
 export interface TransactionForCall {
     from?: Data;
@@ -45,7 +45,7 @@ export interface FilterOptions {
     topics?: FilterTopic[];
     blockHash?: Data;
 }
-export declare type ProofResult = Record<string, any>;
+export declare type ProofResult = Record<string, unknown>;
 export declare type SyncStatus = Record<string, Quantity>;
 export declare type LogObject = Data | Record<string, boolean | Quantity | Data | Data[] | null>;
 export interface Service {

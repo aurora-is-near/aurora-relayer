@@ -11,10 +11,10 @@ BEGIN
       t.hash AS transactionHash,
       t.from AS from,
       t.to AS to,
-      0::u256 AS gasUsed,           -- TODO
-      0::u256 AS cumulativeGasUsed, -- TODO
-      NULL AS contractAddress,      -- TODO
-      NULL AS logs,                 -- TODO
+      0::u256 AS gasUsed,           -- TODO: tally?
+      0::u256 AS cumulativeGasUsed, -- TODO: tally?
+      NULL AS contractAddress,      -- TODO: compute
+      NULL AS logs,                 -- TODO: fetch event.id[]
       repeat('\000', 256)::bytea AS logsBloom,
       t.status AS status
     FROM transaction t
