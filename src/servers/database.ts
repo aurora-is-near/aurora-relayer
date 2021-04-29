@@ -246,7 +246,7 @@ export class DatabaseServer extends SkeletonServer {
         const [blockHash_, transactionIndex_] = [hexToBytes(blockHash), parseInt(transactionIndex)];
         try {
             const { rows } = await this._query('SELECT * FROM eth_getTransactionByBlockHashAndIndex($1::hash, $2::int)', [blockHash_, transactionIndex_]);
-            return (rows.length > 0) ? exportJSON(rows[0]) : null;
+            return (!rows || !rows.length) ? null : exportJSON(rows[0]);
         } catch (error) {
             if (this.config.debug) {
                 console.debug('eth_getTransactionByBlockHashAndIndex', error);
@@ -259,7 +259,7 @@ export class DatabaseServer extends SkeletonServer {
         const [blockNumber_, transactionIndex_] = [parseInt(blockNumber), parseInt(transactionIndex)];
         try {
             const { rows } = await this._query('SELECT * FROM eth_getTransactionByBlockNumberAndIndex($1::blockno, $2::int)', [blockNumber_, transactionIndex_]);
-            return (rows.length > 0) ? exportJSON(rows[0]) : null;
+            return (!rows || !rows.length) ? null : exportJSON(rows[0]);
         } catch (error) {
             if (this.config.debug) {
                 console.debug('eth_getTransactionByBlockNumberAndIndex', error);
@@ -272,7 +272,7 @@ export class DatabaseServer extends SkeletonServer {
         const transactionHash_ = hexToBytes(transactionHash);
         try {
             const { rows } = await this._query('SELECT * FROM eth_getTransactionByHash($1)', [transactionHash_]);
-            return (rows.length > 0) ? exportJSON(rows[0]) : null;
+            return (!rows || !rows.length) ? null : exportJSON(rows[0]);
         } catch (error) {
             if (this.config.debug) {
                 console.debug('eth_getTransactionByHash', error);
@@ -288,7 +288,19 @@ export class DatabaseServer extends SkeletonServer {
     }
 
     async eth_getTransactionReceipt(transactionHash: string): Promise<api.TransactionReceipt | null> {
-        return super.eth_getTransactionReceipt(transactionHash); // TODO
+        const transactionHash_ = hexToBytes(transactionHash);
+        try {
+            const { rows } = await this._query('SELECT * FROM eth_getTransactionReceipt($1)', [transactionHash_]);
+            return (!rows || !rows.length) ? null : exportJSON(rows.map((row: Record<string, unknown>) => {
+                row['logs'] = []; // TODO
+                return row;
+            })[0]);
+        } catch (error) {
+            if (this.config.debug) {
+                console.debug('eth_getTransactionReceipt', error);
+            }
+            return null;
+        }
     }
 
     async eth_getUncleCountByBlockHash(blockHash: api.Data): Promise<api.Quantity | null> {

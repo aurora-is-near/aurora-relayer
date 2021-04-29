@@ -2,6 +2,7 @@
 \i etc/schema/types/block_result.sql
 \i etc/schema/types/filter_result.sql
 \i etc/schema/types/filter_type.sql
+\i etc/schema/types/transaction_receipt.sql
 \i etc/schema/types/transaction_result.sql
 \i etc/schema/tables/block.sql
 \i etc/schema/tables/filter.sql
@@ -18,6 +19,7 @@
 \i etc/schema/functions/eth_getTransactionByBlockNumberAndIndex.sql
 \i etc/schema/functions/eth_getTransactionByHash.sql
 \i etc/schema/functions/eth_getTransactionCount.sql
+\i etc/schema/functions/eth_getTransactionReceipt.sql
 \i etc/schema/functions/eth_getUncleByBlockHashAndIndex.sql
 \i etc/schema/functions/eth_getUncleByBlockNumberAndIndex.sql
 \i etc/schema/functions/eth_getUncleCountByBlockHash.sql
