@@ -9,7 +9,7 @@ export declare abstract class SkeletonServer implements api.Service {
     readonly engine: Engine;
     readonly provider: NearProvider;
     constructor(config: Config, logger: Logger, engine: Engine, provider: NearProvider);
-    abstract _init(): Promise<void>;
+    protected abstract _init(): Promise<void>;
     web3_clientVersion(): Promise<string>;
     web3_sha3(input: api.Data): Promise<api.Data>;
     net_listening(): Promise<boolean>;

@@ -1,9 +1,11 @@
 import { SkeletonServer } from './skeleton.js';
 import * as api from '../api.js';
 import pg from 'pg';
+import sql from 'sql-bricks';
 export declare class DatabaseServer extends SkeletonServer {
-    protected sql?: pg.Client;
-    _init(): Promise<void>;
+    protected pgClient?: pg.Client;
+    protected _init(): Promise<void>;
+    protected _query(query: string | sql.SelectStatement, args?: unknown[]): Promise<pg.QueryResult<any>>;
     eth_accounts(): Promise<api.Data[]>;
     eth_blockNumber(): Promise<api.Quantity>;
     eth_call(transaction: api.TransactionForCall, blockNumber?: api.Quantity | api.Tag): Promise<api.Data>;

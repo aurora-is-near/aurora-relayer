@@ -19,13 +19,13 @@ const sqlConvert = (sql as any).convert;
 };
 
 export class DatabaseServer extends SkeletonServer {
-    protected pg?: pg.Client;
+    protected pgClient?: pg.Client;
 
     protected async _init(): Promise<void> {
-        pg.types.setTypeParser(pg.types.builtins.INT8, (val) => BigInt(val));
-        this.pg = new pg.Client(this.config.database);
-        await this.pg.connect();
-        this.pg.on('notification', (message: pg.Notification) => {
+        const pgClient = new pg.Client(this.config.database);
+        this.pgClient = pgClient;
+        await pgClient.connect();
+        pgClient.on('notification', (message: pg.Notification) => {
             if (!message.payload) return;
             if (message.channel === 'block') {
                 const blockID = parseInt(message.payload);
@@ -36,12 +36,22 @@ export class DatabaseServer extends SkeletonServer {
                 // TODO: notify subscribers
             }
         });
-        this.pg.query('LISTEN block');
+        pgClient.query('LISTEN block');
+        (pgClient as any).setTypeParser(pg.types.builtins.INT8, (val: string) => BigInt(val));
+        (pgClient as any).setTypeParser(pg.types.builtins.NUMERIC, (val: string) => BigInt(val));
+        for (const typeName of ['blockno', 'chainid', 'u64', 'u256']) {
+            const query = sql.select('oid').from('pg_type').where({'typname': typeName});
+            const { rows } = await pgClient.query(query.toParams());
+            if (rows.length > 0) {
+                const [{ oid }] = rows;
+                (pgClient as any).setTypeParser(oid, (val: string) => BigInt(val));
+            }
+        }
     }
 
     protected _query(query: string | sql.SelectStatement, args?: unknown[]): Promise<pg.QueryResult<any>> {
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        return this.pg!.query((typeof query === 'string') ? query : query.toParams(), args);
+        return this.pgClient!.query((typeof query === 'string') ? query : query.toParams(), args);
     }
 
     async eth_accounts(): Promise<api.Data[]> {
