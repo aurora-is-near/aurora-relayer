@@ -16,10 +16,6 @@ export class EphemeralServer extends SkeletonServer {
         this.latestBlockID = parseInt(await this.eth_blockNumber(), 16);
     }
 
-    async eth_accounts(): Promise<api.Data[]> {
-        return (await this.engine.keyStore.getSigningAddresses()).map(a => a.toString());
-    }
-
     async eth_blockNumber(): Promise<api.Quantity> {
         const height = (await this.engine.getBlockHeight()).unwrap();
         return intToHex(height);

@@ -6,7 +6,6 @@ export declare class EphemeralServer extends SkeletonServer {
     protected filterID: number;
     protected latestBlockID: BlockID;
     protected _init(): Promise<void>;
-    eth_accounts(): Promise<api.Data[]>;
     eth_blockNumber(): Promise<api.Quantity>;
     eth_call(transaction: api.TransactionForCall, blockNumber?: api.Quantity | api.Tag): Promise<api.Data>;
     eth_chainId(): Promise<api.Quantity>;

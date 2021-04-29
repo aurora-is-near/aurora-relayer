@@ -47,8 +47,7 @@ export abstract class SkeletonServer implements api.Service {
     // eth_*
 
     async eth_accounts(): Promise<api.Data[]> {
-        unimplemented('eth_accounts');
-        return [];
+        return []; // no private keys under management here
     }
 
     async eth_blockNumber(): Promise<api.Quantity> {

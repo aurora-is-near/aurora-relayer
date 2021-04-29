@@ -6,7 +6,7 @@ import * as api from '../api.js';
 //import { unimplemented } from '../errors.js';
 import { compileTopics } from '../topics.js';
 
-import { Address, BlockID, bytesToHex, exportJSON, hexToBytes, intToHex } from '@aurora-is-near/engine';
+import { Address, BlockID, bytesToHex, exportJSON, formatU256, hexToBytes, intToHex } from '@aurora-is-near/engine';
 import pg from 'pg';
 
 import sql from 'sql-bricks';
@@ -58,12 +58,8 @@ export class DatabaseServer extends SkeletonServer {
         return this.pgClient!.query((typeof query === 'string') ? query : query.toParams(), args);
     }
 
-    async eth_accounts(): Promise<api.Data[]> {
-        return [];
-    }
-
     async eth_blockNumber(): Promise<api.Quantity> {
-        const { rows: [{ result }] } = await this._query('SELECT eth_blockNumber()::int AS result');
+        const { rows: [{ result }] } = await this._query('SELECT eth_blockNumber() AS result');
         return intToHex(result);
     }
 
@@ -87,23 +83,55 @@ export class DatabaseServer extends SkeletonServer {
     }
 
     async eth_getBlockByHash(blockHash: api.Data, fullObject?: boolean): Promise<api.BlockResult | null> {
-        return super.eth_getBlockByHash(blockHash, fullObject); // TODO
+        const blockHash_ = blockHash.startsWith('0x') ? hexToBytes(blockHash) : blockHash;
+        try {
+            const { rows } = await this._query('SELECT * FROM eth_getBlockByHash($1)', [blockHash_]);
+            return exportJSON(rows.map((row: Record<string, unknown>) => {
+                row['uncles'] = [];
+                row['transactions'] = []; // TODO
+                return row;
+            }));
+        } catch (error) {
+            if (this.config.debug) {
+                console.debug('eth_getBlockByHash', error);
+            }
+            return null;
+        }
     }
 
     async eth_getBlockByNumber(blockNumber: api.Quantity | api.Tag, fullObject?: boolean): Promise<api.BlockResult | null> {
-        return super.eth_getBlockByNumber(blockNumber); // TODO
+        const blockNumber_ = blockNumber.startsWith('0x') ? parseInt(blockNumber, 16) : blockNumber;
+        try {
+            const { rows } = await this._query('SELECT * FROM eth_getBlockByNumber($1)', [blockNumber_]);
+            return exportJSON(rows.map((row: Record<string, unknown>) => {
+                row['uncles'] = [];
+                row['transactions'] = []; // TODO
+                return row;
+            }));
+        } catch (error) {
+            if (this.config.debug) {
+                console.debug('eth_getBlockByNumber', error);
+            }
+            return null;
+        }
     }
 
     async eth_getBlockTransactionCountByHash(blockHash: api.Data): Promise<api.Quantity | null> {
-        return super.eth_getBlockTransactionCountByHash(blockHash); // TODO
+        const blockHash_ = blockHash.startsWith('0x') ? hexToBytes(blockHash) : blockHash;
+        const { rows: [{ result }] } = await this._query('SELECT eth_getBlockTransactionCountByHash($1) AS result', [blockHash_]);
+        return intToHex(result);
     }
 
     async eth_getBlockTransactionCountByNumber(blockNumber: api.Quantity | api.Tag): Promise<api.Quantity | null> {
-        return super.eth_getBlockTransactionCountByNumber(blockNumber); // TODO
+        const blockNumber_ = blockNumber.startsWith('0x') ? parseInt(blockNumber, 16) : blockNumber;
+        const { rows: [{ result }] } = await this._query('SELECT eth_getBlockTransactionCountByNumber($1) AS result', [blockNumber_]);
+        return intToHex(result);
     }
 
-    async eth_getCode(address: api.Data, blockNumber: api.Quantity | api.Tag): Promise<api.Data> {
-        return super.eth_getCode(address, blockNumber); // TODO
+    async eth_getCode(address: api.Data, _blockNumber: api.Quantity | api.Tag): Promise<api.Data> {
+        const address_ = Address.parse(address).unwrap();
+        const code = (await this.engine.getCode(address_)).unwrap();
+        return bytesToHex(code);
     }
 
     async eth_getFilterChanges(filterID: api.Quantity): Promise<api.LogObject[]> {
@@ -151,7 +179,7 @@ export class DatabaseServer extends SkeletonServer {
     }
 
     async eth_getLogs(filter: api.FilterOptions): Promise<api.LogObject[]> {
-        const { rows: [{ id: latestBlockID }] } = await this._query('SELECT eth_blockNumber()::int AS id');
+        const { rows: [{ id: latestBlockID }] } = await this._query('SELECT eth_blockNumber() AS id');
         const where = [];
         if (filter.blockHash !== undefined && filter.blockHash !== null) { // EIP-234
             where.push({ 'b.hash': hexToBytes(filter.blockHash) });
@@ -206,23 +234,54 @@ export class DatabaseServer extends SkeletonServer {
     }
 
     async eth_getStorageAt(address: api.Data, key: api.Quantity, blockNumber: api.Quantity | api.Tag): Promise<api.Data> {
-        return super.eth_getStorageAt(address, key, blockNumber); // TODO
+        const address_ = Address.parse(address).unwrap();
+        const result = (await this.engine.getStorageAt(address_, key)).unwrap();
+        return formatU256(result);
     }
 
     async eth_getTransactionByBlockHashAndIndex(blockHash: api.Data, transactionIndex: api.Quantity): Promise<api.TransactionResult | null> {
-        return super.eth_getTransactionByBlockHashAndIndex(blockHash, transactionIndex); // TODO
+        const [blockHash_, transactionIndex_] = [hexToBytes(blockHash), parseInt(transactionIndex)];
+        try {
+            const { rows } = await this._query('SELECT * FROM eth_getTransactionByBlockHashAndIndex($1::hash, $2::int)', [blockHash_, transactionIndex_]);
+            return (rows.length > 0) ? exportJSON(rows[0]) : null;
+        } catch (error) {
+            if (this.config.debug) {
+                console.debug('eth_getTransactionByBlockHashAndIndex', error);
+            }
+            return null;
+        }
     }
 
     async eth_getTransactionByBlockNumberAndIndex(blockNumber: api.Quantity | api.Tag, transactionIndex: api.Quantity): Promise<api.TransactionResult | null> {
-        return super.eth_getTransactionByBlockNumberAndIndex(blockNumber, transactionIndex); // TODO
+        const [blockNumber_, transactionIndex_] = [parseInt(blockNumber), parseInt(transactionIndex)];
+        try {
+            const { rows } = await this._query('SELECT * FROM eth_getTransactionByBlockNumberAndIndex($1::blockno, $2::int)', [blockNumber_, transactionIndex_]);
+            return (rows.length > 0) ? exportJSON(rows[0]) : null;
+        } catch (error) {
+            if (this.config.debug) {
+                console.debug('eth_getTransactionByBlockNumberAndIndex', error);
+            }
+            return null;
+        }
     }
 
     async eth_getTransactionByHash(transactionHash: api.Data): Promise<api.TransactionResult | null> {
-        return super.eth_getTransactionByHash(transactionHash); // TODO
+        const transactionHash_ = hexToBytes(transactionHash);
+        try {
+            const { rows } = await this._query('SELECT * FROM eth_getTransactionByHash($1)', [transactionHash_]);
+            return (rows.length > 0) ? exportJSON(rows[0]) : null;
+        } catch (error) {
+            if (this.config.debug) {
+                console.debug('eth_getTransactionByHash', error);
+            }
+            return null;
+        }
     }
 
-    async eth_getTransactionCount(address: api.Data, blockNumber: api.Quantity | api.Tag): Promise<api.Quantity> {
-        return super.eth_getTransactionCount(address, blockNumber); // TODO
+    async eth_getTransactionCount(address: api.Data, _blockNumber: api.Quantity | api.Tag): Promise<api.Quantity> {
+        const address_ = Address.parse(address).unwrap();
+        const nonce = (await this.engine.getNonce(address_)).unwrap();
+        return intToHex(nonce);
     }
 
     async eth_getTransactionReceipt(transactionHash: string): Promise<api.TransactionReceipt | null> {
@@ -230,15 +289,19 @@ export class DatabaseServer extends SkeletonServer {
     }
 
     async eth_getUncleCountByBlockHash(blockHash: api.Data): Promise<api.Quantity | null> {
-        return super.eth_getUncleCountByBlockHash(blockHash); // TODO
+        const blockHash_ = blockHash.startsWith('0x') ? hexToBytes(blockHash) : blockHash;
+        const { rows: [{ result }] } = await this._query('SELECT eth_getUncleCountByBlockHash($1) AS result', [blockHash_]);
+        return intToHex(result);
     }
 
     async eth_getUncleCountByBlockNumber(blockNumber: api.Quantity | api.Tag): Promise<api.Quantity | null> {
-        return super.eth_getUncleCountByBlockNumber(blockNumber); // TODO
+        const blockNumber_ = blockNumber.startsWith('0x') ? parseInt(blockNumber, 16) : blockNumber;
+        const { rows: [{ result }] } = await this._query('SELECT eth_getUncleCountByBlockNumber($1) AS result', [blockNumber_]);
+        return intToHex(result);
     }
 
     async eth_newBlockFilter(): Promise<api.Quantity> {
-        const { rows: [{ id }] } = await this._query('SELECT eth_newBlockFilter($1)::int AS id', ['0.0.0.0']); // TODO: IPv4
+        const { rows: [{ id }] } = await this._query('SELECT eth_newBlockFilter($1) AS id', ['0.0.0.0']); // TODO: IPv4
         return intToHex(id);
     }
 
@@ -247,11 +310,13 @@ export class DatabaseServer extends SkeletonServer {
     }
 
     async eth_newPendingTransactionFilter(): Promise<api.Quantity> {
-        return intToHex(0); // designates the empty filter
+        const { rows: [{ id }] } = await this._query('SELECT eth_newPendingTransactionFilter() AS id');
+        return intToHex(id);
     }
 
     async eth_sendRawTransaction(transaction: api.Data): Promise<api.Data> {
-        return super.eth_sendRawTransaction(transaction); // TODO
+        const output = (await this.engine.rawCall(transaction)).unwrap();
+        return bytesToHex(output);
     }
 
     async eth_sendTransaction(transaction: api.TransactionForSend): Promise<api.Data> {
@@ -271,7 +336,12 @@ export class DatabaseServer extends SkeletonServer {
     }
 
     async eth_uninstallFilter(filterID: api.Quantity): Promise<boolean> {
-        return super.eth_uninstallFilter(filterID); // TODO
+        const filterID_ = parseInt(filterID, 16);
+        if (filterID_ === 0) {
+            return true;
+        }
+        const { rows: [{ found }] } = await this._query('SELECT eth_uninstallFilter($1::inet, $2::bigint) AS found', ['0.0.0.0', filterID_]); // TODO: IPv4
+        return found;
     }
 }
 
