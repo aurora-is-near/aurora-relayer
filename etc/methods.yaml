@@ -1,5 +1,4 @@
 ---
-
 web3_clientVersion:
   status: ok
   comment:
@@ -314,7 +313,7 @@ eth_newPendingTransactionFilter:
 
 eth_pendingTransactions:
   status: ok
-  comment: "[Undocumented](https://github.com/ethereum/go-ethereum/issues/"
+  comment: '[Undocumented](https://github.com/ethereum/go-ethereum/issues/'
   link: https://github.com/ethereum/wiki/issues/685
   implementations:
     - src/servers/skeleton.ts
