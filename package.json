@@ -91,9 +91,13 @@
     "eslint": "^7.24.0",
     "nodemon": "^2.0.7",
     "pino-pretty": "^4.7.1",
+    "prettier": "2.2.1",
     "supertest": "^6.1.3",
     "typedoc": "^0.20.35",
     "typescript": "^4.2.4"
+  },
+  "prettier": {
+    "singleQuote": true
   },
   "jest": {
     "testEnvironment": "node",
