@@ -5,20 +5,20 @@ DECLARE
   result transaction_result;
 BEGIN
   SELECT
-      b.id,                         -- blockNumber
-      b.hash,                       -- blockHash
-      0,                            -- transactionIndex TODO
-      t.hash,                       -- hash
-      t.from,                       -- from
-      t.to,                         -- to
-      t.gas_limit,                  -- gas
-      t.gas_price,                  -- gasPrice
-      t.nonce,                      -- nonce
-      t.value,                      -- value
-      t.data,                       -- input
-      t.v,                          -- v
-      t.r,                          -- r
-      t.s                           -- s
+      b.id AS blockNumber,
+      b.hash AS blockHash,
+      t.index AS transactionIndex,
+      t.hash AS hash,
+      t.from AS from,
+      t.to AS to,
+      t.gas_limit AS gas,
+      t.gas_price AS gasPrice,
+      t.nonce AS nonce,
+      t.value AS value,
+      t.data AS input,
+      t.v AS v,
+      t.r AS r,
+      t.s AS s
     FROM transaction t
       LEFT JOIN block b ON t.block = b.id
     WHERE t.hash = transaction_hash

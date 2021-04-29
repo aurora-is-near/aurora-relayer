@@ -3,7 +3,7 @@ DROP TYPE IF EXISTS transaction_result CASCADE;
 CREATE TYPE transaction_result AS (
     "blockNumber" blockno,
     "blockHash" hash,
-    "transactionIndex" int2,
+    "transactionIndex" int,
     "hash" hash,
     "from" address,
     "to" address,

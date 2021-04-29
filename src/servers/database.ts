@@ -197,7 +197,7 @@ export class DatabaseServer extends SkeletonServer {
         if (filter.address) {
             const addresses = (Array.isArray(filter.address) ? filter.address : [filter.address])
                 .map((address: string) => Address.parse(address).unwrap());
-            where.push(sql.in('t.from', addresses.map((address: Address) => address.toBytes())));
+            where.push(sql.in('t.to', addresses.map((address: Address) => address.toBytes()))); // FIXME: NULL
         }
         if (filter.topics) {
             const clauses = compileTopics(filter.topics);
@@ -210,10 +210,10 @@ export class DatabaseServer extends SkeletonServer {
             sql.select(
                 'b.id AS "blockNumber"',
                 'b.hash AS "blockHash"',
-                '0 AS "transactionIndex"',     // TODO
+                't.index AS "transactionIndex"',
                 't.hash AS "transactionHash"',
-                '0 AS "logIndex"',             // TODO
-                't.from AS "address"',         // FIXME
+                'e.index AS "logIndex"',
+                't.to AS "address"',
                 'e.topics AS "topics"',
                 'e.data AS "data"',
                 '0::boolean AS "removed"'
@@ -230,7 +230,12 @@ export class DatabaseServer extends SkeletonServer {
         if (this.config.debug) {
             console.debug('eth_getLogs', 'result:', rows);
         }
-        return exportJSON(rows);
+        return exportJSON(rows.map((row: Record<string, unknown>) => {
+            if (row['address'] === null) {
+                row['address'] = Address.zero().toString();
+            }
+            return row;
+        }));
     }
 
     async eth_getStorageAt(address: api.Data, key: api.Quantity, blockNumber: api.Quantity | api.Tag): Promise<api.Data> {

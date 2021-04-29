@@ -22,17 +22,17 @@ DECLARE
   block_id blockno;
 BEGIN
   SELECT COALESCE(MAX(id), 0) FROM block INTO STRICT block_id;
-  RETURN QUERY EXECUTE format('
+  RETURN QUERY EXECUTE format(E'
     SELECT
-        b.id,     -- blockNumber
-        b.hash,   -- blockHash
-        0,        -- transactionIndex TODO
-        t.hash,   -- transactionHash
-        0,        -- logIndex TODO
-        t.from,   -- address FIXME
-        e.topics, -- topics
-        e.data,   -- data
-        false     -- removed
+        b.id AS blockNumber,
+        b.hash AS blockHash,
+        t.index AS transactionIndex,
+        t.hash AS transactionHash,
+        e.index AS logIndex,
+        COALESCE(t.to, \'\\x0000000000000000000000000000000000000000\')::address AS address,
+        e.topics AS topics,
+        e.data AS data,
+        false AS removed
       FROM event e
         LEFT JOIN transaction t ON e.transaction = t.id
         LEFT JOIN block b ON t.block = b.id
