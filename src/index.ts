@@ -19,8 +19,6 @@ declare global {
   }
 }
 
-main(process.argv, process.env);
-
 async function main(argv: string[], env: NodeJS.ProcessEnv) {
   program
     .option('-d, --debug', 'enable debug output')
@@ -65,6 +63,9 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
     console.error('Configuration:', config);
   }
 
+  const logger = pino();
+  logger.info('starting server');
+
   if (config.database) {
     const sql = new pg.Client(config.database);
     await sql.connect();
@@ -90,9 +91,6 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
     keyPath: network.id == 'local' && '~/.near/validator_key.json',
   });
 
-  const logger = pino();
-  logger.info('starting server');
-
   const app = await createApp(config, logger, engine, provider);
   app.listen(config.port, () => {
     if (config.verbose || config.debug) {
@@ -102,3 +100,5 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
     }
   });
 }
+
+main(process.argv, process.env);

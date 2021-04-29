@@ -13,9 +13,9 @@ CREATE TABLE transaction (
   gas_used          u256 NOT NULL CHECK (gas_used <= gas_limit),
   value             u256 NOT NULL,
   data              bytea NULL,
-  v                 u64 NOT NULL,
-  r                 u256 NOT NULL,
-  s                 u256 NOT NULL,
+  v                 u64 NULL,
+  r                 u256 NULL,
+  s                 u256 NULL,
   status            boolean NOT NULL
 );
 
