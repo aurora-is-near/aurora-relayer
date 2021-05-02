@@ -179,7 +179,7 @@ export class DatabaseServer extends SkeletonServer {
       'SELECT eth_getBlockTransactionCountByHash($1) AS result',
       [blockHash_]
     );
-    return intToHex(result);
+    return result !== null ? intToHex(result) : null;
   }
 
   async eth_getBlockTransactionCountByNumber(
@@ -194,7 +194,7 @@ export class DatabaseServer extends SkeletonServer {
       'SELECT eth_getBlockTransactionCountByNumber($1) AS result',
       [blockNumber_]
     );
-    return intToHex(result);
+    return result !== null ? intToHex(result) : null;
   }
 
   async eth_getCode(
@@ -473,7 +473,7 @@ export class DatabaseServer extends SkeletonServer {
     } = await this._query('SELECT eth_getUncleCountByBlockHash($1) AS result', [
       blockHash_,
     ]);
-    return intToHex(result);
+    return result !== null ? intToHex(result) : null;
   }
 
   async eth_getUncleCountByBlockNumber(
@@ -488,7 +488,7 @@ export class DatabaseServer extends SkeletonServer {
       'SELECT eth_getUncleCountByBlockNumber($1) AS result',
       [blockNumber_]
     );
-    return intToHex(result);
+    return result !== null ? intToHex(result) : null;
   }
 
   async eth_newBlockFilter(): Promise<api.Quantity> {

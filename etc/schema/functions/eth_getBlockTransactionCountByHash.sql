@@ -4,8 +4,11 @@ CREATE FUNCTION eth_getBlockTransactionCountByHash(block_hash hash) RETURNS bigi
 DECLARE
   result bigint;
 BEGIN
-  SELECT COUNT(id) FROM transaction
-    WHERE block = (SELECT id FROM block WHERE hash = block_hash)
+  -- FIXME: return NULL for unknown blocks
+  SELECT COUNT(t.id)
+    FROM transaction t
+      LEFT JOIN block b ON t.block = b.id
+    WHERE b.hash = block_hash
     INTO STRICT result;
   RETURN result;
 END;
