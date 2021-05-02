@@ -13,4 +13,5 @@ export interface Config {
         ipv6?: string[];
     };
 }
+export declare const localConfig: Config;
 export declare function parseConfig(options: Config, config: Config, env: ConnectEnv): [NetworkConfig, Config];

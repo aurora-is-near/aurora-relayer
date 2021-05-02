@@ -82,8 +82,8 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
     env
   );
 
+  // deprecated
   const provider = new nearProvider.NearProvider({
-    // deprecated
     networkId: network.id,
     nodeUrl: config.endpoint,
     evmAccountId: config.engine,

@@ -20,6 +20,8 @@ import nearProvider from 'near-web3-provider';
 //import { exit } from 'process';
 import { Logger } from 'pino';
 
+export { Engine } from '@aurora-is-near/engine';
+
 function response(id: string, result: any, error: any) {
   const resp = { jsonrpc: '2.0', id };
   if (error) {

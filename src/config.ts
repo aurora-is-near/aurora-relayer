@@ -14,6 +14,18 @@ export interface Config {
   blacklist: { ipv4?: string[]; ipv6?: string[] };
 }
 
+export const localConfig: Config = {
+  debug: false,
+  verbose: false,
+  database: undefined,
+  port: 3030,
+  network: 'local',
+  endpoint: 'http://127.0.0.1:3030',
+  engine: 'aurora.test.near',
+  signer: 'test.near',
+  blacklist: { ipv4: [], ipv6: [] },
+};
+
 export function parseConfig(
   options: Config,
   config: Config,
