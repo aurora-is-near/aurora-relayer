@@ -13,6 +13,7 @@ export declare class Indexer {
     start(): Promise<void>;
     indexBlock(blockID: BlockHeight): Promise<void>;
     indexTransaction(blockID: BlockHeight, transactionIndex: number, transaction: Transaction): Promise<void>;
+    indexEvent(): Promise<void>;
 }
 declare global {
     namespace NodeJS {

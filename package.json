@@ -30,10 +30,10 @@
     "aurora-relayer": "lib/index.js"
   },
   "scripts": {
-    "start": "nodemon",
     "build": "tsc",
-    "test": "jest",
-    "lint": "eslint test && eslint **/*.ts"
+    "lint": "eslint test && eslint **/*.ts",
+    "start": "nodemon",
+    "test": "jest"
   },
   "keywords": [
     "Aurora",
@@ -51,7 +51,7 @@
   "bugs": "https://github.com/aurora-is-near/aurora-relayer/issues",
   "repository": "https://github.com/aurora-is-near/aurora-relayer.git",
   "dependencies": {
-    "@aurora-is-near/engine": "git://github.com/aurora-is-near/aurora.js#9b80f60",
+    "@aurora-is-near/engine": "aurora-is-near/aurora.js#ac2b033",
     "commander": "^7.2.0",
     "config": "^3.3.6",
     "cors": "^2.8.5",
@@ -63,15 +63,15 @@
     "express-pino-logger": "^6.0.0",
     "express-rate-limit": "^5.2.6",
     "helmet": "^4.5.0",
-    "jayson": "git://github.com/aurora-is-near/jayson#d4bd9da",
-    "jest": "^26.6.3",
+    "jayson": "aurora-is-near/jayson#d4bd9da",
+    "jest": "v27.0.0-next.8",
     "js-yaml": "^4.1.0",
     "nanoid": "^3.1.22",
-    "near-web3-provider": "https://github.com/aurora-is-near/near-web3-provider",
+    "near-web3-provider": "aurora-is-near/near-web3-provider",
     "pg": "^8.6.0",
     "rlp": "^2.2.6",
     "sql-bricks-postgres": "^0.5.0",
-    "ts-jest": "^26.5.5"
+    "ts-jest": "^v27.0.0-next.11"
   },
   "devDependencies": {
     "@tsconfig/node14": "^1.0.0",
@@ -81,7 +81,7 @@
     "@types/express": "^4.17.11",
     "@types/express-pino-logger": "^4.0.2",
     "@types/express-rate-limit": "^5.1.1",
-    "@types/jest": "^26.0.22",
+    "@types/jest": "^26.0.23",
     "@types/js-yaml": "^4.0.0",
     "@types/node": "^14.14.41",
     "@types/pg": "^7.14.11",
@@ -102,17 +102,12 @@
     "singleQuote": true
   },
   "jest": {
+    "preset": "ts-jest/presets/default-esm",
     "testEnvironment": "node",
-    "coverageDirectory": "./coverage/",
-    "collectCoverage": true,
     "testTimeout": 30000,
-    "roots": [
-      "<rootDir>"
-    ],
     "transform": {
-      "^.+\\.[tj]sx?$": "ts-jest"
+      "\\.[jt]sx?$": "ts-jest"
     },
-    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$",
     "moduleFileExtensions": [
       "ts",
       "tsx",
