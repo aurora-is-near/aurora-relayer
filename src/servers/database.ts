@@ -17,6 +17,7 @@ import {
 } from '@aurora-is-near/engine';
 import pg from 'pg';
 
+import { assert } from 'node:console';
 import sql from 'sql-bricks';
 const sqlConvert = (sql as any).convert;
 (sql as any).convert = (val: unknown) => {
@@ -116,21 +117,21 @@ export class DatabaseServer extends SkeletonServer {
     blockHash: api.Data,
     fullObject?: boolean
   ): Promise<api.BlockResult | null> {
-    const blockHash_ = blockHash.startsWith('0x')
-      ? hexToBytes(blockHash)
-      : blockHash;
+    if (!blockHash.startsWith('0x')) throw new InvalidArguments();
+    const blockHash_ = hexToBytes(blockHash);
     try {
-      const { rows } = await this._query(
-        'SELECT * FROM eth_getBlockByHash($1)',
-        [blockHash_]
+      const {
+        rows: [block],
+      } = await this._query('SELECT * FROM eth_getBlockByHash($1) LIMIT 1', [
+        blockHash_,
+      ]);
+      assert(block, 'block is not null');
+      block.uncles = [];
+      block.transactions = await this._fetchTransactions(
+        blockHash_,
+        fullObject || false
       );
-      return exportJSON(
-        rows.map((row: Record<string, unknown>) => {
-          row['uncles'] = [];
-          row['transactions'] = []; // TODO: fetch
-          return row;
-        })
-      );
+      return exportJSON(block);
     } catch (error) {
       if (this.config.debug) {
         console.debug('eth_getBlockByHash', error);
@@ -143,22 +144,21 @@ export class DatabaseServer extends SkeletonServer {
     blockNumber: api.Quantity | api.Tag,
     fullObject?: boolean
   ): Promise<api.BlockResult | null> {
-    const blockNumber_ = blockNumber.startsWith('0x')
-      ? parseInt(blockNumber, 16)
-      : blockNumber;
+    const blockNumber_ = parseInt(blockNumber, 16);
+    if (Number.isNaN(blockNumber_)) throw new InvalidArguments();
     try {
       const {
-        rows,
-      } = await this._query('SELECT * FROM eth_getBlockByNumber($1)', [
+        rows: [block],
+      } = await this._query('SELECT * FROM eth_getBlockByNumber($1) LIMIT 1', [
         blockNumber_,
       ]);
-      return exportJSON(
-        rows.map((row: Record<string, unknown>) => {
-          row['uncles'] = [];
-          row['transactions'] = []; // TODO: fetch
-          return row;
-        })
+      assert(block, 'block is not null');
+      block.uncles = [];
+      block.transactions = await this._fetchTransactions(
+        blockNumber_,
+        fullObject || false
       );
+      return exportJSON(block);
     } catch (error) {
       if (this.config.debug) {
         console.debug('eth_getBlockByNumber', error);
@@ -565,6 +565,47 @@ export class DatabaseServer extends SkeletonServer {
       ['0.0.0.0', filterID_]
     ); // TODO: IPv4
     return found;
+  }
+
+  protected async _fetchTransactions(
+    blockID: number | Uint8Array,
+    fullObject: boolean
+  ): Promise<unknown[] | string[]> {
+    const idColumn = typeof blockID === 'number' ? 'id' : 'hash';
+    if (fullObject) {
+      const { rows } = await this._query(
+        `SELECT
+            b.id AS "blockNumber",
+            b.hash AS "blockHash",
+            t.index AS "transactionIndex",
+            t.hash AS "hash",
+            t.from AS "from",
+            t.to AS "to",
+            t.gas_limit AS "gas",
+            t.gas_price AS "gasPrice",
+            t.nonce AS "nonce",
+            t.value AS "value",
+            t.data AS "input",
+            t.v AS "v",
+            t.r AS "r",
+            t.s AS "s"
+          FROM transaction t
+            LEFT JOIN block b ON t.block = b.id
+          WHERE b.${idColumn} = $1
+          ORDER BY t.index ASC`,
+        [blockID]
+      );
+      return rows;
+    } else {
+      const { rows } = await this._query(
+        `SELECT t.hash FROM transaction t LEFT JOIN block b ON t.block = b.id
+          WHERE b.${idColumn} = $1 ORDER BY t.index ASC`,
+        [blockID]
+      );
+      return rows.map((row: Record<string, unknown>) =>
+        bytesToHex(row['hash'] as Uint8Array)
+      );
+    }
   }
 }
 
