@@ -7,7 +7,7 @@ export declare class DatabaseServer extends SkeletonServer {
     protected _init(): Promise<void>;
     protected _query(query: string | sql.SelectStatement, args?: unknown[]): Promise<pg.QueryResult<any>>;
     eth_blockNumber(): Promise<api.Quantity>;
-    eth_call(transaction: api.TransactionForCall, blockNumber?: api.Quantity | api.Tag): Promise<api.Data>;
+    eth_call(transaction: api.TransactionForCall, _blockNumber?: api.Quantity | api.Tag): Promise<api.Data>;
     eth_chainId(): Promise<api.Quantity>;
     eth_coinbase(): Promise<api.Data>;
     eth_getBalance(address: api.Data, blockNumber?: api.Quantity | api.Tag): Promise<api.Quantity>;

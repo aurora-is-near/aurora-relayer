@@ -13,6 +13,7 @@ import {
   exportJSON,
   formatU256,
   hexToBytes,
+  hexToInt,
   intToHex,
 } from '@aurora-is-near/engine';
 import pg from 'pg';
@@ -89,9 +90,21 @@ export class DatabaseServer extends SkeletonServer {
 
   async eth_call(
     transaction: api.TransactionForCall,
-    blockNumber?: api.Quantity | api.Tag
+    _blockNumber?: api.Quantity | api.Tag
   ): Promise<api.Data> {
-    return super.eth_call(transaction, blockNumber); // TODO: implement!
+    // TODO: honor blockNumber
+    const from = parseAddress(transaction.from);
+    const to = parseAddress(transaction.to);
+    const value = transaction.value ? hexToInt(transaction.value) : 0;
+    const data = transaction.data
+      ? hexToBytes(transaction.data)
+      : Buffer.alloc(0);
+    return (await this.engine.view(from, to, value, data)).match({
+      ok: (result) => bytesToHex(result),
+      err: (message) => {
+        throw new Error(message);
+      },
+    });
   }
 
   async eth_chainId(): Promise<api.Quantity> {
@@ -108,7 +121,7 @@ export class DatabaseServer extends SkeletonServer {
     address: api.Data,
     blockNumber?: api.Quantity | api.Tag
   ): Promise<api.Quantity> {
-    const address_ = Address.parse(address).unwrap();
+    const address_ = parseAddress(address);
     const balance = (await this.engine.getBalance(address_)).unwrap();
     return intToHex(balance);
   }
@@ -202,7 +215,7 @@ export class DatabaseServer extends SkeletonServer {
     _blockNumber: api.Quantity | api.Tag
   ): Promise<api.Data> {
     // TODO: honor blockNumber
-    const address_ = Address.parse(address).unwrap();
+    const address_ = parseAddress(address);
     const code = (await this.engine.getCode(address_)).unwrap();
     return bytesToHex(code);
   }
@@ -354,7 +367,7 @@ export class DatabaseServer extends SkeletonServer {
     key: api.Quantity,
     blockNumber: api.Quantity | api.Tag
   ): Promise<api.Data> {
-    const address_ = Address.parse(address).unwrap();
+    const address_ = parseAddress(address);
     const result = (await this.engine.getStorageAt(address_, key)).unwrap();
     return formatU256(result);
   }
@@ -431,7 +444,7 @@ export class DatabaseServer extends SkeletonServer {
     _blockNumber: api.Quantity | api.Tag
   ): Promise<api.Quantity> {
     // TODO: honor blockNumber
-    const address_ = Address.parse(address).unwrap();
+    const address_ = parseAddress(address);
     const nonce = (await this.engine.getNonce(address_)).unwrap();
     return intToHex(nonce);
   }
@@ -629,10 +642,15 @@ export class DatabaseServer extends SkeletonServer {
   }
 }
 
-function parseAddresses(input: api.Data | api.Data[]): Address[] {
-  return (Array.isArray(input) ? input : [input]).map((address: string) =>
-    Address.parse(address).unwrap()
-  );
+function parseAddress(input?: api.Data): Address {
+  if (!input) throw new InvalidArguments();
+  return Address.parse(input).unwrapOrElse((_) => {
+    throw new InvalidArguments();
+  });
+}
+
+function parseAddresses(inputs: api.Data | api.Data[]): Address[] {
+  return (Array.isArray(inputs) ? inputs : [inputs]).map(parseAddress);
 }
 
 function parseBlockSpec(

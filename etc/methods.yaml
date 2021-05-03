@@ -50,10 +50,11 @@ eth_blockNumber:
     - src/servers/ephemeral.ts
 
 eth_call:
-  status: wip
+  status: ok
   comment:
   link: https://eth.wiki/json-rpc/API#eth_call
   implementations:
+    - src/servers/database.ts
     - src/servers/ephemeral.ts
 
 eth_chainId:

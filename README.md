@@ -60,7 +60,7 @@ Method | Status | Notes
 [`net_version`] | ✅ |
 [`eth_accounts`] | ✅ |
 [`eth_blockNumber`] | ✅ |
-[`eth_call`] | 🚧 |
+[`eth_call`] | ✅ |
 [`eth_chainId`] | ✅ |
 [`eth_coinbase`] | ✅ |
 [`eth_compileLLL`] | ❌ | Unsupported
