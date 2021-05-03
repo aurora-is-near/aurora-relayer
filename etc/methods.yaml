@@ -333,11 +333,11 @@ eth_sendRawTransaction:
     - src/servers/ephemeral.ts
 
 eth_sendTransaction:
-  status: wip
+  status: unsupported
   comment:
   link: https://eth.wiki/json-rpc/API#eth_sendTransaction
   implementations:
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_sign:
   status: unsupported

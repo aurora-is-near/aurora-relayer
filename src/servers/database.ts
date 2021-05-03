@@ -91,7 +91,7 @@ export class DatabaseServer extends SkeletonServer {
     transaction: api.TransactionForCall,
     blockNumber?: api.Quantity | api.Tag
   ): Promise<api.Data> {
-    return super.eth_call(transaction, blockNumber); // TODO: implement
+    return super.eth_call(transaction, blockNumber); // TODO: implement!
   }
 
   async eth_chainId(): Promise<api.Quantity> {
@@ -541,12 +541,6 @@ export class DatabaseServer extends SkeletonServer {
   async eth_sendRawTransaction(transaction: api.Data): Promise<api.Data> {
     const output = (await this.engine.rawCall(transaction)).unwrap();
     return bytesToHex(output);
-  }
-
-  async eth_sendTransaction(
-    transaction: api.TransactionForSend
-  ): Promise<api.Data> {
-    return super.eth_sendTransaction(transaction); // TODO: implement
   }
 
   async eth_uninstallFilter(filterID: api.Quantity): Promise<boolean> {

@@ -292,14 +292,6 @@ export class EphemeralServer extends SkeletonServer {
     return bytesToHex(output);
   }
 
-  async eth_sendTransaction(
-    transaction: api.TransactionForSend
-  ): Promise<api.Data> {
-    return await (this.provider as any).routeRPC('eth_sendTransaction', [
-      transaction,
-    ]); // TODO
-  }
-
   async eth_uninstallFilter(filterID: api.Quantity): Promise<boolean> {
     const filterID_ = parseInt(filterID, 16);
     if (filterID_ === 0) {
