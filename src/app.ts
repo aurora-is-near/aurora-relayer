@@ -74,7 +74,7 @@ export async function createApp(
         '10000000000000',
         '0'
       );
-      if (config.verbose) {
+      if (config.debug) {
         console.log(data.data, data.signature);
         console.log(result);
       }
@@ -125,8 +125,11 @@ class Method extends jayson.Method {
     result
       .then((value: any) => (callback as any)(undefined, value))
       .catch((error: any) => {
-        console.error(error);
-        const errorCode = error instanceof CodedError ? error.code : -32000;
+        const isExpected = error instanceof CodedError;
+        if (!isExpected) {
+          console.error(error);
+        }
+        const errorCode = isExpected ? error.code : -32000;
         return (callback as any)(server.error(errorCode, error.message));
       });
     return null;
