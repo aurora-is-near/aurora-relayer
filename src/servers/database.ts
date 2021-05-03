@@ -15,6 +15,9 @@ import {
   hexToBytes,
   hexToInt,
   intToHex,
+  None,
+  Option,
+  Some,
 } from '@aurora-is-near/engine';
 import pg from 'pg';
 
@@ -90,16 +93,20 @@ export class DatabaseServer extends SkeletonServer {
 
   async eth_call(
     transaction: api.TransactionForCall,
-    _blockNumber?: api.Quantity | api.Tag
+    blockNumber?: api.Quantity | api.Tag
   ): Promise<api.Data> {
-    // TODO: honor blockNumber
+    const blockNumber_ = parseBlockSpec(blockNumber).unwrapOr(null);
     const from = parseAddress(transaction.from);
     const to = parseAddress(transaction.to);
     const value = transaction.value ? hexToInt(transaction.value) : 0;
     const data = transaction.data
       ? hexToBytes(transaction.data)
       : Buffer.alloc(0);
-    return (await this.engine.view(from, to, value, data)).match({
+    return (
+      await this.engine.view(from, to, value, data, {
+        block: blockNumber_ !== null ? blockNumber_ : undefined,
+      })
+    ).match({
       ok: (result) => bytesToHex(result),
       err: (message) => {
         throw new Error(message);
@@ -212,11 +219,15 @@ export class DatabaseServer extends SkeletonServer {
 
   async eth_getCode(
     address: api.Data,
-    _blockNumber: api.Quantity | api.Tag
+    blockNumber: api.Quantity | api.Tag
   ): Promise<api.Data> {
-    // TODO: honor blockNumber
+    const blockNumber_ = parseBlockSpec(blockNumber).unwrapOr(null);
     const address_ = parseAddress(address);
-    const code = (await this.engine.getCode(address_)).unwrap();
+    const code = (
+      await this.engine.getCode(address_, {
+        block: blockNumber_ !== null ? blockNumber_ : undefined,
+      })
+    ).unwrap();
     return bytesToHex(code);
   }
 
@@ -304,12 +315,12 @@ export class DatabaseServer extends SkeletonServer {
       // EIP-234
       where.push({ 'b.hash': hexToBytes(filter.blockHash) });
     } else {
-      const fromBlock = parseBlockSpec(filter.fromBlock);
-      if (fromBlock) {
+      const fromBlock = parseBlockSpec(filter.fromBlock).unwrapOr(null);
+      if (fromBlock !== null) {
         where.push(sql.gte('b.id', fromBlock));
       }
-      const toBlock = parseBlockSpec(filter.toBlock);
-      if (toBlock) {
+      const toBlock = parseBlockSpec(filter.toBlock).unwrapOr(null);
+      if (toBlock !== null) {
         where.push(sql.lte('b.id', toBlock));
       }
     }
@@ -441,11 +452,15 @@ export class DatabaseServer extends SkeletonServer {
 
   async eth_getTransactionCount(
     address: api.Data,
-    _blockNumber: api.Quantity | api.Tag
+    blockNumber: api.Quantity | api.Tag
   ): Promise<api.Quantity> {
-    // TODO: honor blockNumber
+    const blockNumber_ = parseBlockSpec(blockNumber).unwrapOr(null);
     const address_ = parseAddress(address);
-    const nonce = (await this.engine.getNonce(address_)).unwrap();
+    const nonce = (
+      await this.engine.getNonce(address_, {
+        block: blockNumber_ !== null ? blockNumber_ : undefined,
+      })
+    ).unwrap();
     return intToHex(nonce);
   }
 
@@ -510,8 +525,8 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_newFilter(filter: api.FilterOptions): Promise<api.Quantity> {
-    const fromBlock = parseBlockSpec(filter.fromBlock);
-    const toBlock = parseBlockSpec(filter.toBlock);
+    const fromBlock = parseBlockSpec(filter.fromBlock).unwrapOr(null);
+    const toBlock = parseBlockSpec(filter.toBlock).unwrapOr(null);
 
     const addresses =
       !filter.address || !filter.address.length
@@ -655,24 +670,24 @@ function parseAddresses(inputs: api.Data | api.Data[]): Address[] {
 
 function parseBlockSpec(
   blockSpec?: api.Quantity | api.Tag | null
-): BlockID | null {
+): Option<BlockID | null> {
   switch (blockSpec) {
     case undefined:
-      return null;
+      return None;
     case null:
-      return null;
+      return None;
     case 'pending':
-      return null;
+      return None;
     case 'latest':
-      return null;
+      return None;
     case 'earliest':
-      return 0;
+      return Some(0);
     default: {
-      const blockID = parseInt(blockSpec, 16);
+      const blockID = parseInt(blockSpec);
       if (isNaN(blockID)) {
         throw new InvalidArguments();
       }
-      return blockID;
+      return Some(blockID);
     }
   }
 }
