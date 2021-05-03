@@ -442,18 +442,14 @@ export class DatabaseServer extends SkeletonServer {
     const transactionHash_ = hexToBytes(transactionHash);
     try {
       const {
-        rows,
-      } = await this._query('SELECT * FROM eth_getTransactionReceipt($1)', [
-        transactionHash_,
-      ]);
-      return !rows || !rows.length
-        ? null
-        : exportJSON(
-            rows.map((row: Record<string, unknown>) => {
-              row['logs'] = []; // TODO: fetch
-              return row;
-            })[0]
-          );
+        rows: [receipt],
+      } = await this._query(
+        'SELECT * FROM eth_getTransactionReceipt($1) LIMIT 1',
+        [transactionHash_]
+      );
+      assert(receipt, 'receipt is not null');
+      receipt.logs = await this._fetchEvents(transactionHash_);
+      return exportJSON(receipt);
     } catch (error) {
       if (this.config.debug) {
         console.debug('eth_getTransactionReceipt', error);
@@ -565,6 +561,36 @@ export class DatabaseServer extends SkeletonServer {
       ['0.0.0.0', filterID_]
     ); // TODO: IPv4
     return found;
+  }
+
+  protected async _fetchEvents(transactionID: Uint8Array): Promise<unknown[]> {
+    const { rows } = await this._query(
+      `SELECT
+          b.id AS "blockNumber",
+          b.hash AS "blockHash",
+          t.index AS "transactionIndex",
+          t.hash AS "transactionHash",
+          e.index AS "logIndex",
+          COALESCE(t.to, '\\x0000000000000000000000000000000000000000')::address AS "address",
+          ARRAY_TO_STRING(e.topics, ';') AS "topics",
+          e.data AS "data",
+          false AS "removed"
+        FROM event e
+          LEFT JOIN transaction t ON e.transaction = t.id
+          LEFT JOIN block b ON t.block = b.id
+        WHERE t.hash = $1
+        ORDER BY b.id ASC, t.index ASC, e.index ASC`,
+      [transactionID]
+    );
+    return rows.map((row: Record<string, unknown>) => {
+      row['topics'] =
+        row['topics'] === null
+          ? null
+          : (row['topics'] as string)
+              .split(';')
+              .map((topic) => topic.replace('\\x', '0x'));
+      return row;
+    });
   }
 
   protected async _fetchTransactions(
