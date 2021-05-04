@@ -160,7 +160,7 @@ function createServer(
     methodConstructor: Method,
     useContext: server as any,
   });
-  return jaysonServer.middleware({ end: false });
+  return jaysonServer.middleware({ end: true });
 }
 
 // function response(id: string, result: any, error: any) {
