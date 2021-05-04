@@ -115,12 +115,26 @@ class Method extends jayson.Method {
     result
       .then((value: any) => (callback as any)(undefined, value))
       .catch((error: any) => {
+        const timestamp = Math.floor(Date.now() / 1_000);
         const isExpected = error instanceof CodedError;
-        if (!isExpected) {
+        if (isExpected) {
+          return (callback as any)(
+            server.error(error.code, error.message, { timestamp })
+          );
+        }
+        if (this.server?.config?.debug) {
           console.error(error);
         }
-        const errorCode = isExpected ? error.code : -32000;
-        return (callback as any)(server.error(errorCode, error.message));
+        if (this.server?.logger) {
+          this.server.logger.error(error);
+        }
+        return (callback as any)(
+          server.error(
+            -32603,
+            'Internal error, please report a bug at <https://github.com/aurora-is-near/aurora-relayer/issues>',
+            { timestamp }
+          )
+        );
       });
     return null;
   }

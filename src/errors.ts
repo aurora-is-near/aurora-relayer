@@ -58,8 +58,8 @@ export class TooManyArguments extends CodedError {
 }
 
 export class InvalidArguments extends CodedError {
-  constructor() {
-    super(-32602, `Invalid method parameter(s).`);
+  constructor(message?: string) {
+    super(-32602, message || `Invalid method parameter(s).`);
     Object.setPrototypeOf(this, InvalidArguments.prototype);
   }
 }

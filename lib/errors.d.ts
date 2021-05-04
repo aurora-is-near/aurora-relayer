@@ -18,5 +18,5 @@ export declare class TooManyArguments extends CodedError {
     constructor(maxCount: number);
 }
 export declare class InvalidArguments extends CodedError {
-    constructor();
+    constructor(message?: string);
 }
