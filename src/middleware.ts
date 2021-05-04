@@ -23,7 +23,22 @@ export function setRequestID() {
 }
 
 export function logger(logger: Logger): any {
-  return expressPinoLogger({ logger });
+  return expressPinoLogger({
+    logger,
+    genReqId: (req) => {
+      return req.id;
+    },
+    reqCustomProps: (req, _res) => {
+      const body = (req as any).body;
+      if (!body || req?.method !== 'POST' || req?.url !== '/') return {};
+      return {
+        rpc: {
+          method: body?.method,
+          params: body?.params,
+        },
+      };
+    },
+  });
 }
 
 export function blacklistIPs(config: Config): any {
@@ -41,7 +56,6 @@ export function rateLimit(_config: Config): any {
     headers: false,
     draft_polli_ratelimit_headers: true,
     handler: (req, res) => {
-      // TODO: req.log.info(...);
       res
         .status(429)
         .set('Content-Type', 'text/plain')

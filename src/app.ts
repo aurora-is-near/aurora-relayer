@@ -32,12 +32,12 @@ export async function createApp(
   app.disable('x-powered-by');
 
   app.use(middleware.setRequestID());
-  app.use(middleware.logger(logger));
   app.use(middleware.blacklistIPs(config));
   app.use(middleware.rateLimit(config));
+  app.use(bodyParser.json({ type: 'application/json' }));
+  app.use(middleware.logger(logger));
   app.use(cors()); // Access-Control-Allow-Origin: *
   app.use(helmet.noSniff()); // X-Content-Type-Options: nosniff
-  app.use(bodyParser.json({ type: 'application/json' }));
   app.use(createServer(config, logger, engine, provider));
   app.use(middleware.handleErrors());
 
@@ -132,7 +132,7 @@ class Method extends jayson.Method {
           server.error(
             -32603,
             'Internal error, please report a bug at <https://github.com/aurora-is-near/aurora-relayer/issues>',
-            { timestamp }
+            { timestamp } // TODO: req.id
           )
         );
       });
@@ -160,7 +160,7 @@ function createServer(
     methodConstructor: Method,
     useContext: server as any,
   });
-  return jaysonServer.middleware();
+  return jaysonServer.middleware({ end: false });
 }
 
 // function response(id: string, result: any, error: any) {
