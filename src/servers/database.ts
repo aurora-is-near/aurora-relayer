@@ -5,6 +5,7 @@ import { SkeletonServer } from './skeleton.js';
 import * as api from '../api.js';
 import {
   InvalidArguments,
+  RevertError,
   TransactionError,
   UnexpectedError,
   UnknownFilter,
@@ -579,12 +580,17 @@ export class DatabaseServer extends SkeletonServer {
 
   async eth_sendRawTransaction(transaction: api.Data): Promise<api.Data> {
     return (await this.engine.submit(transaction)).match({
-      ok: (result) => bytesToHex(result), // TODO: adjust for new ABI
-      err: (code) => {
-        if (code.startsWith('ERR_')) {
-          throw new TransactionError(code);
+      ok: (result) => {
+        if (!result.status) {
+          throw new RevertError(result.output);
         }
-        throw new UnexpectedError(code);
+        return bytesToHex(result.output);
+      },
+      err: (code) => {
+        if (!code.startsWith('ERR_')) {
+          throw new UnexpectedError(code);
+        }
+        throw new TransactionError(code);
       },
     });
   }

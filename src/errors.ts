@@ -23,7 +23,11 @@ export function expectArgs(
 }
 
 export abstract class CodedError extends Error {
-  constructor(public readonly code: number, message: string) {
+  constructor(
+    public readonly code: number,
+    message: string,
+    public readonly data?: any
+  ) {
     super(message);
     Object.setPrototypeOf(this, CodedError.prototype);
   }
@@ -37,8 +41,8 @@ export class UnexpectedError extends CodedError {
 }
 
 export abstract class ExpectedError extends CodedError {
-  constructor(code: number, message: string) {
-    super(code, message);
+  constructor(code: number, message: string, data?: any) {
+    super(code, message, data);
     Object.setPrototypeOf(this, ExpectedError.prototype);
   }
 }
@@ -89,5 +93,12 @@ export class TransactionError extends ExpectedError {
   constructor(message: string) {
     super(-32000, message);
     Object.setPrototypeOf(this, TransactionError.prototype);
+  }
+}
+
+export class RevertError extends ExpectedError {
+  constructor(reason: Uint8Array) {
+    super(3, `execution reverted:`, reason);
+    Object.setPrototypeOf(this, RevertError.prototype);
   }
 }

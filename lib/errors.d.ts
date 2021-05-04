@@ -3,13 +3,14 @@ export declare function unimplemented(method: string): void;
 export declare function expectArgs(args: any[] | undefined, min: number, max: number, minMsg?: string): any[];
 export declare abstract class CodedError extends Error {
     readonly code: number;
-    constructor(code: number, message: string);
+    readonly data?: any;
+    constructor(code: number, message: string, data?: any);
 }
 export declare class UnexpectedError extends CodedError {
     constructor(message: string);
 }
 export declare abstract class ExpectedError extends CodedError {
-    constructor(code: number, message: string);
+    constructor(code: number, message: string, data?: any);
 }
 export declare class UnsupportedMethod extends ExpectedError {
     constructor(method: string);
@@ -31,4 +32,7 @@ export declare class UnknownFilter extends ExpectedError {
 }
 export declare class TransactionError extends ExpectedError {
     constructor(message: string);
+}
+export declare class RevertError extends ExpectedError {
+    constructor(reason: Uint8Array);
 }

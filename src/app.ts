@@ -9,7 +9,7 @@ import { DatabaseServer } from './servers/database.js';
 import { EphemeralServer } from './servers/ephemeral.js';
 import { SkeletonServer } from './servers/skeleton.js';
 
-import { Engine } from '@aurora-is-near/engine';
+import { bytesToHex, Engine } from '@aurora-is-near/engine';
 import bodyParser from 'body-parser';
 import connect from 'connect';
 import cors from 'cors';
@@ -118,7 +118,13 @@ class Method extends jayson.Method {
         const timestamp = Math.floor(Date.now() / 1_000);
         if (error instanceof ExpectedError) {
           return (callback as any)(
-            server.error(error.code, error.message, { timestamp })
+            server.error(
+              error.code,
+              error.message,
+              error.data
+                ? ((bytesToHex(error.data) as unknown) as undefined)
+                : { timestamp }
+            )
           );
         }
         if (this.server?.config?.debug) {
