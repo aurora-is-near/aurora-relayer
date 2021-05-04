@@ -187,7 +187,7 @@ eth_newFilter:
 eth_newPendingTransactionFilter:
 
   $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_newPendingTransactionFilter
-  {"jsonrpc":"2.0","id":"1","result":"0x0"} (no-eol)
+  {"jsonrpc":"2.0","id":"1","result":"0x00000000000000000000000000000000"} (no-eol)
 
 eth_pendingTransactions:
 

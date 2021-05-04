@@ -232,22 +232,22 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getFilterChanges(filterID: api.Quantity): Promise<api.LogObject[]> {
-    const filterID_ = parseInt(filterID, 16);
-    if (filterID_ === 0) {
+    const filterID_ = parseFilterID(filterID);
+    if (filterID_.every((b) => b === 0)) {
       return [];
     }
 
     const {
       rows: [{ type }],
     } = await this._query(
-      sql.select('type').from('filter').where({ id: filterID_ })
+      sql.select('type').from('filter').where({ id: filterID_ }) // FIXME
     );
     switch (type) {
       case 'block': {
         const {
           rows,
         } = await this._query(
-          'SELECT * FROM eth_getFilterChanges_block($1::bigint)',
+          'SELECT * FROM eth_getFilterChanges_block($1::bytea)',
           [filterID_]
         );
         const buffers = rows.flatMap((row: Record<string, unknown>) =>
@@ -259,7 +259,7 @@ export class DatabaseServer extends SkeletonServer {
         const {
           rows,
         } = await this._query(
-          'SELECT * FROM eth_getFilterChanges_event($1::bigint)',
+          'SELECT * FROM eth_getFilterChanges_event($1::bytea)',
           [filterID_]
         );
         return exportJSON(rows);
@@ -271,22 +271,22 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getFilterLogs(filterID: api.Quantity): Promise<api.LogObject[]> {
-    const filterID_ = parseInt(filterID, 16);
-    if (filterID_ === 0) {
+    const filterID_ = parseFilterID(filterID);
+    if (filterID_.every((b) => b === 0)) {
       return [];
     }
 
     const {
       rows: [{ type }],
     } = await this._query(
-      sql.select('type').from('filter').where({ id: filterID_ })
+      sql.select('type').from('filter').where({ id: filterID_ }) // FIXME
     );
     switch (type) {
       case 'block': {
         const {
           rows,
         } = await this._query(
-          'SELECT * FROM eth_getFilterLogs_block($1::bigint)',
+          'SELECT * FROM eth_getFilterLogs_block($1::bytea)',
           [filterID_]
         );
         const buffers = rows.flatMap((row: Record<string, unknown>) =>
@@ -298,7 +298,7 @@ export class DatabaseServer extends SkeletonServer {
         const {
           rows,
         } = await this._query(
-          'SELECT * FROM eth_getFilterLogs_event($1::bigint)',
+          'SELECT * FROM eth_getFilterLogs_event($1::bytea)',
           [filterID_]
         );
         return exportJSON(rows);
@@ -519,8 +519,8 @@ export class DatabaseServer extends SkeletonServer {
     const {
       rows: [{ id }],
     } = await this._query('SELECT eth_newBlockFilter($1::inet) AS id', [
-      '0.0.0.0',
-    ]); // TODO: IPv4
+      '0.0.0.0', // TODO: IPv4
+    ]);
     return intToHex(id);
   }
 
@@ -549,13 +549,13 @@ export class DatabaseServer extends SkeletonServer {
     } = await this._query(
       'SELECT eth_newFilter($1::inet, $2::blockno, $3::blockno, $4::address[], $5::jsonb) AS id',
       [
-        '0.0.0.0',
+        '0.0.0.0', // TODO: IPv4
         fromBlock,
         toBlock,
         addresses,
         topics ? JSON.stringify(topics) : null,
       ]
-    ); // TODO: IPv4
+    );
     return intToHex(id);
   }
 
@@ -563,7 +563,7 @@ export class DatabaseServer extends SkeletonServer {
     const {
       rows: [{ id }],
     } = await this._query('SELECT eth_newPendingTransactionFilter() AS id');
-    return intToHex(id);
+    return bytesToHex(id);
   }
 
   async eth_sendRawTransaction(transaction: api.Data): Promise<api.Data> {
@@ -572,16 +572,16 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_uninstallFilter(filterID: api.Quantity): Promise<boolean> {
-    const filterID_ = parseInt(filterID, 16);
-    if (filterID_ === 0) {
+    const filterID_ = parseFilterID(filterID);
+    if (filterID_.every((b) => b === 0)) {
       return true;
     }
     const {
       rows: [{ found }],
     } = await this._query(
-      'SELECT eth_uninstallFilter($1::inet, $2::bigint) AS found',
-      ['0.0.0.0', filterID_]
-    ); // TODO: IPv4
+      'SELECT eth_uninstallFilter($1::inet, $2::bytea) AS found',
+      ['0.0.0.0', filterID_] // TODO: IPv4
+    );
     return found;
   }
 
@@ -690,4 +690,15 @@ function parseBlockSpec(
       return Some(blockID);
     }
   }
+}
+
+function parseFilterID(input: api.Quantity): Buffer {
+  if (input === '0x0') {
+    return Buffer.alloc(16);
+  }
+  const bytes = hexToBytes(input);
+  if (bytes.length != 16) {
+    throw new InvalidArguments();
+  }
+  return Buffer.from(bytes);
 }
