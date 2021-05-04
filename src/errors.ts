@@ -63,3 +63,10 @@ export class InvalidArguments extends CodedError {
     Object.setPrototypeOf(this, InvalidArguments.prototype);
   }
 }
+
+export class UnknownFilter extends CodedError {
+  constructor(_id: string) {
+    super(-32000, `filter not found`);
+    Object.setPrototypeOf(this, UnknownFilter.prototype);
+  }
+}

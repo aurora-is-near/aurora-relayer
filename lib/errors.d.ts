@@ -20,3 +20,6 @@ export declare class TooManyArguments extends CodedError {
 export declare class InvalidArguments extends CodedError {
     constructor(message?: string);
 }
+export declare class UnknownFilter extends CodedError {
+    constructor(_id: string);
+}

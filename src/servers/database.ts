@@ -3,7 +3,7 @@
 import { SkeletonServer } from './skeleton.js';
 
 import * as api from '../api.js';
-import { InvalidArguments } from '../errors.js';
+import { InvalidArguments, UnknownFilter } from '../errors.js';
 import { compileTopics } from '../topics.js';
 
 import {
@@ -238,11 +238,14 @@ export class DatabaseServer extends SkeletonServer {
     }
 
     const {
-      rows: [{ type }],
+      rows: [row],
     } = await this._query(
-      sql.select('type').from('filter').where({ id: filterID_ }) // FIXME
+      `SELECT type FROM filter WHERE uuid_send(id) = $1 LIMIT 1`,
+      [filterID_]
     );
-    switch (type) {
+    if (!row) throw new UnknownFilter(filterID);
+
+    switch (row.type) {
       case 'block': {
         const {
           rows,
@@ -277,11 +280,14 @@ export class DatabaseServer extends SkeletonServer {
     }
 
     const {
-      rows: [{ type }],
+      rows: [row],
     } = await this._query(
-      sql.select('type').from('filter').where({ id: filterID_ }) // FIXME
+      `SELECT type FROM filter WHERE uuid_send(id) = $1 LIMIT 1`,
+      [filterID_]
     );
-    switch (type) {
+    if (!row) throw new UnknownFilter(filterID);
+
+    switch (row.type) {
       case 'block': {
         const {
           rows,
