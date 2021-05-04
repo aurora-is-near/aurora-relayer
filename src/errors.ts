@@ -29,44 +29,65 @@ export abstract class CodedError extends Error {
   }
 }
 
-export class UnsupportedMethod extends CodedError {
+export class UnexpectedError extends CodedError {
+  constructor(message: string) {
+    super(-32603, message);
+    Object.setPrototypeOf(this, UnexpectedError.prototype);
+  }
+}
+
+export abstract class ExpectedError extends CodedError {
+  constructor(code: number, message: string) {
+    super(code, message);
+    Object.setPrototypeOf(this, ExpectedError.prototype);
+  }
+}
+
+export class UnsupportedMethod extends ExpectedError {
   constructor(method: string) {
     super(-32601, `Unsupported method: ${method}`);
     Object.setPrototypeOf(this, UnsupportedMethod.prototype);
   }
 }
 
-export class UnimplementedMethod extends CodedError {
+export class UnimplementedMethod extends ExpectedError {
   constructor(method: string) {
     super(-32601, `Unimplemented method: ${method}`);
     Object.setPrototypeOf(this, UnimplementedMethod.prototype);
   }
 }
 
-export class MissingArgument extends CodedError {
+export class MissingArgument extends ExpectedError {
   constructor(index: number, message?: string) {
     super(-32602, message || `missing value for required argument ${index}`);
     Object.setPrototypeOf(this, MissingArgument.prototype);
   }
 }
 
-export class TooManyArguments extends CodedError {
+export class TooManyArguments extends ExpectedError {
   constructor(maxCount: number) {
     super(-32602, `too many arguments, want at most ${maxCount}`);
     Object.setPrototypeOf(this, TooManyArguments.prototype);
   }
 }
 
-export class InvalidArguments extends CodedError {
+export class InvalidArguments extends ExpectedError {
   constructor(message?: string) {
     super(-32602, message || `Invalid method parameter(s).`);
     Object.setPrototypeOf(this, InvalidArguments.prototype);
   }
 }
 
-export class UnknownFilter extends CodedError {
+export class UnknownFilter extends ExpectedError {
   constructor(_id: string) {
     super(-32000, `filter not found`);
     Object.setPrototypeOf(this, UnknownFilter.prototype);
+  }
+}
+
+export class TransactionError extends ExpectedError {
+  constructor(message: string) {
+    super(-32000, message);
+    Object.setPrototypeOf(this, TransactionError.prototype);
   }
 }

@@ -5,21 +5,30 @@ export declare abstract class CodedError extends Error {
     readonly code: number;
     constructor(code: number, message: string);
 }
-export declare class UnsupportedMethod extends CodedError {
+export declare class UnexpectedError extends CodedError {
+    constructor(message: string);
+}
+export declare abstract class ExpectedError extends CodedError {
+    constructor(code: number, message: string);
+}
+export declare class UnsupportedMethod extends ExpectedError {
     constructor(method: string);
 }
-export declare class UnimplementedMethod extends CodedError {
+export declare class UnimplementedMethod extends ExpectedError {
     constructor(method: string);
 }
-export declare class MissingArgument extends CodedError {
+export declare class MissingArgument extends ExpectedError {
     constructor(index: number, message?: string);
 }
-export declare class TooManyArguments extends CodedError {
+export declare class TooManyArguments extends ExpectedError {
     constructor(maxCount: number);
 }
-export declare class InvalidArguments extends CodedError {
+export declare class InvalidArguments extends ExpectedError {
     constructor(message?: string);
 }
-export declare class UnknownFilter extends CodedError {
+export declare class UnknownFilter extends ExpectedError {
     constructor(_id: string);
+}
+export declare class TransactionError extends ExpectedError {
+    constructor(message: string);
 }

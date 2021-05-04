@@ -1,5 +1,5 @@
-import { SkeletonServer } from './skeleton.js';
 import * as api from '../api.js';
+import { SkeletonServer } from './skeleton.js';
 import { BlockID } from '@aurora-is-near/engine';
 export declare class EphemeralServer extends SkeletonServer {
     protected readonly filters: Map<number, Filter>;

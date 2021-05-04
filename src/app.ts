@@ -2,7 +2,7 @@
 
 import { Config } from './config.js';
 //import { validateEIP712, encodeMetaCall } from './eip-712-helpers.js';
-import { CodedError } from './errors.js';
+import { ExpectedError } from './errors.js';
 import middleware from './middleware.js';
 import { NearProvider } from './provider.js';
 import { DatabaseServer } from './servers/database.js';
@@ -116,8 +116,7 @@ class Method extends jayson.Method {
       .then((value: any) => (callback as any)(undefined, value))
       .catch((error: any) => {
         const timestamp = Math.floor(Date.now() / 1_000);
-        const isExpected = error instanceof CodedError;
-        if (isExpected) {
+        if (error instanceof ExpectedError) {
           return (callback as any)(
             server.error(error.code, error.message, { timestamp })
           );

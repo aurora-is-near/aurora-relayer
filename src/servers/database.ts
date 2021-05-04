@@ -3,7 +3,12 @@
 import { SkeletonServer } from './skeleton.js';
 
 import * as api from '../api.js';
-import { InvalidArguments, UnknownFilter } from '../errors.js';
+import {
+  InvalidArguments,
+  TransactionError,
+  UnexpectedError,
+  UnknownFilter,
+} from '../errors.js';
 import { compileTopics } from '../topics.js';
 
 import {
@@ -573,8 +578,15 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_sendRawTransaction(transaction: api.Data): Promise<api.Data> {
-    const output = (await this.engine.submit(transaction)).unwrap();
-    return bytesToHex(output);
+    return (await this.engine.submit(transaction)).match({
+      ok: (result) => bytesToHex(result), // TODO: adjust for new ABI
+      err: (code) => {
+        if (code.startsWith('ERR_')) {
+          throw new TransactionError(code);
+        }
+        throw new UnexpectedError(code);
+      },
+    });
   }
 
   async eth_uninstallFilter(filterID: api.Quantity): Promise<boolean> {
