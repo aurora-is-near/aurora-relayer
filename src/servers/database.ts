@@ -573,7 +573,7 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_sendRawTransaction(transaction: api.Data): Promise<api.Data> {
-    const output = (await this.engine.rawCall(transaction)).unwrap();
+    const output = (await this.engine.submit(transaction)).unwrap();
     return bytesToHex(output);
   }
 
