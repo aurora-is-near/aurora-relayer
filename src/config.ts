@@ -18,7 +18,7 @@ export const localConfig: Config = {
   debug: false,
   verbose: false,
   database: undefined,
-  port: 3030,
+  port: 8545,
   network: 'local',
   endpoint: 'http://127.0.0.1:3030',
   engine: 'aurora.test.near',
