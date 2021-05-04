@@ -38,12 +38,12 @@ export class Indexer {
     this.pgClient = new pg.Client(config.database);
   }
 
-  async start(): Promise<void> {
+  async start(blockID: number): Promise<void> {
     await this.pgClient.connect();
     const {
       rows: [{ maxID }],
     } = await this.pgClient.query('SELECT MAX(id)::int AS "maxID" FROM block');
-    this.blockID = maxID === null ? 0 : maxID + 1;
+    this.blockID = maxID === null ? blockID : maxID + 1;
     this.logger.info(`resuming from block #${this.blockID}`);
     for (;;) {
       await this.indexBlock(this.blockID);
@@ -161,13 +161,20 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
         env.AURORA_ENGINE || 'aurora.test.near'
       }")`
     )
+    .option(
+      '--block <block>',
+      `specify block height to begin indexing from`,
+      '0'
+    )
     .parse(argv);
 
+  const opts = program.opts() as Config;
   const [network, config] = parseConfig(
-    program.opts() as Config,
+    opts,
     (externalConfig as unknown) as Config,
     env
   );
+  const blockID = parseInt(opts.block as string);
 
   if (config.debug) {
     for (const source of externalConfig.util.getConfigSources()) {
@@ -188,7 +195,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
 
   logger.info('starting indexer');
   const indexer = new Indexer(config, network, logger, engine);
-  await indexer.start();
+  await indexer.start(blockID);
 }
 
 main(process.argv, process.env);

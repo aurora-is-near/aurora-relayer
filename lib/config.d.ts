@@ -12,6 +12,7 @@ export interface Config {
         ipv4?: string[];
         ipv6?: string[];
     };
+    block?: number | string;
 }
 export declare const localConfig: Config;
 export declare function parseConfig(options: Config, config: Config, env: ConnectEnv): [NetworkConfig, Config];

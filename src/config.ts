@@ -12,6 +12,7 @@ export interface Config {
   engine: string;
   signer: string;
   blacklist: { ipv4?: string[]; ipv6?: string[] };
+  block?: number | string;
 }
 
 export const localConfig: Config = {
