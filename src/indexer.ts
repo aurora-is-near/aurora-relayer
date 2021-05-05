@@ -8,6 +8,7 @@ import {
   ConnectEnv,
   Engine,
   hexToBytes,
+  LogEvent,
   NetworkConfig,
   Transaction,
 } from '@aurora-is-near/engine';
@@ -16,7 +17,7 @@ import externalConfig from 'config';
 import pg from 'pg';
 import pino, { Logger } from 'pino';
 
-import sql from 'sql-bricks';
+import sql from 'sql-bricks-postgres';
 const sqlConvert = (sql as any).convert;
 (sql as any).convert = (val: unknown) => {
   if (val instanceof Uint8Array) {
@@ -58,11 +59,13 @@ export class Indexer {
         transactions: 'full',
         contractID: AccountID.parse(this.config.engine).unwrap(),
       });
+
       if (proxy.isErr()) {
-        //console.debug(proxy.unwrapErr());
+        //console.debug(proxy.unwrapErr()); // DEBUG
         await new Promise((resolve) => setTimeout(resolve, 100));
-        continue;
+        continue; // retry block
       }
+
       const block = proxy.unwrap().getMetadata();
       const query = sql.insert('block', {
         chain: this.network.chainID,
@@ -77,16 +80,26 @@ export class Indexer {
         state_root: block.stateRoot,
         receipts_root: block.receiptsRoot,
       });
+
       if (this.config.debug) {
         //console.debug(query.toString()); // DEBUG
       }
-      await this.pgClient.query(query.toParams());
-      let transactionIndex = 0;
-      for (const transaction of block.transactions as Transaction[]) {
-        await this.indexTransaction(blockID, transactionIndex, transaction);
-        transactionIndex += 1;
+      try {
+        await this.pgClient.query(query.toParams());
+      } catch (error) {
+        console.error('indexBlock', error);
+        if (this.config.debug) this.logger.error(error);
+        return; // abort block
       }
-      return;
+
+      // Index all transactions contained in this block:
+      (block.transactions as Transaction[]).forEach(
+        async (transaction, transactionIndex) => {
+          await this.indexTransaction(blockID, transactionIndex, transaction);
+        }
+      );
+
+      return; // finish block
     }
   }
 
@@ -102,35 +115,57 @@ export class Indexer {
       },
       `indexing transaction ${transaction.hash} at #${blockID}:${transactionIndex}`
     );
+
     const to = transaction.to;
-    const query = sql.insert('transaction', {
-      block: blockID,
-      index: transactionIndex,
-      //id: null,
-      hash: Buffer.from(hexToBytes(transaction.hash!)),
-      from: Buffer.from(transaction.from!.toBytes()),
-      to: to?.isSome() ? Buffer.from(to.unwrap().toBytes()) : null,
-      nonce: transaction.nonce,
-      gas_price: transaction.gasPrice,
-      gas_limit: transaction.gasLimit,
-      gas_used: transaction.result?.gasUsed || 0,
-      value: transaction.value,
-      data: transaction.data?.length ? transaction.data : null,
-      v: transaction.v,
-      r: transaction.r,
-      s: transaction.s,
-      status: transaction.result?.status,
-    });
+    const query = sql
+      .insert('transaction', {
+        block: blockID,
+        index: transactionIndex,
+        //id: null,
+        hash: Buffer.from(hexToBytes(transaction.hash!)),
+        from: Buffer.from(transaction.from!.toBytes()),
+        to: to?.isSome() ? Buffer.from(to.unwrap().toBytes()) : null,
+        nonce: transaction.nonce,
+        gas_price: transaction.gasPrice,
+        gas_limit: transaction.gasLimit,
+        gas_used: transaction.result?.gasUsed || 0,
+        value: transaction.value,
+        data: transaction.data?.length ? transaction.data : null,
+        v: transaction.v,
+        r: transaction.r,
+        s: transaction.s,
+        status: transaction.result?.status,
+      })
+      .returning('id');
     // TODO: transaction.result?.output
-    // TODO: transaction.result?.logs
+
     if (this.config.debug) {
       //console.debug(query.toParams()); // DEBUG
     }
-    await this.pgClient.query(query.toParams());
+    let transactionID = 0;
+    try {
+      const {
+        rows: [{ id }],
+      } = await this.pgClient.query(query.toParams());
+      transactionID = id;
+    } catch (error) {
+      console.error('indexTransaction', error);
+      if (this.config.debug) this.logger.error(error);
+      return;
+    }
+
+    // Index all log events emitted by this transaction:
+    (transaction.result?.logs || []).forEach(async (event, eventIndex) => {
+      await this.indexEvent(transactionID, eventIndex, event);
+    });
   }
 
-  async indexEvent(): Promise<void> {
-    // TODO
+  async indexEvent(
+    transactionID: number,
+    eventIndex: number,
+    event: LogEvent
+  ): Promise<void> {
+    console.log(transactionID, eventIndex, event); // TODO: record event
   }
 }
 
