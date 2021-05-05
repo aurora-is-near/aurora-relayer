@@ -53,7 +53,9 @@ export class Indexer {
   }
 
   async indexBlock(blockID: BlockHeight): Promise<void> {
+    //console.debug('indexBlock', blockID); // DEBUG
     this.logger.info({ block: { id: blockID } }, `indexing block #${blockID}`);
+
     for (;;) {
       const proxy = await this.engine.getBlock(blockID, {
         transactions: 'full',
@@ -81,9 +83,7 @@ export class Indexer {
         receipts_root: block.receiptsRoot,
       });
 
-      if (this.config.debug) {
-        //console.debug(query.toString()); // DEBUG
-      }
+      //if (this.config.debug) console.debug(query.toString()); // DEBUG
       try {
         await this.pgClient.query(query.toParams());
       } catch (error) {
@@ -108,6 +108,7 @@ export class Indexer {
     transactionIndex: number,
     transaction: Transaction
   ): Promise<void> {
+    //console.debug('indexTransaction', blockID, transactionIndex, transaction); // DEBUG
     this.logger.info(
       {
         block: { id: blockID },
@@ -139,15 +140,13 @@ export class Indexer {
       .returning('id');
     // TODO: transaction.result?.output
 
-    if (this.config.debug) {
-      //console.debug(query.toParams()); // DEBUG
-    }
+    //if (this.config.debug) console.debug(query.toParams()); // DEBUG
     let transactionID = 0;
     try {
       const {
         rows: [{ id }],
       } = await this.pgClient.query(query.toParams());
-      transactionID = id;
+      transactionID = parseInt(id as string);
     } catch (error) {
       console.error('indexTransaction', error);
       if (this.config.debug) this.logger.error(error);
@@ -156,16 +155,51 @@ export class Indexer {
 
     // Index all log events emitted by this transaction:
     (transaction.result?.logs || []).forEach(async (event, eventIndex) => {
-      await this.indexEvent(transactionID, eventIndex, event);
+      await this.indexEvent(
+        blockID,
+        transactionIndex,
+        transactionID,
+        eventIndex,
+        event
+      );
     });
   }
 
   async indexEvent(
+    blockID: BlockHeight,
+    transactionIndex: number,
     transactionID: number,
     eventIndex: number,
     event: LogEvent
   ): Promise<void> {
-    console.log(transactionID, eventIndex, event); // TODO: record event
+    //console.debug('indexEvent', blockID, transactionIndex, transactionID, eventIndex, event); // DEBUG
+    this.logger.info(
+      {
+        block: { id: blockID },
+        transaction: { index: transactionIndex, id: transactionID },
+        event: { index: eventIndex },
+      },
+      `indexing log event at #${blockID}:${transactionIndex}:${eventIndex}`
+    );
+
+    const query = sql.insert('event', {
+      transaction: transactionID,
+      index: eventIndex,
+      //id: null,
+      data: event.data?.length ? event.data : null,
+      topics: event.topics?.length
+        ? event.topics.map((topic) => topic.toBytes())
+        : null,
+    });
+
+    //if (this.config.debug) console.debug(query.toParams()); // DEBUG
+    try {
+      await this.pgClient.query(query.toParams());
+    } catch (error) {
+      console.error('indexEvent', error);
+      if (this.config.debug) this.logger.error(error);
+      return;
+    }
   }
 }
 

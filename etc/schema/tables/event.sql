@@ -4,8 +4,8 @@ CREATE TABLE event (
   transaction       bigint NOT NULL REFERENCES transaction ON DELETE CASCADE,
   index             int NOT NULL,
   id                bigserial NOT NULL PRIMARY KEY,
-  topics            hash[] NULL,
-  data              bytea NULL
+  data              bytea NULL,
+  topics            hash[] NULL
 );
 
 CREATE UNIQUE INDEX event_transaction_index_idx ON event (transaction, index);
