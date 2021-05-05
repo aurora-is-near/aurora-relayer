@@ -135,7 +135,7 @@ export class Indexer {
         v: transaction.v,
         r: transaction.r,
         s: transaction.s,
-        status: transaction.result?.status,
+        status: transaction.result?.status || true,
       })
       .returning('id');
     // TODO: transaction.result?.output
