@@ -59,6 +59,7 @@ export class Indexer {
         contractID: AccountID.parse(this.config.engine).unwrap(),
       });
       if (proxy.isErr()) {
+        //console.debug(proxy.unwrapErr());
         await new Promise((resolve) => setTimeout(resolve, 100));
         continue;
       }
@@ -110,16 +111,18 @@ export class Indexer {
       from: Buffer.from(transaction.from!.toBytes()),
       to: to?.isSome() ? Buffer.from(to.unwrap().toBytes()) : null,
       nonce: transaction.nonce,
-      gas_price: 0, // TODO
-      gas_limit: 0, // TODO
-      gas_used: 0, // TODO
+      gas_price: transaction.gasPrice,
+      gas_limit: transaction.gasLimit,
+      gas_used: transaction.result?.gasUsed || 0,
       value: transaction.value,
-      data: transaction.data,
+      data: transaction.data?.length ? transaction.data : null,
       v: transaction.v,
       r: transaction.r,
       s: transaction.s,
-      status: true, // TODO
+      status: transaction.result?.status,
     });
+    // TODO: transaction.result?.output
+    // TODO: transaction.result?.logs
     if (this.config.debug) {
       //console.debug(query.toParams()); // DEBUG
     }
