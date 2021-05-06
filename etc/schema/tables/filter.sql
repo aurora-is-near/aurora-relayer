@@ -9,6 +9,6 @@ CREATE TABLE filter (
   poll_block        blockno NULL,
   from_block        blockno NULL,
   to_block          blockno NULL,
-  addresses         address[] NULL,
+  addresses         address[] NULL CHECK (array_length(addresses, 1) > 0),
   topics            jsonb NULL
 );

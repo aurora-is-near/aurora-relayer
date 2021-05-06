@@ -2,7 +2,7 @@ DROP TABLE IF EXISTS transaction CASCADE;
 
 CREATE TABLE transaction (
   block             blockno NOT NULL REFERENCES block ON DELETE CASCADE,
-  index             int NOT NULL,
+  index             int NOT NULL CHECK (index >= 0),
   id                bigserial NOT NULL PRIMARY KEY,
   hash              hash NOT NULL UNIQUE,
   "from"            address NOT NULL,
@@ -12,12 +12,12 @@ CREATE TABLE transaction (
   gas_limit         u256 NOT NULL,
   gas_used          u256 NOT NULL CHECK (gas_used <= gas_limit),
   value             u256 NOT NULL,
-  input             bytea NULL,
+  input             bytea NULL CHECK (length(input) > 0),
   v                 u64 NULL,
   r                 u256 NULL,
   s                 u256 NULL,
   status            boolean NOT NULL,
-  output            bytea NULL
+  output            bytea NULL CHECK (length(output) > 0)
 );
 
 CREATE UNIQUE INDEX transaction_block_index_idx ON transaction (block, index);
