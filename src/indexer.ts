@@ -64,8 +64,14 @@ export class Indexer {
       });
 
       if (proxy.isErr()) {
-        console.debug(proxy.unwrapErr()); // DEBUG
-        await new Promise((resolve) => setTimeout(resolve, 250));
+        const error = proxy.unwrapErr();
+        if (error.startsWith('[-32000] Server error: DB Not Found Error')) {
+          return; // a skip block, or an unavailable block on a nonarchival node
+        }
+
+        if (this.config.debug) console.error(error); // DEBUG
+        this.logger.error(error);
+        await new Promise((resolve) => setTimeout(resolve, 100));
         continue; // retry block
       }
 
@@ -236,7 +242,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
       }")`
     )
     .option(
-      '--block <block>',
+      '-B, --block <block>',
       `specify block height to begin indexing from (default: auto)`
     )
     .parse(argv);
