@@ -12,11 +12,12 @@ CREATE TABLE transaction (
   gas_limit         u256 NOT NULL,
   gas_used          u256 NOT NULL CHECK (gas_used <= gas_limit),
   value             u256 NOT NULL,
-  data              bytea NULL,
+  input             bytea NULL,
   v                 u64 NULL,
   r                 u256 NULL,
   s                 u256 NULL,
-  status            boolean NOT NULL
+  status            boolean NOT NULL,
+  output            bytea NULL
 );
 
 CREATE UNIQUE INDEX transaction_block_index_idx ON transaction (block, index);

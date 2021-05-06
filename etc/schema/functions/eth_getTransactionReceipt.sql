@@ -13,6 +13,9 @@ BEGIN
       t.to AS "to",
       t.gas_used AS "gasUsed",
       0::u256 AS "cumulativeGasUsed", -- TODO: tally?
+      CASE WHEN t.to = '\x0000000000000000000000000000000000000000' THEN t.output
+           ELSE NULL
+      END AS "contractAddress",
       NULL AS "contractAddress",      -- TODO: compute
       NULL AS "logs",                 -- TODO: fetch event.id[]
       repeat('\000', 256)::bytea AS "logsBloom",

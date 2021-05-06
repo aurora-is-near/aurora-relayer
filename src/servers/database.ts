@@ -660,7 +660,7 @@ export class DatabaseServer extends SkeletonServer {
             t.gas_price AS "gasPrice",
             t.nonce AS "nonce",
             t.value AS "value",
-            t.data AS "input",
+            t.input AS "input",
             t.v AS "v",
             t.r AS "r",
             t.s AS "s"

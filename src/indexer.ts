@@ -118,6 +118,7 @@ export class Indexer {
     );
 
     const to = transaction.to;
+    const result = transaction.result!;
     const query = sql
       .insert('transaction', {
         block: blockID,
@@ -129,16 +130,16 @@ export class Indexer {
         nonce: transaction.nonce,
         gas_price: transaction.gasPrice,
         gas_limit: transaction.gasLimit,
-        gas_used: transaction.result?.gasUsed || 0,
+        gas_used: result?.gasUsed || 0,
         value: transaction.value,
-        data: transaction.data?.length ? transaction.data : null,
+        input: transaction.data?.length ? transaction.data : null,
         v: transaction.v,
         r: transaction.r,
         s: transaction.s,
-        status: transaction.result?.status || true,
+        status: result?.status || true,
+        output: result?.output?.length ? result.output : null,
       })
       .returning('id');
-    // TODO: transaction.result?.output
 
     //if (this.config.debug) console.debug(query.toParams()); // DEBUG
     let transactionID = 0;
