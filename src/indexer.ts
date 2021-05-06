@@ -39,12 +39,13 @@ export class Indexer {
     this.pgClient = new pg.Client(config.database);
   }
 
-  async start(blockID: number): Promise<void> {
+  async start(blockID?: number): Promise<void> {
     await this.pgClient.connect();
     const {
       rows: [{ maxID }],
     } = await this.pgClient.query('SELECT MAX(id)::int AS "maxID" FROM block');
-    this.blockID = maxID === null ? blockID : maxID + 1;
+    this.blockID =
+      blockID !== undefined ? blockID : maxID !== null ? maxID + 1 : 0;
     this.logger.info(`resuming from block #${this.blockID}`);
     for (;;) {
       await this.indexBlock(this.blockID);
@@ -63,8 +64,8 @@ export class Indexer {
       });
 
       if (proxy.isErr()) {
-        //console.debug(proxy.unwrapErr()); // DEBUG
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        console.debug(proxy.unwrapErr()); // DEBUG
+        await new Promise((resolve) => setTimeout(resolve, 250));
         continue; // retry block
       }
 
@@ -236,8 +237,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
     )
     .option(
       '--block <block>',
-      `specify block height to begin indexing from`,
-      '0'
+      `specify block height to begin indexing from (default: auto)`
     )
     .parse(argv);
 
@@ -247,7 +247,8 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
     (externalConfig as unknown) as Config,
     env
   );
-  const blockID = parseInt(opts.block as string);
+  const blockID =
+    opts.block !== undefined ? parseInt(opts.block as string) : undefined;
 
   if (config.debug) {
     for (const source of externalConfig.util.getConfigSources()) {
