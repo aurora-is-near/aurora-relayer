@@ -66,6 +66,7 @@ export class Indexer {
       if (proxy.isErr()) {
         const error = proxy.unwrapErr();
         if (error.startsWith('[-32000] Server error: DB Not Found Error')) {
+          this.logger.error(error);
           return; // a skip block, or an unavailable block on a nonarchival node
         }
 
@@ -223,6 +224,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
   program
     .option('-d, --debug', 'enable debug output')
     .option('-v, --verbose', 'enable verbose output')
+    .option('-f, --force', 'reindex already indexed data')
     .option(
       '--database <url>',
       `specify PostgreSQL database URL (default: none)`

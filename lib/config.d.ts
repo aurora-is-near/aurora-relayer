@@ -2,6 +2,7 @@ import { ConnectEnv, NetworkConfig } from '@aurora-is-near/engine';
 export interface Config {
     debug: boolean;
     verbose: boolean;
+    force: boolean;
     database?: string;
     port: number | string;
     network: string;

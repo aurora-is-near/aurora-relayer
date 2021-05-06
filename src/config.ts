@@ -5,6 +5,7 @@ import { ConnectEnv, NetworkConfig, NETWORKS } from '@aurora-is-near/engine';
 export interface Config {
   debug: boolean;
   verbose: boolean;
+  force: boolean;
   database?: string;
   port: number | string;
   network: string;
@@ -18,6 +19,7 @@ export interface Config {
 export const localConfig: Config = {
   debug: false,
   verbose: false,
+  force: false,
   database: undefined,
   port: 8545,
   network: 'local',
@@ -40,6 +42,7 @@ export function parseConfig(
     {
       debug: debug,
       verbose: debug || options.verbose || config.verbose,
+      force: options.force || config.force,
       database: options.database || config.database,
       port: parseInt((options.port as string) || (config.port as string)),
       network: networkID,
