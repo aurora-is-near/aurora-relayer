@@ -5,6 +5,7 @@ CREATE TABLE transaction (
   index             int NOT NULL CHECK (index >= 0),
   id                bigserial NOT NULL PRIMARY KEY,
   hash              hash NOT NULL UNIQUE,
+  near_hash         hash NOT NULL,
   "from"            address NOT NULL,
   "to"              address NULL,
   nonce             u256 NOT NULL,
