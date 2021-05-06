@@ -19,6 +19,7 @@ import {
   intToHex,
   bytesToHex,
 } from '@aurora-is-near/engine';
+import { keccak256 } from 'ethereumjs-util';
 
 export class EphemeralServer extends SkeletonServer {
   protected readonly filters: Map<number, Filter> = new Map();
@@ -292,12 +293,14 @@ export class EphemeralServer extends SkeletonServer {
   }
 
   async eth_sendRawTransaction(transaction: api.Data): Promise<api.Data> {
-    return (await this.engine.submit(transaction)).match({
+    const transactionBytes = Buffer.from(hexToBytes(transaction));
+    const transactionHash = keccak256(transactionBytes);
+    return (await this.engine.submit(transactionBytes)).match({
       ok: (result) => {
         if (!result.status) {
           throw new RevertError(result.output);
         }
-        return bytesToHex(result.output);
+        return bytesToHex(transactionHash);
       },
       err: (code) => {
         if (!code.startsWith('ERR_')) {

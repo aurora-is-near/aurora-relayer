@@ -27,6 +27,7 @@ import {
 } from '@aurora-is-near/engine';
 import pg from 'pg';
 
+import { keccak256 } from 'ethereumjs-util';
 import { assert } from 'node:console';
 import sql from 'sql-bricks';
 const sqlConvert = (sql as any).convert;
@@ -579,12 +580,14 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_sendRawTransaction(transaction: api.Data): Promise<api.Data> {
-    return (await this.engine.submit(transaction)).match({
+    const transactionBytes = Buffer.from(hexToBytes(transaction));
+    const transactionHash = keccak256(transactionBytes);
+    return (await this.engine.submit(transactionBytes)).match({
       ok: (result) => {
         if (!result.status) {
           throw new RevertError(result.output);
         }
-        return bytesToHex(result.output);
+        return bytesToHex(transactionHash);
       },
       err: (code) => {
         if (!code.startsWith('ERR_')) {
