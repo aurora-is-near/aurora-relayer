@@ -16,7 +16,6 @@ BEGIN
       CASE WHEN t.to = '\x0000000000000000000000000000000000000000' THEN t.output
            ELSE NULL
       END AS "contractAddress",
-      NULL AS "contractAddress",      -- TODO: compute
       NULL AS "logs",                 -- TODO: fetch event.id[]
       repeat('\000', 256)::bytea AS "logsBloom",
       t.status AS "status"
