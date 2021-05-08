@@ -51,7 +51,7 @@
   "bugs": "https://github.com/aurora-is-near/aurora-relayer/issues",
   "repository": "https://github.com/aurora-is-near/aurora-relayer.git",
   "dependencies": {
-    "@aurora-is-near/engine": "aurora-is-near/aurora.js#a2fae83",
+    "@aurora-is-near/engine": "aurora-is-near/aurora.js#4e2dc72",
     "commander": "^7.2.0",
     "config": "^3.3.6",
     "cors": "^2.8.5",

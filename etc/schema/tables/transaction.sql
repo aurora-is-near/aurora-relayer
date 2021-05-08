@@ -6,6 +6,7 @@ CREATE TABLE transaction (
   id                bigserial NOT NULL PRIMARY KEY,
   hash              hash NOT NULL UNIQUE,
   near_hash         hash NOT NULL,
+  near_receipt_hash hash NULL,
   "from"            address NOT NULL,
   "to"              address NULL,
   nonce             u256 NOT NULL,

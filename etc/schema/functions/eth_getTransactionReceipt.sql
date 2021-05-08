@@ -18,7 +18,9 @@ BEGIN
       END AS "contractAddress",
       NULL AS "logs",                 -- TODO: fetch event.id[]
       repeat('\000', 256)::bytea AS "logsBloom",
-      t.status AS "status"
+      t.status AS "status",
+      t.near_hash AS "nearTransactionHash",
+      t.near_receipt_hash AS "nearReceiptHash"
     FROM transaction t
       LEFT JOIN block b ON t.block = b.id
     WHERE t.hash = transaction_hash
