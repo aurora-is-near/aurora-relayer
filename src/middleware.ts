@@ -6,7 +6,6 @@ import expressIpFilter from 'express-ipfilter';
 const { IpDeniedError, IpFilter } = expressIpFilter;
 
 import expressPinoLogger from 'express-pino-logger';
-import expressRateLimit from 'express-rate-limit';
 
 import { customAlphabet } from 'nanoid';
 const nanoid = customAlphabet('6789BCDFGHJKLMNPQRTWbcdfghjkmnpqrtwz', 16);
@@ -49,51 +48,6 @@ export function blacklistIPs(config: Config): any {
   });
 }
 
-export function rateLimitPerSec(_config: Config): any {
-  return expressRateLimit({
-    windowMs: 1000, // 1 second
-    max: 2,
-    headers: false,
-    draft_polli_ratelimit_headers: true,
-    handler: (req, res) => {
-      res
-        .status(429)
-        .set('Content-Type', 'text/plain')
-        .send('Too many requests, please try again later.');
-    },
-  });
-}
-
-export function rateLimitPerMin(_config: Config): any {
-  return expressRateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    max: 10,
-    headers: false,
-    draft_polli_ratelimit_headers: true,
-    handler: (req, res) => {
-      res
-        .status(429)
-        .set('Content-Type', 'text/plain')
-        .send('Too many requests, please try again later.');
-    },
-  });
-}
-
-export function rateLimitPerHour(_config: Config): any {
-  return expressRateLimit({
-    windowMs: 60 * 60 * 1000, // 1 hour
-    max: 360,
-    headers: false,
-    draft_polli_ratelimit_headers: true,
-    handler: (req, res) => {
-      res
-        .status(429)
-        .set('Content-Type', 'text/plain')
-        .send('Too many requests, please try again later.');
-    },
-  });
-}
-
 export function handleErrors() {
   return (err: any, req: any, res: any, next: any): void => {
     if (err instanceof IpDeniedError) {
@@ -109,8 +63,5 @@ export default {
   setRequestID,
   logger,
   blacklistIPs,
-  rateLimitPerSec,
-  rateLimitPerMin,
-  rateLimitPerHour,
   handleErrors,
 };
