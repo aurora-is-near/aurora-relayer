@@ -32,6 +32,7 @@ export declare class DatabaseServer extends SkeletonServer {
     eth_newPendingTransactionFilter(): Promise<api.Quantity>;
     eth_sendRawTransaction(transaction: api.Data): Promise<api.Data>;
     eth_uninstallFilter(filterID: api.Quantity): Promise<boolean>;
+    protected _fetchCurrentBlockID(): Promise<number>;
     protected _fetchEvents(transactionID: Uint8Array): Promise<unknown[]>;
     protected _fetchTransactions(blockID: number | Uint8Array, fullObject: boolean): Promise<unknown[] | string[]>;
 }

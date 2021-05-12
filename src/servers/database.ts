@@ -21,9 +21,6 @@ import {
   hexToBytes,
   hexToInt,
   intToHex,
-  None,
-  Option,
-  Some,
 } from '@aurora-is-near/engine';
 import pg from 'pg';
 
@@ -92,17 +89,14 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_blockNumber(): Promise<api.Quantity> {
-    const {
-      rows: [{ result }],
-    } = await this._query('SELECT eth_blockNumber() AS result');
-    return intToHex(result);
+    return intToHex(await this._fetchCurrentBlockID());
   }
 
   async eth_call(
     transaction: api.TransactionForCall,
     blockNumber?: api.Quantity | api.Tag
   ): Promise<api.Data> {
-    const blockNumber_ = parseBlockSpec(blockNumber).unwrapOr(null);
+    const blockNumber_ = parseBlockSpec(blockNumber);
     const from = parseAddress(transaction.from);
     const to = parseAddress(transaction.to);
     const value = transaction.value ? hexToInt(transaction.value) : 0;
@@ -171,8 +165,8 @@ export class DatabaseServer extends SkeletonServer {
     blockNumber: api.Quantity | api.Tag,
     fullObject?: boolean
   ): Promise<api.BlockResult | null> {
-    const blockNumber_ = parseInt(blockNumber, 16);
-    if (Number.isNaN(blockNumber_)) throw new InvalidArguments();
+    const blockNumber_ =
+      parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID());
     try {
       const {
         rows: [block],
@@ -182,7 +176,7 @@ export class DatabaseServer extends SkeletonServer {
       assert(block, 'block is not null');
       block.uncles = [];
       block.transactions = await this._fetchTransactions(
-        blockNumber_,
+        blockNumber_ as number,
         fullObject || false
       );
       return exportJSON(block);
@@ -212,9 +206,8 @@ export class DatabaseServer extends SkeletonServer {
   async eth_getBlockTransactionCountByNumber(
     blockNumber: api.Quantity | api.Tag
   ): Promise<api.Quantity | null> {
-    const blockNumber_ = blockNumber.startsWith('0x')
-      ? parseInt(blockNumber, 16)
-      : blockNumber;
+    const blockNumber_ =
+      parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID());
     const {
       rows: [{ result }],
     } = await this._query(
@@ -228,7 +221,7 @@ export class DatabaseServer extends SkeletonServer {
     address: api.Data,
     blockNumber: api.Quantity | api.Tag
   ): Promise<api.Data> {
-    const blockNumber_ = parseBlockSpec(blockNumber).unwrapOr(null);
+    const blockNumber_ = parseBlockSpec(blockNumber);
     const address_ = parseAddress(address);
     const code = (
       await this.engine.getCode(address_, {
@@ -328,11 +321,11 @@ export class DatabaseServer extends SkeletonServer {
       // EIP-234
       where.push({ 'b.hash': hexToBytes(filter.blockHash) });
     } else {
-      const fromBlock = parseBlockSpec(filter.fromBlock).unwrapOr(null);
+      const fromBlock = parseBlockSpec(filter.fromBlock);
       if (fromBlock !== null) {
         where.push(sql.gte('b.id', fromBlock));
       }
-      const toBlock = parseBlockSpec(filter.toBlock).unwrapOr(null);
+      const toBlock = parseBlockSpec(filter.toBlock);
       if (toBlock !== null) {
         where.push(sql.lte('b.id', toBlock));
       }
@@ -424,10 +417,9 @@ export class DatabaseServer extends SkeletonServer {
     blockNumber: api.Quantity | api.Tag,
     transactionIndex: api.Quantity
   ): Promise<api.TransactionResult | null> {
-    const [blockNumber_, transactionIndex_] = [
-      parseInt(blockNumber),
-      parseInt(transactionIndex),
-    ];
+    const blockNumber_ =
+      parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID());
+    const transactionIndex_ = parseInt(transactionIndex);
     try {
       const {
         rows,
@@ -467,7 +459,7 @@ export class DatabaseServer extends SkeletonServer {
     address: api.Data,
     blockNumber: api.Quantity | api.Tag
   ): Promise<api.Quantity> {
-    const blockNumber_ = parseBlockSpec(blockNumber).unwrapOr(null);
+    const blockNumber_ = parseBlockSpec(blockNumber);
     const address_ = parseAddress(address);
     const nonce = (
       await this.engine.getNonce(address_, {
@@ -516,9 +508,8 @@ export class DatabaseServer extends SkeletonServer {
   async eth_getUncleCountByBlockNumber(
     blockNumber: api.Quantity | api.Tag
   ): Promise<api.Quantity | null> {
-    const blockNumber_ = blockNumber.startsWith('0x')
-      ? parseInt(blockNumber, 16)
-      : blockNumber;
+    const blockNumber_ =
+      parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID());
     const {
       rows: [{ result }],
     } = await this._query(
@@ -538,8 +529,8 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_newFilter(filter: api.FilterOptions): Promise<api.Quantity> {
-    const fromBlock = parseBlockSpec(filter.fromBlock).unwrapOr(null);
-    const toBlock = parseBlockSpec(filter.toBlock).unwrapOr(null);
+    const fromBlock = parseBlockSpec(filter.fromBlock);
+    const toBlock = parseBlockSpec(filter.toBlock);
 
     const addresses =
       !filter.address || !filter.address.length
@@ -610,6 +601,13 @@ export class DatabaseServer extends SkeletonServer {
       ['0.0.0.0', filterID_] // TODO: IPv4
     );
     return found;
+  }
+
+  protected async _fetchCurrentBlockID(): Promise<number> {
+    const {
+      rows: [{ result }],
+    } = await this._query('SELECT eth_blockNumber() AS result');
+    return result;
   }
 
   protected async _fetchEvents(transactionID: Uint8Array): Promise<unknown[]> {
@@ -697,24 +695,24 @@ function parseAddresses(inputs: api.Data | api.Data[]): Address[] {
 
 function parseBlockSpec(
   blockSpec?: api.Quantity | api.Tag | null
-): Option<BlockID | null> {
+): BlockID | null {
   switch (blockSpec) {
     case undefined:
-      return None;
+      return null;
     case null:
-      return None;
+      return null;
     case 'pending':
-      return None;
+      return null;
     case 'latest':
-      return None;
+      return null;
     case 'earliest':
-      return Some(0);
+      return 0;
     default: {
       const blockID = parseInt(blockSpec);
       if (isNaN(blockID)) {
         throw new InvalidArguments();
       }
-      return Some(blockID);
+      return blockID;
     }
   }
 }
