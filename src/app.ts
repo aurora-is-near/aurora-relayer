@@ -33,7 +33,9 @@ export async function createApp(
 
   app.use(middleware.setRequestID());
   app.use(middleware.blacklistIPs(config));
-  app.use(middleware.rateLimit(config));
+  app.use(middleware.rateLimitPerSec(config));
+  app.use(middleware.rateLimitPerMin(config));
+  app.use(middleware.rateLimitPerHour(config));
   app.use(bodyParser.json({ type: 'application/json' }));
   app.use(middleware.logger(logger));
   app.use(cors()); // Access-Control-Allow-Origin: *

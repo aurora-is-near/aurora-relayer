@@ -49,10 +49,40 @@ export function blacklistIPs(config: Config): any {
   });
 }
 
-export function rateLimit(_config: Config): any {
+export function rateLimitPerSec(_config: Config): any {
+  return expressRateLimit({
+    windowMs: 1000, // 1 second
+    max: 2,
+    headers: false,
+    draft_polli_ratelimit_headers: true,
+    handler: (req, res) => {
+      res
+        .status(429)
+        .set('Content-Type', 'text/plain')
+        .send('Too many requests, please try again later.');
+    },
+  });
+}
+
+export function rateLimitPerMin(_config: Config): any {
   return expressRateLimit({
     windowMs: 60 * 1000, // 1 minute
     max: 10,
+    headers: false,
+    draft_polli_ratelimit_headers: true,
+    handler: (req, res) => {
+      res
+        .status(429)
+        .set('Content-Type', 'text/plain')
+        .send('Too many requests, please try again later.');
+    },
+  });
+}
+
+export function rateLimitPerHour(_config: Config): any {
+  return expressRateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 360,
     headers: false,
     draft_polli_ratelimit_headers: true,
     handler: (req, res) => {
@@ -79,6 +109,8 @@ export default {
   setRequestID,
   logger,
   blacklistIPs,
-  rateLimit,
+  rateLimitPerSec,
+  rateLimitPerMin,
+  rateLimitPerHour,
   handleErrors,
 };
