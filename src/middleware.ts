@@ -52,7 +52,7 @@ export function blacklistIPs(config: Config): any {
 export function rateLimit(_config: Config): any {
   return expressRateLimit({
     windowMs: 60 * 1000, // 1 minute
-    max: 60,
+    max: 10,
     headers: false,
     draft_polli_ratelimit_headers: true,
     handler: (req, res) => {
