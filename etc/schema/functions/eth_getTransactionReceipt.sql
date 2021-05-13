@@ -13,7 +13,7 @@ BEGIN
       t.to AS "to",
       t.gas_used AS "gasUsed",
       0::u256 AS "cumulativeGasUsed", -- TODO: tally?
-      CASE WHEN t.to = '\x0000000000000000000000000000000000000000' THEN t.output
+      CASE WHEN t.to IS NULL OR t.to = '\x0000000000000000000000000000000000000000' THEN t.output
            ELSE NULL
       END AS "contractAddress",
       NULL AS "logs",                 -- TODO: fetch event.id[]
