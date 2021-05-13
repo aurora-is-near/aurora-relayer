@@ -22,6 +22,8 @@ import { Logger } from 'pino';
 
 export { Engine } from '@aurora-is-near/engine';
 
+import { assert } from 'node:console';
+
 export async function createApp(
   config: Config,
   logger: Logger,
@@ -103,7 +105,7 @@ class Method extends jayson.Method {
   execute(
     server: jayson.Server,
     requestParams: jayson.RequestParamsLike,
-    _context: any,
+    _request: any, // context
     callback: jayson.JSONRPCCallbackType
   ): any {
     const args = (requestParams || []) as any[];
@@ -164,7 +166,47 @@ function createServer(
     methodConstructor: Method,
     useContext: server as any,
   });
-  return jaysonServer.middleware({ end: true });
+  return rpcMiddleware(jaysonServer);
+}
+
+function rpcMiddleware(server: jayson.Server): any {
+  return function (req: any, res: any): any {
+    const options: any = server.options;
+
+    if ((req.method || '') != 'POST') {
+      return error(405, { Allow: 'POST' });
+    }
+
+    if (
+      !RegExp('application/json', 'i').test(
+        (req || { headers: {} }).headers['content-type'] || ''
+      )
+    ) {
+      return error(415);
+    }
+
+    assert(req.body && typeof req.body === 'object');
+    server.call(req.body, req, function (error: any, success: any) {
+      const response = error || success;
+      const body = JSON.stringify(response);
+      if (!body) {
+        res.writeHead(204);
+      } else {
+        const headers = {
+          'Content-Length': Buffer.byteLength(body, options.encoding),
+          'Content-Type': 'application/json; charset=utf-8',
+        };
+        res.writeHead(200, headers);
+        res.write(body);
+      }
+      res.end();
+    });
+
+    function error(code: any, headers?: any) {
+      res.writeHead(code, headers || {});
+      res.end();
+    }
+  };
 }
 
 // function response(id: string, result: any, error: any) {
