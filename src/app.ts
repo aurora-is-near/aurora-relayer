@@ -1,7 +1,6 @@
 /* This is free and unencumbered software released into the public domain. */
 
 import { Config } from './config.js';
-//import { validateEIP712, encodeMetaCall } from './eip-712-helpers.js';
 import { ExpectedError } from './errors.js';
 import middleware from './middleware.js';
 import { NearProvider } from './provider.js';
@@ -41,44 +40,6 @@ export async function createApp(
   app.use(helmet.noSniff()); // X-Content-Type-Options: nosniff
   app.use(createServer(config, logger, engine, provider));
   app.use(middleware.handleErrors());
-
-  // app.post('/relay', async (req, res) => {
-  //   res.header('Content-Type', 'application/json');
-  //   const data = req.body;
-  //   if (
-  //     !data.data ||
-  //     !data.signature ||
-  //     !validateEIP712(data.data, data.signature)
-  //   ) {
-  //     res.send({
-  //       code: -32000,
-  //       message: 'Signature is invalid for given message',
-  //     });
-  //     return;
-  //   }
-  //   try {
-  //     const result = await nearProvider.utils.rawFunctionCall(
-  //       provider.account,
-  //       provider.evm_contract,
-  //       'meta_call',
-  //       encodeMetaCall(data.data, data.signature),
-  //       '10000000000000',
-  //       '0'
-  //     );
-  //     if (config.debug) {
-  //       console.log(data.data, data.signature);
-  //       console.log(result);
-  //     }
-  //     res.send(response(data.id, result, null));
-  //   } catch (error) {
-  //     res.send(
-  //       response(data.id, null, {
-  //         code: -32000,
-  //         message: error.message,
-  //       })
-  //     );
-  //   }
-  // });
 
   return app;
 }
