@@ -39,10 +39,8 @@ export class EphemeralServer extends SkeletonServer {
     transaction: api.TransactionForCall,
     blockNumber?: api.Quantity | api.Tag
   ): Promise<api.Data> {
-    return await (this.provider as any).routeRPC('eth_call', [
-      transaction,
-      blockNumber,
-    ]); // TODO
+    unimplemented('eth_call'); // TODO
+    return "";
   }
 
   async eth_chainId(): Promise<api.Quantity> {
@@ -233,9 +231,8 @@ export class EphemeralServer extends SkeletonServer {
   ): Promise<api.TransactionResult | null> {
     const transactionHash_ = hexToBytes(transactionHash);
     console.debug(transactionHash_); // TODO
-    return await (this.provider as any).routeRPC('eth_getTransactionByHash', [
-      transactionHash,
-    ]); // TODO
+    unimplemented('eth_getTransactionByHash'); // TODO
+    return null;
   }
 
   async eth_getTransactionCount(
@@ -251,10 +248,8 @@ export class EphemeralServer extends SkeletonServer {
   async eth_getTransactionReceipt(
     transactionHash: string
   ): Promise<api.TransactionReceipt | null> {
-    return await (this
-      .provider as any).routeRPC('eth_getapi.TransactionReceipt', [
-      transactionHash,
-    ]); // TODO
+    unimplemented('eth_getTransactionReceipt'); // TODO
+    return null;
   }
 
   async eth_getUncleCountByBlockHash(

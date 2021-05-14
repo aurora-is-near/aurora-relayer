@@ -3,7 +3,6 @@
 import { Config } from './config.js';
 import { ExpectedError } from './errors.js';
 import middleware from './middleware.js';
-import { NearProvider } from './provider.js';
 import { DatabaseServer } from './servers/database.js';
 import { EphemeralServer } from './servers/ephemeral.js';
 import { SkeletonServer } from './servers/skeleton.js';
@@ -15,7 +14,6 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import jayson from 'jayson';
-//import nearProvider from 'near-web3-provider';
 //import { exit } from 'process';
 import { Logger } from 'pino';
 
@@ -26,8 +24,7 @@ import { assert } from 'node:console';
 export async function createApp(
   config: Config,
   logger: Logger,
-  engine: Engine,
-  provider: NearProvider
+  engine: Engine
 ): Promise<any> {
   const app = express();
   app.disable('x-powered-by');
@@ -38,7 +35,7 @@ export async function createApp(
   app.use(middleware.logger(logger));
   app.use(cors()); // Access-Control-Allow-Origin: *
   app.use(helmet.noSniff()); // X-Content-Type-Options: nosniff
-  app.use(createServer(config, logger, engine, provider));
+  app.use(createServer(config, logger, engine));
   app.use(middleware.handleErrors());
 
   return app;
@@ -114,11 +111,10 @@ interface MethodMap {
 function createServer(
   config: Config,
   logger: Logger,
-  engine: Engine,
-  provider: NearProvider
+  engine: Engine
 ): connect.HandleFunction {
   const serverClass = config.database ? DatabaseServer : EphemeralServer;
-  const server = new serverClass(config, logger, engine, provider);
+  const server = new serverClass(config, logger, engine);
   const methodList = Object.getOwnPropertyNames(SkeletonServer.prototype)
     .filter((id: string) => id !== 'constructor' && id[0] != '_')
     .map((id: string) => [id, (server as any)[id]]);

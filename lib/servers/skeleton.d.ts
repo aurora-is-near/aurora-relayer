@@ -1,14 +1,12 @@
 import * as api from '../api.js';
 import { Config } from '../config.js';
-import { NearProvider } from '../provider.js';
 import { Engine } from '@aurora-is-near/engine';
 import { Logger } from 'pino';
 export declare abstract class SkeletonServer implements api.Service {
     readonly config: Config;
     readonly logger: Logger;
     readonly engine: Engine;
-    readonly provider: NearProvider;
-    constructor(config: Config, logger: Logger, engine: Engine, provider: NearProvider);
+    constructor(config: Config, logger: Logger, engine: Engine);
     protected abstract _init(): Promise<void>;
     web3_clientVersion(): Promise<string>;
     web3_sha3(input: api.Data): Promise<api.Data>;

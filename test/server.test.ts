@@ -5,7 +5,6 @@ import { Engine, createApp } from '../lib/app.js';
 // import { createMetaCall } from './utils';
 
 // import { signTypedData_v4 } from 'eth-sig-util';
-import nearProvider from 'near-web3-provider';
 import pino from 'pino';
 import request from 'supertest';
 
@@ -21,20 +20,13 @@ async function main() {
     },
     {}
   );
-  const provider = new nearProvider.NearProvider({
-    networkId: localConfig.network,
-    nodeUrl: localConfig.endpoint,
-    evmAccountId: localConfig.engine,
-    masterAccountId: localConfig.signer,
-    keyPath: '~/.near/validator_key.json',
-  });
 
   describe('AppServer', async () => {
     // const privKeyHex =
     //   'fa5411587e855bb1e8273bc728f4fc1a092e2dd61ddf788a31b98d78cca95028';
     // const privKey = Buffer.from(privKeyHex, 'hex');
 
-    const app = await createApp(config, logger, engine, provider);
+    const app = await createApp(config, logger, engine);
 
     test('#viewBalance', (done) => {
       request(app)

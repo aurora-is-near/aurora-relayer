@@ -64,7 +64,6 @@
     "jest": "v27.0.0-next.8",
     "js-yaml": "^4.1.0",
     "nanoid": "^3.1.22",
-    "near-web3-provider": "aurora-is-near/near-web3-provider#a80a7f5",
     "pg": "^8.6.0",
     "rlp": "^2.2.6",
     "sql-bricks-postgres": "^0.5.0",

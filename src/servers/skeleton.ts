@@ -3,7 +3,6 @@
 import * as api from '../api.js';
 import { Config } from '../config.js';
 import { unimplemented, unsupported } from '../errors.js';
-import { NearProvider } from '../provider.js';
 
 import { bytesToHex, Engine, intToHex } from '@aurora-is-near/engine';
 import { keccakFromHexString } from 'ethereumjs-util';
@@ -13,8 +12,7 @@ export abstract class SkeletonServer implements api.Service {
   constructor(
     public readonly config: Config,
     public readonly logger: Logger,
-    public readonly engine: Engine,
-    public readonly provider: NearProvider
+    public readonly engine: Engine
   ) {
     this._init();
   }

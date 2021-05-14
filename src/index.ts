@@ -7,7 +7,6 @@ import { Config, parseConfig } from './config.js';
 import { ConnectEnv, Engine } from '@aurora-is-near/engine';
 import { program } from 'commander';
 import externalConfig from 'config';
-import nearProvider from 'near-web3-provider';
 import pg from 'pg';
 import pino from 'pino';
 
@@ -82,16 +81,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
     env
   );
 
-  // deprecated
-  const provider = new nearProvider.NearProvider({
-    networkId: network.id,
-    nodeUrl: config.endpoint,
-    evmAccountId: config.engine,
-    masterAccountId: config.signer,
-    keyPath: network.id == 'local' && '~/.near/validator_key.json',
-  });
-
-  const app = await createApp(config, logger, engine, provider);
+  const app = await createApp(config, logger, engine);
   app.listen(config.port, () => {
     if (config.verbose || config.debug) {
       console.error(
