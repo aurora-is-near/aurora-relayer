@@ -12,7 +12,7 @@ CREATE TYPE transaction_receipt AS (
     "contractAddress" address,
     "logs" bigint[],
     "logsBloom" bytea, -- 256 bytes
-    "status" boolean,
+    "status" smallint,
     "nearTransactionHash" hash,
     "nearReceiptHash" hash
 );
