@@ -18,3 +18,6 @@ docs/
 
 # Coverage
 coverage/
+
+# Local configuration
+config/local.yaml
