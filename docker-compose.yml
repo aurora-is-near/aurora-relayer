@@ -1,7 +1,0 @@
-version: '3.8'
-services:
-  database:
-    image: auroraisnear/relayer-database
-    restart: unless-stopped
-    ports:
-      - '5432:5432'

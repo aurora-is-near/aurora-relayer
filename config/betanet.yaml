@@ -1,6 +1,6 @@
 ---
-database: postgres://localhost/aurora
-port: 18545
+database: postgres://aurora:aurora@database/aurora
+port: 8545
 network: betanet
 endpoint: http://127.0.0.1:3030
 engine: aurora

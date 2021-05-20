@@ -1,0 +1,10 @@
+FROM node:15
+RUN mkdir -p /srv/aurora/relayer
+RUN chown -R node:node /srv/aurora
+WORKDIR /srv/aurora/relayer
+COPY --chown=node:node package*.json .
+USER node
+RUN npm ci --only=production
+COPY --chown=node:node . .
+CMD ["node", "lib/index.js"]
+EXPOSE 8545

@@ -1,6 +1,6 @@
 ---
-database: postgres://localhost/testnet_develop
-port: 18546
+database: postgres://aurora:aurora@database/aurora
+port: 8545
 network: testnet
 endpoint: http://127.0.0.1:3030
 engine: develop.aurora

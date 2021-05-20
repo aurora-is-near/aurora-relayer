@@ -1,0 +1,17 @@
+version: '3.8'
+services:
+  database:
+    image: auroraisnear/relayer-database
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:5432:5432'
+  endpoint:
+    image: auroraisnear/relayer-endpoint
+    restart: unless-stopped
+    init: true
+    depends_on:
+      - database
+    ports:
+      - '127.0.0.1:18545:8545'
+    environment:
+      - NODE_ENV
