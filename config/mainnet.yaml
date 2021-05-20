@@ -2,7 +2,7 @@
 database: postgres://aurora:aurora@database/aurora
 port: 8545
 network: mainnet
-endpoint: http://127.0.0.1:3030
+endpoint: https://archival-rpc.mainnet.near.org
 engine: aurora
 signer: relay.aurora
 blacklist:

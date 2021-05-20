@@ -2,7 +2,7 @@
 database: postgres://aurora:aurora@database/aurora
 port: 8545
 network: testnet
-endpoint: http://127.0.0.1:3030
+endpoint: https://archival-rpc.testnet.near.org
 engine: aurora
 signer: relay.aurora
 blacklist:
