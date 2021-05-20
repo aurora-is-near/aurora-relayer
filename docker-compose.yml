@@ -1,0 +1,7 @@
+version: '3.8'
+services:
+  database:
+    build: .
+    restart: always
+    ports:
+      - '5432:5432'

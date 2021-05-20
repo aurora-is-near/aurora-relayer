@@ -1,0 +1,570 @@
+DROP DOMAIN IF EXISTS address CASCADE;
+CREATE DOMAIN address AS bytea
+  CHECK (length(value) = 20);
+
+DROP DOMAIN IF EXISTS blockno CASCADE;
+CREATE DOMAIN blockno AS int8
+  CHECK (value >= 0);
+
+DROP DOMAIN IF EXISTS chainid CASCADE;
+CREATE DOMAIN chainid AS int4
+  CHECK (value >= 1);
+
+DROP DOMAIN IF EXISTS hash CASCADE;
+CREATE DOMAIN hash AS bytea
+  CHECK (length(value) = 32);
+
+DROP DOMAIN IF EXISTS instant CASCADE;
+CREATE DOMAIN instant AS timestamptz
+  CHECK (value > timestamptz '2015-07-30T00:00:00Z');
+
+DROP DOMAIN IF EXISTS u64 CASCADE;
+CREATE DOMAIN u64 AS numeric(20, 0)
+  CHECK (value >= 0 AND value <= 18446744073709551615);
+
+DROP DOMAIN IF EXISTS u256 CASCADE;
+CREATE DOMAIN u256 AS numeric(78, 0)
+  CHECK (value >= 0 AND value <= 115792089237316195423570985008687907853269984665640564039457584007913129639935);
+DROP TYPE IF EXISTS block_result CASCADE;
+
+CREATE TYPE block_result AS (
+    "number" blockno,
+    "hash" hash,
+    "parentHash" hash,
+    "nonce" bytea,           -- 8 bytes
+    "sha3Uncles" hash,
+    "logsBloom" bytea,       -- 256 bytes
+    "transactionsRoot" hash,
+    "stateRoot" hash,
+    "receiptsRoot" hash,
+    "miner" address,
+    "difficulty" int2,
+    "totalDifficulty" int2,
+    "extraData" bytea,       -- 0 bytes
+    "size" int4,
+    "gasLimit" int8,
+    "gasUsed" int8,
+    "timestamp" int4
+);
+DROP TYPE IF EXISTS filter_result CASCADE;
+
+CREATE TYPE filter_result AS (
+    "blockNumber" blockno,
+    "blockHash" hash,
+    "transactionIndex" int,
+    "transactionHash" hash,
+    "logIndex" int,
+    "address" address,
+    "topics" hash[4],
+    "data" bytea,
+    "removed" boolean
+);
+DROP TYPE IF EXISTS filter_type CASCADE;
+
+CREATE TYPE filter_type AS ENUM ('block', 'event', 'transaction');
+DROP TYPE IF EXISTS transaction_receipt CASCADE;
+
+CREATE TYPE transaction_receipt AS (
+    "blockNumber" blockno,
+    "blockHash" hash,
+    "transactionIndex" int,
+    "transactionHash" hash,
+    "from" address,
+    "to" address,
+    "gasUsed" u256,
+    "cumulativeGasUsed" u256,
+    "contractAddress" address,
+    "logs" bigint[],
+    "logsBloom" bytea, -- 256 bytes
+    "status" smallint,
+    "nearTransactionHash" hash,
+    "nearReceiptHash" hash
+);
+DROP TYPE IF EXISTS transaction_result CASCADE;
+
+CREATE TYPE transaction_result AS (
+    "blockNumber" blockno,
+    "blockHash" hash,
+    "transactionIndex" int,
+    "hash" hash,
+    "from" address,
+    "to" address,
+    "gas" u256,
+    "gasPrice" u256,
+    "nonce" u256,
+    "value" u256,
+    "input" bytea,
+    "v" u64,
+    "r" u256,
+    "s" u256
+);
+DROP TABLE IF EXISTS block CASCADE;
+
+CREATE TABLE block (
+  chain             chainid NOT NULL,
+  id                blockno NOT NULL PRIMARY KEY,
+  hash              hash NOT NULL UNIQUE,
+  near_hash         hash NOT NULL UNIQUE,
+  timestamp         instant NOT NULL,
+  size              int4 NOT NULL,
+  gas_limit         u256 NOT NULL,
+  gas_used          u256 NOT NULL CHECK (gas_used <= gas_limit),
+  parent_hash       hash NOT NULL UNIQUE,
+  transactions_root hash NOT NULL,
+  state_root        hash NOT NULL,
+  receipts_root     hash NOT NULL
+);
+
+CREATE UNIQUE INDEX block_chain_id_idx ON block (chain, id);
+
+CREATE INDEX block_timestamp_idx ON block USING btree (timestamp);
+DROP TABLE IF EXISTS filter CASCADE;
+
+CREATE TABLE filter (
+  id                uuid NOT NULL PRIMARY KEY,
+  type              filter_type NOT NULL,
+  created_at        instant NOT NULL,
+  created_by        inet NOT NULL,
+  polled_at         instant NULL,
+  poll_block        blockno NULL,
+  from_block        blockno NULL,
+  to_block          blockno NULL,
+  addresses         address[] NULL CHECK (array_length(addresses, 1) > 0),
+  topics            jsonb NULL
+);
+DROP TABLE IF EXISTS transaction CASCADE;
+
+CREATE TABLE transaction (
+  block             blockno NOT NULL REFERENCES block ON DELETE CASCADE,
+  index             int NOT NULL CHECK (index >= 0),
+  id                bigserial NOT NULL PRIMARY KEY,
+  hash              hash NOT NULL UNIQUE,
+  near_hash         hash NOT NULL,
+  near_receipt_hash hash NULL,
+  "from"            address NOT NULL,
+  "to"              address NULL,
+  nonce             u256 NOT NULL,
+  gas_price         u256 NOT NULL,
+  gas_limit         u256 NOT NULL,
+  gas_used          u256 NOT NULL CHECK (gas_used <= gas_limit),
+  value             u256 NOT NULL,
+  input             bytea NULL CHECK (length(input) > 0),
+  v                 u64 NULL,
+  r                 u256 NULL,
+  s                 u256 NULL,
+  status            boolean NOT NULL,
+  output            bytea NULL CHECK (length(output) > 0)
+);
+
+CREATE UNIQUE INDEX transaction_block_index_idx ON transaction (block, index);
+
+CREATE INDEX transaction_block_idx ON transaction USING btree (block);
+
+CREATE INDEX transaction_from_idx ON transaction USING btree ("from");
+
+CREATE INDEX transaction_to_idx ON transaction USING btree ("to");
+DROP TABLE IF EXISTS event CASCADE;
+
+CREATE TABLE event (
+  transaction       bigint NOT NULL REFERENCES transaction ON DELETE CASCADE,
+  index             int NOT NULL CHECK (index >= 0),
+  id                bigserial NOT NULL PRIMARY KEY,
+  data              bytea NULL CHECK (length(data) > 0),
+  topics            hash[] NULL CHECK (array_length(topics, 1) > 0 AND array_length(topics, 1) <= 4)
+);
+
+CREATE UNIQUE INDEX event_transaction_index_idx ON event (transaction, index);
+DROP FUNCTION IF EXISTS eth_blockNumber() RESTRICT;
+
+CREATE FUNCTION eth_blockNumber() RETURNS blockno AS $$
+DECLARE
+  block_id blockno;
+BEGIN
+  SELECT COALESCE(MAX(id), 0) FROM block INTO STRICT block_id;
+  RETURN block_id;
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+DROP FUNCTION IF EXISTS eth_getBlockByHash(hash) RESTRICT;
+
+CREATE FUNCTION eth_getBlockByHash(block_hash hash) RETURNS block_result AS $$
+DECLARE
+  result block_result;
+  block_id blockno;
+BEGIN
+  SELECT id FROM block WHERE hash = block_hash INTO STRICT block_id;
+  SELECT * FROM eth_getBlockByNumber(block_id) INTO STRICT result;
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+DROP FUNCTION IF EXISTS eth_getBlockByNumber(blockno) RESTRICT;
+
+CREATE FUNCTION eth_getBlockByNumber(block_id blockno) RETURNS block_result AS $$
+DECLARE
+  result block_result;
+BEGIN
+  SELECT
+      id,                           -- number
+      hash,                         -- hash
+      parent_hash,                  -- parentHash
+      repeat('\000', 8)::bytea,     -- nonce
+      repeat('\000', 32)::bytea,    -- sha3Uncles
+      repeat('\000', 256)::bytea,   -- logsBloom
+      transactions_root,            -- transactionsRoot
+      state_root,                   -- stateRoot
+      receipts_root,                -- receiptsRoot
+      repeat('\000', 20)::bytea,    -- miner
+      0,                            -- difficulty
+      0,                            -- totalDifficulty
+      ''::bytea,                    -- extraData
+      size,                         -- size
+      gas_limit,                    -- gasLimit
+      gas_used,                     -- gasUsed
+      EXTRACT(EPOCH FROM timestamp) -- timestamp
+    FROM block
+    WHERE id = block_id
+    LIMIT 1
+    INTO STRICT result;
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+DROP FUNCTION IF EXISTS eth_getBlockTransactionCountByHash(hash) RESTRICT;
+
+CREATE FUNCTION eth_getBlockTransactionCountByHash(block_hash hash) RETURNS bigint AS $$
+DECLARE
+  result bigint;
+BEGIN
+  -- FIXME: return NULL for unknown blocks
+  SELECT COUNT(t.id)
+    FROM transaction t
+      LEFT JOIN block b ON t.block = b.id
+    WHERE b.hash = block_hash
+    INTO STRICT result;
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+DROP FUNCTION IF EXISTS eth_getBlockTransactionCountByNumber(blockno) RESTRICT;
+
+CREATE FUNCTION eth_getBlockTransactionCountByNumber(block_id blockno) RETURNS bigint AS $$
+DECLARE
+  result bigint;
+BEGIN
+  -- FIXME: return NULL for unknown blocks
+  SELECT COUNT(id)
+    FROM transaction
+    WHERE block = block_id
+    INTO STRICT result;
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+DROP FUNCTION IF EXISTS eth_getFilterChanges_block(bytea) RESTRICT;
+DROP FUNCTION IF EXISTS eth_getFilterChanges_event(bytea) RESTRICT;
+DROP FUNCTION IF EXISTS eth_getFilterChanges_transaction(bytea) RESTRICT;
+
+CREATE FUNCTION eth_getFilterChanges_block(filter_id bytea) RETURNS SETOF hash AS $$
+DECLARE
+  block_id blockno;
+BEGIN
+  SELECT coalesce(max(id), 0) FROM block INTO STRICT block_id;
+  RETURN QUERY EXECUTE format('
+    SELECT b.hash FROM block b
+      WHERE b.id >= (SELECT coalesce(f.poll_block, f.from_block, 0) FROM filter f WHERE uuid_send(f.id) = %L)
+        AND b.id <= (SELECT least(f.to_block, %L) FROM filter f WHERE uuid_send(f.id) = %L)
+      ORDER BY b.id ASC;
+  ', filter_id, block_id, filter_id);
+  UPDATE filter SET poll_block = block_id + 1 WHERE uuid_send(id) = filter_id;
+  RETURN;
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+
+CREATE FUNCTION eth_getFilterChanges_event(filter_id bytea) RETURNS SETOF filter_result AS $$
+DECLARE
+  block_id blockno;
+BEGIN
+  SELECT coalesce(max(id), 0) FROM block INTO STRICT block_id;
+  RETURN QUERY EXECUTE format(E'
+    SELECT
+        b.id AS "blockNumber",
+        b.hash AS "blockHash",
+        t.index AS "transactionIndex",
+        t.hash AS "transactionHash",
+        e.index AS "logIndex",
+        coalesce(t.to, \'\\x0000000000000000000000000000000000000000\')::address AS "address",
+        e.topics AS "topics",
+        e.data AS "data",
+        false AS "removed"
+      FROM event e
+        LEFT JOIN transaction t ON e.transaction = t.id
+        LEFT JOIN block b ON t.block = b.id
+      WHERE b.id >= (SELECT coalesce(f.poll_block, f.from_block, 0) FROM filter f WHERE uuid_send(f.id) = %L)
+        AND b.id <= (SELECT least(f.to_block, %L) FROM filter f WHERE uuid_send(f.id) = %L)
+      ORDER BY b.id ASC;
+  ', filter_id, block_id, filter_id);
+  UPDATE filter SET poll_block = block_id + 1 WHERE uuid_send(id) = filter_id;
+  RETURN;
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+
+CREATE FUNCTION eth_getFilterChanges_transaction(filter_id bytea) RETURNS SETOF hash AS $$
+BEGIN
+  RETURN; -- no pending transactions
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+DROP FUNCTION IF EXISTS eth_getFilterLogs_block(bytea) RESTRICT;
+DROP FUNCTION IF EXISTS eth_getFilterLogs_event(bytea) RESTRICT;
+DROP FUNCTION IF EXISTS eth_getFilterLogs_transaction(bytea) RESTRICT;
+
+CREATE FUNCTION eth_getFilterLogs_block(filter_id bytea) RETURNS SETOF hash AS $$
+DECLARE
+  block_id blockno;
+BEGIN
+  SELECT coalesce(max(id), 0) FROM block INTO STRICT block_id;
+  RETURN QUERY EXECUTE format('
+    SELECT b.hash FROM block b
+      WHERE b.id >= (SELECT coalesce(f.from_block, 0) FROM filter f WHERE uuid_send(f.id) = %L)
+        AND b.id <= (SELECT least(f.to_block, %L) FROM filter f WHERE uuid_send(f.id) = %L)
+      ORDER BY b.id ASC;
+  ', filter_id, block_id, filter_id);
+  RETURN;
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+
+CREATE FUNCTION eth_getFilterLogs_event(filter_id bytea) RETURNS SETOF filter_result AS $$
+DECLARE
+  block_id blockno;
+BEGIN
+  SELECT coalesce(max(id), 0) FROM block INTO STRICT block_id;
+  RETURN QUERY EXECUTE format(E'
+    SELECT
+        b.id AS "blockNumber",
+        b.hash AS "blockHash",
+        t.index AS "transactionIndex",
+        t.hash AS "transactionHash",
+        e.index AS "logIndex",
+        coalesce(t.to, \'\\x0000000000000000000000000000000000000000\')::address AS "address",
+        e.topics AS "topics",
+        e.data AS "data",
+        false AS "removed"
+      FROM event e
+        LEFT JOIN transaction t ON e.transaction = t.id
+        LEFT JOIN block b ON t.block = b.id
+      WHERE b.id >= (SELECT coalesce(f.from_block, 0) FROM filter f WHERE uuid_send(f.id) = %L)
+        AND b.id <= (SELECT least(f.to_block, %L) FROM filter f WHERE uuid_send(f.id) = %L)
+      ORDER BY b.id ASC;
+  ', filter_id, block_id, filter_id);
+  RETURN;
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+
+CREATE FUNCTION eth_getFilterLogs_transaction(filter_id bytea) RETURNS SETOF hash AS $$
+BEGIN
+  RETURN; -- no pending transactions
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+DROP FUNCTION IF EXISTS eth_getTransactionByBlockHashAndIndex(hash, int) RESTRICT;
+
+CREATE FUNCTION eth_getTransactionByBlockHashAndIndex(block_hash hash, transaction_index int) RETURNS transaction_result AS $$
+DECLARE
+  result transaction_result;
+BEGIN
+  SELECT
+      b.id AS "blockNumber",
+      b.hash AS "blockHash",
+      t.index AS "transactionIndex",
+      t.hash AS "hash",
+      t.from AS "from",
+      t.to AS "to",
+      t.gas_limit AS "gas",
+      t.gas_price AS "gasPrice",
+      t.nonce AS "nonce",
+      t.value AS "value",
+      t.input AS "input",
+      t.v AS "v",
+      t.r AS "r",
+      t.s AS "s"
+    FROM transaction t
+      LEFT JOIN block b ON t.block = b.id
+    WHERE b.hash = block_hash AND t.index = transaction_index
+    LIMIT 1
+    INTO STRICT result;
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+DROP FUNCTION IF EXISTS eth_getTransactionByBlockNumberAndIndex(blockno, int) RESTRICT;
+
+CREATE FUNCTION eth_getTransactionByBlockNumberAndIndex(block_id blockno, transaction_index int) RETURNS transaction_result AS $$
+DECLARE
+  result transaction_result;
+BEGIN
+  SELECT
+      b.id AS "blockNumber",
+      b.hash AS "blockHash",
+      t.index AS "transactionIndex",
+      t.hash AS "hash",
+      t.from AS "from",
+      t.to AS "to",
+      t.gas_limit AS "gas",
+      t.gas_price AS "gasPrice",
+      t.nonce AS "nonce",
+      t.value AS "value",
+      t.input AS "input",
+      t.v AS "v",
+      t.r AS "r",
+      t.s AS "s"
+    FROM transaction t
+      LEFT JOIN block b ON t.block = b.id
+    WHERE b.id = block_id AND t.index = transaction_index
+    LIMIT 1
+    INTO STRICT result;
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+DROP FUNCTION IF EXISTS eth_getTransactionByHash(hash) RESTRICT;
+
+CREATE FUNCTION eth_getTransactionByHash(transaction_hash hash) RETURNS transaction_result AS $$
+DECLARE
+  result transaction_result;
+BEGIN
+  SELECT
+      b.id AS "blockNumber",
+      b.hash AS "blockHash",
+      t.index AS "transactionIndex",
+      t.hash AS "hash",
+      t.from AS "from",
+      t.to AS "to",
+      t.gas_limit AS "gas",
+      t.gas_price AS "gasPrice",
+      t.nonce AS "nonce",
+      t.value AS "value",
+      t.input AS "input",
+      t.v AS "v",
+      t.r AS "r",
+      t.s AS "s"
+    FROM transaction t
+      LEFT JOIN block b ON t.block = b.id
+    WHERE t.hash = transaction_hash
+    LIMIT 1
+    INTO STRICT result;
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+DROP FUNCTION IF EXISTS eth_getTransactionCount(address, blockno) RESTRICT;
+
+CREATE FUNCTION eth_getTransactionCount(address address, block_id blockno) RETURNS bigint AS $$
+DECLARE
+  result bigint;
+BEGIN -- TODO: use nonce column?
+  SELECT COUNT(id) FROM transaction
+    WHERE "from" = address AND block <= block_id
+    INTO STRICT result;
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+DROP FUNCTION IF EXISTS eth_getTransactionReceipt(hash) RESTRICT;
+
+CREATE FUNCTION eth_getTransactionReceipt(transaction_hash hash) RETURNS transaction_receipt AS $$
+DECLARE
+  result transaction_receipt;
+BEGIN
+  SELECT
+      b.id AS "blockNumber",
+      b.hash AS "blockHash",
+      t.index AS "transactionIndex",
+      t.hash AS "transactionHash",
+      t.from AS "from",
+      t.to AS "to",
+      t.gas_used AS "gasUsed",
+      0::u256 AS "cumulativeGasUsed", -- TODO: tally?
+      CASE WHEN t.to IS NULL OR t.to = '\x0000000000000000000000000000000000000000' THEN t.output
+           ELSE NULL
+      END AS "contractAddress",
+      NULL AS "logs",                 -- TODO: fetch event.id[]
+      repeat('\000', 256)::bytea AS "logsBloom",
+      CASE WHEN t.status THEN 1 ELSE 0 END AS "status",
+      t.near_hash AS "nearTransactionHash",
+      t.near_receipt_hash AS "nearReceiptHash"
+    FROM transaction t
+      LEFT JOIN block b ON t.block = b.id
+    WHERE t.hash = transaction_hash
+    LIMIT 1
+    INTO STRICT result;
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+DROP FUNCTION IF EXISTS eth_getUncleByBlockHashAndIndex(hash, int) RESTRICT;
+
+CREATE FUNCTION eth_getUncleByBlockHashAndIndex(block_hash hash, uncle_index int) RETURNS block_result AS $$
+BEGIN
+  RETURN NULL; -- no uncle blocks
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+DROP FUNCTION IF EXISTS eth_getUncleByBlockNumberAndIndex(blockno, int) RESTRICT;
+
+CREATE FUNCTION eth_getUncleByBlockNumberAndIndex(block_id blockno, uncle_index int) RETURNS block_result AS $$
+BEGIN
+  RETURN NULL; -- no uncle blocks
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+DROP FUNCTION IF EXISTS eth_getUncleCountByBlockHash(hash) RESTRICT;
+
+CREATE FUNCTION eth_getUncleCountByBlockHash(block_hash hash) RETURNS bigint AS $$
+BEGIN
+  PERFORM id FROM block WHERE hash = block_hash LIMIT 1;
+  IF FOUND THEN RETURN 0; ELSE RETURN NULL; END IF;
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+DROP FUNCTION IF EXISTS eth_getUncleCountByBlockNumber(blockno) RESTRICT;
+
+CREATE FUNCTION eth_getUncleCountByBlockNumber(block_id blockno) RETURNS bigint AS $$
+BEGIN
+  PERFORM id FROM block WHERE id = block_id LIMIT 1;
+  IF FOUND THEN RETURN 0; ELSE RETURN NULL; END IF;
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+DROP FUNCTION IF EXISTS eth_newBlockFilter(inet) RESTRICT;
+
+CREATE FUNCTION eth_newBlockFilter(client_ip inet) RETURNS bytea AS $$
+DECLARE
+  block_id blockno;
+  filter_uuid uuid;
+BEGIN
+  SELECT max(id) FROM block INTO STRICT block_id;
+  INSERT INTO filter
+      (id, type, created_at, created_by, poll_block)
+    VALUES
+      (gen_random_uuid(), 'block', now(), client_ip, block_id + 1)
+    RETURNING id INTO STRICT filter_uuid;
+  RETURN uuid_send(filter_uuid);
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+DROP FUNCTION IF EXISTS eth_newFilter(inet, blockno, blockno, address[], jsonb) RESTRICT;
+
+CREATE FUNCTION eth_newFilter(client_ip inet, from_block blockno, to_block blockno, addresses address[], topics jsonb) RETURNS bytea AS $$
+DECLARE
+  block_id blockno;
+  filter_uuid uuid;
+BEGIN
+  SELECT max(id) FROM block INTO STRICT block_id;
+  INSERT INTO filter
+      (id, type, created_at, created_by, poll_block, from_block, to_block, addresses, topics)
+    VALUES
+      (gen_random_uuid(), 'event', now(), client_ip, block_id + 1, from_block, to_block, addresses, topics)
+    RETURNING id INTO STRICT filter_uuid;
+  RETURN uuid_send(filter_uuid);
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+DROP FUNCTION IF EXISTS eth_newPendingTransactionFilter() RESTRICT;
+
+CREATE FUNCTION eth_newPendingTransactionFilter() RETURNS bytea AS $$
+BEGIN
+  RETURN repeat('\000', 16)::bytea; -- the empty filter
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
+DROP FUNCTION IF EXISTS eth_uninstallFilter(inet, bigint) RESTRICT;
+
+CREATE FUNCTION eth_uninstallFilter(client_ip inet, filter_id bytea) RETURNS boolean AS $$
+BEGIN
+  DELETE FROM filter
+    WHERE uuid_send(id) = filter_id AND created_by = client_ip;
+  RETURN FOUND;
+END;
+$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
