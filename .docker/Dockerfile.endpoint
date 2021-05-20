@@ -2,7 +2,7 @@ FROM node:15-alpine
 RUN mkdir -p /srv/aurora/relayer
 RUN chown -R node:node /srv/aurora
 WORKDIR /srv/aurora/relayer
-COPY --chown=node:node package*.json .
+COPY --chown=node:node package*.json ./
 USER node
 RUN npm ci --only=production
 COPY --chown=node:node . .
