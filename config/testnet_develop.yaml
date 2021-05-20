@@ -1,0 +1,10 @@
+---
+database: postgres://localhost/testnet_develop
+port: 18546
+network: testnet
+endpoint: http://127.0.0.1:3030
+engine: develop.aurora
+signer: relay.aurora
+blacklist:
+  ipv4:
+  ipv6:

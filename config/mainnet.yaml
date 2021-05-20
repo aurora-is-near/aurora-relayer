@@ -1,0 +1,10 @@
+---
+database: postgres://localhost/aurora
+port: 18545
+network: mainnet
+endpoint: http://127.0.0.1:3030
+engine: aurora
+signer: relay.aurora
+blacklist:
+  ipv4:
+  ipv6:
