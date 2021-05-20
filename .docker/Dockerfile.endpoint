@@ -1,4 +1,4 @@
-FROM node:15
+FROM node:15-alpine
 RUN mkdir -p /srv/aurora/relayer
 RUN chown -R node:node /srv/aurora
 WORKDIR /srv/aurora/relayer
