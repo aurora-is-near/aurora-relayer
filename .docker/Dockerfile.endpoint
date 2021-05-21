@@ -1,4 +1,9 @@
 FROM node:15-alpine
+RUN mkdir -p /srv/aurora
+RUN mkdir -p /srv/aurora/.near-credentials/mainnet
+RUN mkdir -p /srv/aurora/.near-credentials/testnet
+RUN mkdir -p /srv/aurora/.near-credentials/betanet
+RUN ln -s testnet /srv/aurora/.near-credentials/default
 RUN mkdir -p /srv/aurora/relayer
 RUN chown -R node:node /srv/aurora
 WORKDIR /srv/aurora/relayer
