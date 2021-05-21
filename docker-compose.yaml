@@ -15,9 +15,12 @@ services:
     init: true
     depends_on:
       - database
-    ports:
-      - '127.0.0.1:8545:8545'
     environment:
       - NODE_ENV
+    ports:
+      - '127.0.0.1:8545:8545'
+    volumes:
+      - ${NEAR_KEY:-~/.near/validator_key.json}:/tmp/signer.json
+    entrypoint: ["node", "lib/index.js", "--signer", "test.near", "--signer-key", "/tmp/signer.json"]
 volumes:
   database:
