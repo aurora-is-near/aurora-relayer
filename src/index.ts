@@ -18,7 +18,7 @@ declare global {
   }
 }
 
-async function main(argv: string[], env: NodeJS.ProcessEnv): Promise<number> {
+async function main(argv: string[], env: NodeJS.ProcessEnv): Promise<void> {
   program
     .option('-d, --debug', 'enable debug output')
     .option('-v, --verbose', 'enable verbose output')
@@ -73,7 +73,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv): Promise<number> {
       await sql.query('SELECT 1'); // test connectivity
     } catch (error) {
       console.error(error);
-      return 1;
+      process.exit(78); // EX_CONFIG
     }
   }
 
@@ -100,7 +100,6 @@ async function main(argv: string[], env: NodeJS.ProcessEnv): Promise<number> {
       );
     }
   });
-  return 0;
 }
 
-main(process.argv, process.env).then(process.exit);
+main(process.argv, process.env);
