@@ -12,6 +12,7 @@ export interface Config {
   endpoint?: string;
   engine: string;
   signer: string;
+  signerKey?: string;
   blacklist: { ipv4?: string[]; ipv6?: string[] };
   block?: number | string;
 }
@@ -26,6 +27,7 @@ export const localConfig: Config = {
   endpoint: 'http://127.0.0.1:3030',
   engine: 'aurora.test.near',
   signer: 'test.near',
+  signerKey: undefined,
   blacklist: { ipv4: [], ipv6: [] },
 };
 
@@ -57,6 +59,7 @@ export function parseConfig(
         config.engine ||
         network.contractID,
       signer: options.signer || env.NEAR_MASTER_ACCOUNT || config.signer,
+      signerKey: options.signerKey || config.signerKey,
       blacklist: config.blacklist || {},
     },
   ];

@@ -18,7 +18,7 @@ declare global {
   }
 }
 
-async function main(argv: string[], env: NodeJS.ProcessEnv) {
+async function main(argv: string[], env: NodeJS.ProcessEnv): Promise<number> {
   program
     .option('-d, --debug', 'enable debug output')
     .option('-v, --verbose', 'enable verbose output')
@@ -47,6 +47,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
         env.NEAR_MASTER_ACCOUNT || 'test.near'
       }")`
     )
+    .option('--signer-key <path>', `specify path to signer key JSON file`)
     .parse(argv);
 
   const [network, config] = parseConfig(
@@ -66,9 +67,14 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
   logger.info('starting server');
 
   if (config.database) {
-    const sql = new pg.Client(config.database);
-    await sql.connect();
-    await sql.query('SELECT 1'); // test connectivity
+    try {
+      const sql = new pg.Client(config.database);
+      await sql.connect();
+      await sql.query('SELECT 1'); // test connectivity
+    } catch (error) {
+      console.error(error);
+      return 1;
+    }
   }
 
   const engine = await Engine.connect(
@@ -81,6 +87,11 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
     env
   );
 
+  if (config.signerKey) {
+    engine.keyStore.loadKeyFile(config.signerKey);
+    console.error(`Loaded signer key file ${config.signerKey}.`);
+  }
+
   const app = await createApp(config, logger, engine);
   app.listen(config.port, () => {
     if (config.verbose || config.debug) {
@@ -89,6 +100,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
       );
     }
   });
+  return 0;
 }
 
-main(process.argv, process.env);
+main(process.argv, process.env).then(process.exit);

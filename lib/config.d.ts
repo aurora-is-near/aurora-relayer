@@ -9,6 +9,7 @@ export interface Config {
     endpoint?: string;
     engine: string;
     signer: string;
+    signerKey?: string;
     blacklist: {
         ipv4?: string[];
         ipv6?: string[];
