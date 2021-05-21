@@ -1,17 +1,23 @@
 version: '3.8'
 services:
   database:
+    container_name: "${NODE_ENV:-local}_database"
     image: auroraisnear/relayer-database
     restart: unless-stopped
     ports:
       - '127.0.0.1:5432:5432'
+    volumes:
+      - database:/var/lib/postgresql/data
   endpoint:
+    container_name: "${NODE_ENV:-local}_endpoint"
     image: auroraisnear/relayer-endpoint
     restart: unless-stopped
     init: true
     depends_on:
       - database
     ports:
-      - '127.0.0.1:18545:8545'
+      - '127.0.0.1:8545:8545'
     environment:
       - NODE_ENV
+volumes:
+  database:
