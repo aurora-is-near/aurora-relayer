@@ -39,13 +39,20 @@ export class Indexer {
     this.pgClient = new pg.Client(config.database);
   }
 
-  async start(blockID?: number): Promise<void> {
+  async start(blockID?: number, mode?: string): Promise<void> {
     await this.pgClient.connect();
-    const {
-      rows: [{ maxID }],
-    } = await this.pgClient.query('SELECT MAX(id)::int AS "maxID" FROM block');
-    this.blockID =
-      blockID !== undefined ? blockID : maxID !== null ? maxID + 1 : 0;
+    if (blockID !== undefined) {
+      this.blockID = blockID;
+    } else if (mode == 'follow') {
+      this.blockID = (await this.engine.getBlockHeight()).unwrap() as number;
+    } else if (mode == 'resume') {
+      const {
+        rows: [{ maxID }],
+      } = await this.pgClient.query(
+        'SELECT MAX(id)::int AS "maxID" FROM block'
+      );
+      this.blockID = maxID !== null ? maxID + 1 : 0;
+    }
     this.logger.info(`resuming from block #${this.blockID}`);
     for (;;) {
       await this.indexBlock(this.blockID);
@@ -256,7 +263,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
     )
     .option(
       '-B, --block <block>',
-      `specify block height to begin indexing from (default: auto)`
+      `specify block height to begin indexing from (default: current)`
     )
     .parse(argv);
 
@@ -288,7 +295,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
 
   logger.info('starting indexer');
   const indexer = new Indexer(config, network, logger, engine);
-  await indexer.start(blockID);
+  await indexer.start(blockID, 'follow');
 }
 
 main(process.argv, process.env);

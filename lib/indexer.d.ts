@@ -10,7 +10,7 @@ export declare class Indexer {
     protected readonly pgClient: pg.Client;
     protected blockID: number;
     constructor(config: Config, network: NetworkConfig, logger: Logger, engine: Engine);
-    start(blockID?: number): Promise<void>;
+    start(blockID?: number, mode?: string): Promise<void>;
     indexBlock(blockID: BlockHeight): Promise<void>;
     indexTransaction(blockID: BlockHeight, transactionIndex: number, transaction: Transaction): Promise<void>;
     indexEvent(blockID: BlockHeight, transactionIndex: number, transactionID: number, eventIndex: number, event: LogEvent): Promise<void>;
