@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   database:
-    container_name: "${NODE_ENV:-local}_database"
+    container_name: "${NEAR_ENV:-testnet}_database"
     image: auroraisnear/relayer-database
     restart: unless-stopped
     ports:
@@ -9,33 +9,34 @@ services:
     volumes:
       - database:/var/lib/postgresql/data
   indexer:
-    container_name: "${NODE_ENV:-local}_indexer"
+    container_name: "${NEAR_ENV:-testnet}_indexer"
     image: auroraisnear/relayer-endpoint
     restart: unless-stopped
     init: true
     depends_on:
       - database
     environment:
-      - NODE_ENV
+      - NEAR_ENV=${NEAR_ENV:-testnet}
+      - NODE_ENV=${NEAR_ENV:-testnet}
     volumes:
       - ./config:/srv/aurora/relayer/config
     extra_hosts:
       - host.docker.internal:host-gateway # See: https://stackoverflow.com/a/43541732
     entrypoint: ["node", "lib/indexer.js"]
   endpoint:
-    container_name: "${NODE_ENV:-local}_endpoint"
+    container_name: "${NEAR_ENV:-testnet}_endpoint"
     image: auroraisnear/relayer-endpoint
     restart: unless-stopped
     init: true
     depends_on:
       - database
     environment:
-      - NODE_ENV
+      - NEAR_ENV=${NEAR_ENV:-testnet}
+      - NODE_ENV=${NEAR_ENV:-testnet}
     ports:
       - '127.0.0.1:8545:8545'
     volumes:
       - ./config:/srv/aurora/relayer/config
-      - ${NEAR_KEY:-~/.near/validator_key.json}:/tmp/signer.json
-    entrypoint: ["node", "lib/index.js", "--signer", "test.near", "--signer-key", "/tmp/signer.json"]
+    entrypoint: ["node", "lib/index.js"]
 volumes:
   database:

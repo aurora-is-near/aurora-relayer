@@ -1,10 +1,11 @@
 ---
-database: postgres://aurora:aurora@database/aurora
 port: 8545
-network: local
-endpoint: http://127.0.0.1:3030
-engine: aurora.test.near
-signer: test.near
+database: postgres://aurora:aurora@database/aurora
+network:
+endpoint:
+engine:
+signer:
+signer_key:
 blacklist:
   ipv4:
   ipv6:

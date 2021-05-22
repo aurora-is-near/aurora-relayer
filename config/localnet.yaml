@@ -1,0 +1,8 @@
+---
+port: 8545
+database: postgres://aurora:aurora@database/aurora
+network: local
+endpoint: http://host.docker.internal:3030
+engine: aurora.test.near
+signer: test.near
+signer_key: ~/.near/validator_key.json
