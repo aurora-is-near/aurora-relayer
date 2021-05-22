@@ -284,6 +284,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
   }
 
   const logger = pino();
+  logger.info(`connecting to ${config.endpoint}...`);
   const engine = await Engine.connect(
     {
       network: network.id,
