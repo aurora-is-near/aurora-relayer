@@ -19,6 +19,8 @@ services:
       - NODE_ENV
     volumes:
       - ./config:/srv/aurora/relayer/config
+    extra_hosts:
+      - host.docker.internal:host-gateway # See: https://stackoverflow.com/a/43541732
     entrypoint: ["node", "lib/indexer.js"]
   endpoint:
     container_name: "${NODE_ENV:-local}_endpoint"
