@@ -62,6 +62,26 @@ http post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_blockNumber params:=
 
 ## Configuration
 
+To customize configuration settings, create a `config/local.yaml` file.
+
+Configuration settings are loaded firstly from `config/default.yaml`, then from
+`config/$NEAR_ENV.yaml`, and lastly from `config/local.yaml`. Settings in
+files loaded later override the same settings from files loaded earlier.
+
+### Configuring a signing key
+
+To be able call `eth_sendRawTransaction`, you need to have a NEAR account
+and signing key on the network you are relaying to, and said NEAR account must
+have a sufficient Ⓝ balance to be able to send transactions.
+
+To configure the signing account and private key, place the JSON key file
+into the `config/` directory and edit `config/local.yaml` as follows:
+
+```yaml
+signer: you.testnet
+signer_key: config/you.testnet.json
+```
+
 ## Status
 
 Method | Status | Notes
