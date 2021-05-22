@@ -1,4 +1,4 @@
-# Web3 Proxy Server for Aurora Engine
+# Aurora Relayer
 
 [![Project license](https://img.shields.io/badge/License-Public%20Domain-blue.svg)](https://creativecommons.org/publicdomain/zero/1.0/)
 [![Discord](https://img.shields.io/discord/490367152054992913?label=Discord)](https://discord.gg/jNjHYUF8vw)
@@ -9,37 +9,50 @@ Implements a JSON-RPC server compatible with Ethereum's
 [Aurora Engine](https://github.com/aurora-is-near/aurora-engine)
 instances deployed on the NEAR Protocol.
 
+## Prerequisites
+
+- [Docker] and [Docker Compose]
+
+[Docker]: https://docs.docker.com/engine/install/
+[Docker Compose]: https://docs.docker.com/compose/install/
+
 ## Usage
 
-### Prerequisites
+### Usage for TestNet
+
+To run the relayer locally, execute:
 
 ```bash
-npm install
+NEAR_ENV=testnet docker-compose up
 ```
+
+You can customize the configuration by copying [`config/testnet.yaml`] to
+`config/local.yaml` and editing that file. (The configuration settings in
+`config/local.yaml` override the defaults from `config/testnet.yaml`.)
+
+[`config/testnet.yaml`]: https://github.com/aurora-is-near/aurora-relayer/blob/master/config/testnet.yaml
 
 ### Usage for LocalNet
 
-To run the proxy server, first start [nearcore] and then execute:
+To run the relayer locally, first start [nearcore] and then execute:
 
 ```bash
-npm start
+NEAR_ENV=localnet docker-compose up
 ```
+
+You can customize the configuration by copying [`config/localnet.yaml`] to
+`config/local.yaml` and editing that file. (The configuration settings in
+`config/local.yaml` override the defaults from `config/localnet.yaml`.)
 
 [nearcore]: https://docs.near.org/docs/community/contribute/contribute-nearcore
-
-### Usage for BetaNet
-
-To run the proxy server, replace `you.betanet` with your BetaNet account:
-
-```bash
-NEAR_ENV=betanet NEAR_MASTER_ACCOUNT=you.betanet npm start
-```
+[`config/localnet.yaml`]: https://github.com/aurora-is-near/aurora-relayer/blob/master/config/localnet.yaml
 
 ### Endpoint URL
 
-In your MetaMask, Truffle, etc: change the endpoint URL to the URL of this server.
+The relayer's HTTP endpoint is served up on the TCP port 8545 by default.
 
-For example, using [HTTPie]:
+For example, you can send a Web3 JSON-RPC request to the endpoint using
+[HTTPie] as follows:
 
 ```bash
 http post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_blockNumber params:='[]'
