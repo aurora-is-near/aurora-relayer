@@ -52,7 +52,7 @@ You can customize the configuration by copying [`config/localnet.yaml`] to
 The relayer's HTTP endpoint is served up on the TCP port 8545 by default.
 
 For example, you can send a Web3 JSON-RPC request to the endpoint using
-[HTTPie] as follows:
+[HTTPie], as follows:
 
 ```bash
 http post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_blockNumber params:='[]'
@@ -70,9 +70,9 @@ files loaded later override the same settings from files loaded earlier.
 
 ### Configuring a signing key
 
-To be able call `eth_sendRawTransaction`, you need to have a NEAR account
-and signing key on the network you are relaying to, and said NEAR account must
-have a sufficient Ⓝ balance to be able to send transactions.
+To be able to call `eth_sendRawTransaction`, you must have a NEAR account and
+signing key on the network you are relaying to, and said NEAR account must have
+a sufficient Ⓝ balance to be able to send transactions.
 
 To configure the signing account and private key, place the JSON key file
 into the `config/` directory and edit `config/local.yaml` as follows:
@@ -81,6 +81,11 @@ into the `config/` directory and edit `config/local.yaml` as follows:
 signer: you.testnet
 signer_key: config/you.testnet.json
 ```
+
+If you're using the [NEAR CLI], you will find your signing keys stored as JSON
+key files under your `$HOME/.near-credentials/` directory.
+
+[NEAR CLI]: https://docs.near.org/docs/tools/near-cli
 
 ## Status
 
