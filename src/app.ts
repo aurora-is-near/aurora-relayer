@@ -35,6 +35,12 @@ export async function createApp(
   app.use(middleware.logger(logger));
   app.use(cors()); // Access-Control-Allow-Origin: *
   app.use(helmet.noSniff()); // X-Content-Type-Options: nosniff
+  app.get('/health', (req, res) => {
+    res.send('OK');
+  });
+  app.get('/metrics', (req, res) => {
+    res.send(''); // TODO
+  });
   app.use(createServer(config, logger, engine));
   app.use(middleware.handleErrors());
 
