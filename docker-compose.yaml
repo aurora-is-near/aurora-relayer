@@ -8,6 +8,18 @@ services:
       - '127.0.0.1:5432:5432'
     volumes:
       - database:/var/lib/postgresql/data
+  indexer:
+    container_name: "${NODE_ENV:-local}_indexer"
+    image: auroraisnear/relayer-endpoint
+    restart: unless-stopped
+    init: true
+    depends_on:
+      - database
+    environment:
+      - NODE_ENV
+    volumes:
+      - ./config:/srv/aurora/relayer/config
+    entrypoint: ["node", "lib/indexer.js"]
   endpoint:
     container_name: "${NODE_ENV:-local}_endpoint"
     image: auroraisnear/relayer-endpoint
@@ -20,6 +32,7 @@ services:
     ports:
       - '127.0.0.1:8545:8545'
     volumes:
+      - ./config:/srv/aurora/relayer/config
       - ${NEAR_KEY:-~/.near/validator_key.json}:/tmp/signer.json
     entrypoint: ["node", "lib/index.js", "--signer", "test.near", "--signer-key", "/tmp/signer.json"]
 volumes:
