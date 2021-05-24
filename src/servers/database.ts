@@ -97,7 +97,9 @@ export class DatabaseServer extends SkeletonServer {
     blockNumber?: api.Quantity | api.Tag
   ): Promise<api.Data> {
     const blockNumber_ = parseBlockSpec(blockNumber);
-    const from = parseAddress(transaction.from);
+    const from = transaction.from
+      ? parseAddress(transaction.from)
+      : Address.zero();
     const to = parseAddress(transaction.to);
     const value = transaction.value ? hexToInt(transaction.value) : 0;
     const data = transaction.data
