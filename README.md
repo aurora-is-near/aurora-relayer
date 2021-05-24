@@ -79,7 +79,7 @@ into the `config/` directory and edit `config/local.yaml` as follows:
 
 ```yaml
 signer: you.testnet
-signer_key: config/you.testnet.json
+signerKey: config/you.testnet.json
 ```
 
 If you're using the [NEAR CLI], you will find your signing keys stored as JSON

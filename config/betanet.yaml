@@ -5,4 +5,4 @@ network: betanet
 endpoint: https://rpc.betanet.near.org
 engine: aurora
 signer: relay.aurora
-signer_key:
+signerKey:
