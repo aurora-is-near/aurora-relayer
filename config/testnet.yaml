@@ -5,4 +5,4 @@ network: testnet
 endpoint: https://archival-rpc.testnet.near.org
 engine: aurora
 signer: relay.aurora
-signer_key:
+signerKey:

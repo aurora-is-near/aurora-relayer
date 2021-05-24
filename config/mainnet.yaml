@@ -5,4 +5,4 @@ network: mainnet
 endpoint: https://archival-rpc.mainnet.near.org
 engine: aurora
 signer: relay.aurora
-signer_key:
+signerKey:
