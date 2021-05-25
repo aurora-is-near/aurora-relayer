@@ -2,7 +2,7 @@
 
 import { SkeletonServer } from './skeleton.js';
 
-import * as api from '../api.js';
+import * as web3 from '../web3.js';
 import {
   InvalidArguments,
   RevertError,
@@ -88,14 +88,14 @@ export class DatabaseServer extends SkeletonServer {
     );
   }
 
-  async eth_blockNumber(): Promise<api.Quantity> {
+  async eth_blockNumber(): Promise<web3.Quantity> {
     return intToHex(await this._fetchCurrentBlockID());
   }
 
   async eth_call(
-    transaction: api.TransactionForCall,
-    blockNumber?: api.Quantity | api.Tag
-  ): Promise<api.Data> {
+    transaction: web3.TransactionForCall,
+    blockNumber?: web3.Quantity | web3.Tag
+  ): Promise<web3.Data> {
     const blockNumber_ = parseBlockSpec(blockNumber);
     const from = transaction.from
       ? parseAddress(transaction.from)
@@ -117,29 +117,29 @@ export class DatabaseServer extends SkeletonServer {
     });
   }
 
-  async eth_chainId(): Promise<api.Quantity> {
+  async eth_chainId(): Promise<web3.Quantity> {
     // EIP-695
     const chainID = (await this.engine.getChainID()).unwrap();
     return intToHex(chainID);
   }
 
-  async eth_coinbase(): Promise<api.Data> {
+  async eth_coinbase(): Promise<web3.Data> {
     return (await this.engine.getCoinbase()).unwrap().toString();
   }
 
   async eth_getBalance(
-    address: api.Data,
-    blockNumber?: api.Quantity | api.Tag
-  ): Promise<api.Quantity> {
+    address: web3.Data,
+    blockNumber?: web3.Quantity | web3.Tag
+  ): Promise<web3.Quantity> {
     const address_ = parseAddress(address);
     const balance = (await this.engine.getBalance(address_)).unwrap();
     return intToHex(balance);
   }
 
   async eth_getBlockByHash(
-    blockHash: api.Data,
+    blockHash: web3.Data,
     fullObject?: boolean
-  ): Promise<api.BlockResult | null> {
+  ): Promise<web3.BlockResult | null> {
     if (!blockHash.startsWith('0x')) throw new InvalidArguments();
     const blockHash_ = hexToBytes(blockHash);
     try {
@@ -164,9 +164,9 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getBlockByNumber(
-    blockNumber: api.Quantity | api.Tag,
+    blockNumber: web3.Quantity | web3.Tag,
     fullObject?: boolean
-  ): Promise<api.BlockResult | null> {
+  ): Promise<web3.BlockResult | null> {
     const blockNumber_ =
       parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID());
     try {
@@ -191,8 +191,8 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getBlockTransactionCountByHash(
-    blockHash: api.Data
-  ): Promise<api.Quantity | null> {
+    blockHash: web3.Data
+  ): Promise<web3.Quantity | null> {
     const blockHash_ = blockHash.startsWith('0x')
       ? hexToBytes(blockHash)
       : blockHash;
@@ -206,8 +206,8 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getBlockTransactionCountByNumber(
-    blockNumber: api.Quantity | api.Tag
-  ): Promise<api.Quantity | null> {
+    blockNumber: web3.Quantity | web3.Tag
+  ): Promise<web3.Quantity | null> {
     const blockNumber_ =
       parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID());
     const {
@@ -220,9 +220,9 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getCode(
-    address: api.Data,
-    blockNumber: api.Quantity | api.Tag
-  ): Promise<api.Data> {
+    address: web3.Data,
+    blockNumber: web3.Quantity | web3.Tag
+  ): Promise<web3.Data> {
     const blockNumber_ = parseBlockSpec(blockNumber);
     const address_ = parseAddress(address);
     const code = (
@@ -233,7 +233,9 @@ export class DatabaseServer extends SkeletonServer {
     return bytesToHex(code);
   }
 
-  async eth_getFilterChanges(filterID: api.Quantity): Promise<api.LogObject[]> {
+  async eth_getFilterChanges(
+    filterID: web3.Quantity
+  ): Promise<web3.LogObject[]> {
     const filterID_ = parseFilterID(filterID);
     if (filterID_.every((b) => b === 0)) {
       return [];
@@ -275,7 +277,7 @@ export class DatabaseServer extends SkeletonServer {
     }
   }
 
-  async eth_getFilterLogs(filterID: api.Quantity): Promise<api.LogObject[]> {
+  async eth_getFilterLogs(filterID: web3.Quantity): Promise<web3.LogObject[]> {
     const filterID_ = parseFilterID(filterID);
     if (filterID_.every((b) => b === 0)) {
       return [];
@@ -317,7 +319,7 @@ export class DatabaseServer extends SkeletonServer {
     }
   }
 
-  async eth_getLogs(filter: api.FilterOptions): Promise<api.LogObject[]> {
+  async eth_getLogs(filter: web3.FilterOptions): Promise<web3.LogObject[]> {
     const where = [];
     if (filter.blockHash !== undefined && filter.blockHash !== null) {
       // EIP-234
@@ -382,19 +384,19 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getStorageAt(
-    address: api.Data,
-    key: api.Quantity,
-    blockNumber: api.Quantity | api.Tag
-  ): Promise<api.Data> {
+    address: web3.Data,
+    key: web3.Quantity,
+    blockNumber: web3.Quantity | web3.Tag
+  ): Promise<web3.Data> {
     const address_ = parseAddress(address);
     const result = (await this.engine.getStorageAt(address_, key)).unwrap();
     return formatU256(result);
   }
 
   async eth_getTransactionByBlockHashAndIndex(
-    blockHash: api.Data,
-    transactionIndex: api.Quantity
-  ): Promise<api.TransactionResult | null> {
+    blockHash: web3.Data,
+    transactionIndex: web3.Quantity
+  ): Promise<web3.TransactionResult | null> {
     const [blockHash_, transactionIndex_] = [
       hexToBytes(blockHash),
       parseInt(transactionIndex),
@@ -416,9 +418,9 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getTransactionByBlockNumberAndIndex(
-    blockNumber: api.Quantity | api.Tag,
-    transactionIndex: api.Quantity
-  ): Promise<api.TransactionResult | null> {
+    blockNumber: web3.Quantity | web3.Tag,
+    transactionIndex: web3.Quantity
+  ): Promise<web3.TransactionResult | null> {
     const blockNumber_ =
       parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID());
     const transactionIndex_ = parseInt(transactionIndex);
@@ -439,8 +441,8 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getTransactionByHash(
-    transactionHash: api.Data
-  ): Promise<api.TransactionResult | null> {
+    transactionHash: web3.Data
+  ): Promise<web3.TransactionResult | null> {
     const transactionHash_ = hexToBytes(transactionHash);
     try {
       const {
@@ -458,9 +460,9 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getTransactionCount(
-    address: api.Data,
-    blockNumber: api.Quantity | api.Tag
-  ): Promise<api.Quantity> {
+    address: web3.Data,
+    blockNumber: web3.Quantity | web3.Tag
+  ): Promise<web3.Quantity> {
     const blockNumber_ = parseBlockSpec(blockNumber);
     const address_ = parseAddress(address);
     const nonce = (
@@ -473,7 +475,7 @@ export class DatabaseServer extends SkeletonServer {
 
   async eth_getTransactionReceipt(
     transactionHash: string
-  ): Promise<api.TransactionReceipt | null> {
+  ): Promise<web3.TransactionReceipt | null> {
     const transactionHash_ = hexToBytes(transactionHash);
     try {
       const {
@@ -494,8 +496,8 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getUncleCountByBlockHash(
-    blockHash: api.Data
-  ): Promise<api.Quantity | null> {
+    blockHash: web3.Data
+  ): Promise<web3.Quantity | null> {
     const blockHash_ = blockHash.startsWith('0x')
       ? hexToBytes(blockHash)
       : blockHash;
@@ -508,8 +510,8 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getUncleCountByBlockNumber(
-    blockNumber: api.Quantity | api.Tag
-  ): Promise<api.Quantity | null> {
+    blockNumber: web3.Quantity | web3.Tag
+  ): Promise<web3.Quantity | null> {
     const blockNumber_ =
       parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID());
     const {
@@ -521,7 +523,7 @@ export class DatabaseServer extends SkeletonServer {
     return result !== null ? intToHex(result) : null;
   }
 
-  async eth_newBlockFilter(): Promise<api.Quantity> {
+  async eth_newBlockFilter(): Promise<web3.Quantity> {
     const {
       rows: [{ id }],
     } = await this._query('SELECT eth_newBlockFilter($1::inet) AS id', [
@@ -530,7 +532,7 @@ export class DatabaseServer extends SkeletonServer {
     return intToHex(id);
   }
 
-  async eth_newFilter(filter: api.FilterOptions): Promise<api.Quantity> {
+  async eth_newFilter(filter: web3.FilterOptions): Promise<web3.Quantity> {
     const fromBlock = parseBlockSpec(filter.fromBlock);
     const toBlock = parseBlockSpec(filter.toBlock);
 
@@ -565,14 +567,14 @@ export class DatabaseServer extends SkeletonServer {
     return intToHex(id);
   }
 
-  async eth_newPendingTransactionFilter(): Promise<api.Quantity> {
+  async eth_newPendingTransactionFilter(): Promise<web3.Quantity> {
     const {
       rows: [{ id }],
     } = await this._query('SELECT eth_newPendingTransactionFilter() AS id');
     return bytesToHex(id);
   }
 
-  async eth_sendRawTransaction(transaction: api.Data): Promise<api.Data> {
+  async eth_sendRawTransaction(transaction: web3.Data): Promise<web3.Data> {
     const transactionBytes = Buffer.from(hexToBytes(transaction));
     const transactionHash = keccak256(transactionBytes);
     return (await this.engine.submit(transactionBytes)).match({
@@ -591,7 +593,7 @@ export class DatabaseServer extends SkeletonServer {
     });
   }
 
-  async eth_uninstallFilter(filterID: api.Quantity): Promise<boolean> {
+  async eth_uninstallFilter(filterID: web3.Quantity): Promise<boolean> {
     const filterID_ = parseFilterID(filterID);
     if (filterID_.every((b) => b === 0)) {
       return true;
@@ -684,19 +686,19 @@ export class DatabaseServer extends SkeletonServer {
   }
 }
 
-function parseAddress(input?: api.Data): Address {
+function parseAddress(input?: web3.Data): Address {
   if (!input) throw new InvalidArguments();
   return Address.parse(input).unwrapOrElse((_) => {
     throw new InvalidArguments();
   });
 }
 
-function parseAddresses(inputs: api.Data | api.Data[]): Address[] {
+function parseAddresses(inputs: web3.Data | web3.Data[]): Address[] {
   return (Array.isArray(inputs) ? inputs : [inputs]).map(parseAddress);
 }
 
 function parseBlockSpec(
-  blockSpec?: api.Quantity | api.Tag | null
+  blockSpec?: web3.Quantity | web3.Tag | null
 ): BlockID | null {
   switch (blockSpec) {
     case undefined:
@@ -719,7 +721,7 @@ function parseBlockSpec(
   }
 }
 
-function parseFilterID(input: api.Quantity): Buffer {
+function parseFilterID(input: web3.Quantity): Buffer {
   if (input === '0x0') {
     return Buffer.alloc(16);
   }
