@@ -297,7 +297,7 @@ export abstract class SkeletonServer implements api.Service {
   async eth_sendTransaction(
     _transaction: api.TransactionForSend
   ): Promise<api.Data> {
-    unimplemented('eth_sendTransaction');
+    unsupported('eth_sendTransaction');
     return '0x';
   }
 
