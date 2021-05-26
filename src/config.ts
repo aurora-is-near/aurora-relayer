@@ -37,7 +37,13 @@ export function parseConfig(
   env: ConnectEnv
 ): [NetworkConfig, Config] {
   const networkID = options.network || env.NEAR_ENV || config.network;
-  const network = NETWORKS.get(networkID)!; // TODO: error handling
+  if (!networkID) {
+    throw new Error(`Missing network ID. Use: --network <network>`);
+  }
+  const network = NETWORKS.get(networkID);
+  if (!network) {
+    throw new Error(`Unknown network ID: '${networkID}'`);
+  }
   const debug = options.debug || config.debug;
   return [
     network,

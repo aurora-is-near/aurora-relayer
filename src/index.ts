@@ -72,7 +72,10 @@ async function main(argv: string[], env: NodeJS.ProcessEnv): Promise<void> {
       await sql.connect();
       await sql.query('SELECT 1'); // test connectivity
     } catch (error) {
-      console.error(error);
+      console.error(
+        `aurora-relayer: Invalid database configuration: ${error.message}`
+      );
+      if (config.debug) console.error(error);
       process.exit(78); // EX_CONFIG
     }
   }
@@ -102,4 +105,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv): Promise<void> {
   });
 }
 
-main(process.argv, process.env);
+main(process.argv, process.env).catch((error: Error) => {
+  console.error(`aurora-relayer: ${error.message}`);
+  process.exit(78); // EX_CONFIG
+});
