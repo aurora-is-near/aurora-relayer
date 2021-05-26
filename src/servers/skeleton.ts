@@ -92,7 +92,7 @@ export abstract class SkeletonServer implements web3.Service {
     _transaction: web3.TransactionForCall,
     _blockNumber?: web3.Quantity | web3.Tag
   ): Promise<web3.Quantity> {
-    return intToHex(0);
+    return intToHex(300_000);
   }
 
   async eth_gasPrice(): Promise<web3.Quantity> {
