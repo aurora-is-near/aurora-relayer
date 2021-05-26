@@ -69,7 +69,7 @@ class Method extends jayson.Method {
   execute(
     server: jayson.Server,
     requestParams: jayson.RequestParamsLike,
-    _request: any, // context
+    request: any, // context
     callback: jayson.JSONRPCCallbackType
   ): any {
     const args = (requestParams || []) as any[];
@@ -79,8 +79,13 @@ class Method extends jayson.Method {
     );
     result
       .then((value: any) => (callback as any)(undefined, value))
-      .catch((error: any) => {
-        const timestamp = Math.floor(Date.now() / 1_000);
+      .catch((error: Error) => {
+        const metadata = {
+          host: (request && request.headers.host) || undefined,
+          'cf-ray': (request && request.headers['cf-ray']) || undefined,
+          'cf-request-id':
+            (request && request.headers['cf-request-id']) || undefined,
+        };
         if (error instanceof ExpectedError) {
           return (callback as any)(
             server.error(
@@ -88,7 +93,7 @@ class Method extends jayson.Method {
               error.message,
               error.data
                 ? ((bytesToHex(error.data) as unknown) as undefined)
-                : { timestamp }
+                : metadata
             )
           );
         }
@@ -102,7 +107,7 @@ class Method extends jayson.Method {
           server.error(
             -32603,
             'Internal error, please report a bug at <https://github.com/aurora-is-near/aurora-relayer/issues>',
-            { timestamp } // TODO: req.id
+            metadata
           )
         );
       });
