@@ -12,7 +12,6 @@ import bodyParser from 'body-parser';
 import connect from 'connect';
 import cors from 'cors';
 import express from 'express';
-import helmet from 'helmet';
 import jayson from 'jayson';
 //import { exit } from 'process';
 import { Logger } from 'pino';
@@ -34,7 +33,6 @@ export async function createApp(
   app.use(bodyParser.json({ type: 'application/json' }));
   app.use(middleware.logger(logger));
   app.use(cors()); // Access-Control-Allow-Origin: *
-  app.use(helmet.noSniff()); // X-Content-Type-Options: nosniff
   app.get('/health', (req, res) => {
     res.send('OK');
   });
