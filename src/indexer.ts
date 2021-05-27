@@ -301,6 +301,9 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
 }
 
 main(process.argv, process.env).catch((error: Error) => {
-  logger.error(error.message);
+  const errorMessage = error.message.startsWith('<')
+    ? error.name
+    : error.message;
+  logger.error(errorMessage);
   process.exit(70); // EX_SOFTWARE
 });
