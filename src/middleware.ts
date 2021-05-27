@@ -14,7 +14,8 @@ import { Logger } from 'pino';
 
 export function setRequestID() {
   return (req: any, res: any, next: any): void => {
-    const id = req.headers['x-request-id'] || nanoid();
+    const id =
+      req.headers['x-request-id'] || req.headers['cf-request-id'] || nanoid();
     req['id'] = id;
     res.set('X-Request-ID', id);
     next();
