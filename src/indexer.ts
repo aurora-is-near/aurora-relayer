@@ -26,6 +26,8 @@ const sqlConvert = (sql as any).convert;
   return sqlConvert(val);
 };
 
+const logger = pino();
+
 export class Indexer {
   protected readonly pgClient: pg.Client;
   protected blockID = 0;
@@ -283,7 +285,6 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
     console.error('Configuration:', config);
   }
 
-  const logger = pino();
   logger.info(`connecting to ${config.endpoint}...`);
   const engine = await Engine.connect(
     {
@@ -299,4 +300,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
   await indexer.start(blockID, 'follow');
 }
 
-main(process.argv, process.env);
+main(process.argv, process.env).catch((error: Error) => {
+  logger.error(error.message);
+  process.exit(70); // EX_SOFTWARE
+});
