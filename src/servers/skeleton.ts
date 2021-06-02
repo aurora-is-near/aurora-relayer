@@ -92,7 +92,8 @@ export abstract class SkeletonServer implements web3.Service {
     _transaction: web3.TransactionForCall,
     _blockNumber?: web3.Quantity | web3.Tag
   ): Promise<web3.Quantity> {
-    return intToHex(300_000);
+    // See: https://www.trufflesuite.com/docs/truffle/reference/configuration
+    return intToHex(6_721_975); // 0x6691b7
   }
 
   async eth_gasPrice(): Promise<web3.Quantity> {
