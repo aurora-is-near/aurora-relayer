@@ -585,10 +585,16 @@ export class DatabaseServer extends SkeletonServer {
         return bytesToHex(transactionHash);
       },
       err: (code) => {
-        if (!code.startsWith('ERR_')) {
-          throw new UnexpectedError(code);
+        switch (code) {
+          case 'ERR_INTRINSIC_GAS':
+            throw new TransactionError('intrinsic gas too low');
+          default: {
+            if (!code.startsWith('ERR_')) {
+              throw new UnexpectedError(code);
+            }
+            throw new TransactionError(code);
+          }
         }
-        throw new TransactionError(code);
       },
     });
   }
