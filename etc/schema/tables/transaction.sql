@@ -12,7 +12,7 @@ CREATE TABLE transaction (
   nonce             u256 NOT NULL,
   gas_price         u256 NOT NULL,
   gas_limit         u256 NOT NULL,
-  gas_used          u256 NOT NULL CHECK (gas_used <= gas_limit),
+  gas_used          u256 NOT NULL, -- FIXME: CHECK (gas_used <= gas_limit),
   value             u256 NOT NULL,
   input             bytea NULL CHECK (length(input) > 0),
   v                 u64 NULL,
