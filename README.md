@@ -18,7 +18,7 @@ instances deployed on the NEAR Protocol.
 
 ## Usage
 
-### Usage for TestNet
+### Usage for Testnet
 
 To run the relayer locally, execute:
 
