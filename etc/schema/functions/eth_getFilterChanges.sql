@@ -32,7 +32,7 @@ BEGIN
         e.index AS "logIndex",
         coalesce(t.to, \'\\x0000000000000000000000000000000000000000\')::address AS "address",
         e.topics AS "topics",
-        e.data AS "data",
+        coalesce(e.data, repeat(\'\\000\', 32)::bytea) AS "data",
         false AS "removed"
       FROM event e
         LEFT JOIN transaction t ON e.transaction = t.id
