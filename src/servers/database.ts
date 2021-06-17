@@ -358,7 +358,7 @@ export class DatabaseServer extends SkeletonServer {
         'e.index AS "logIndex"',
         't.to AS "address"',
         'e.topics AS "topics"',
-        'e.data AS "data"',
+        'coalesce(e.data, repeat(\'\\000\', 32)::bytea) AS "data"',
         '0::boolean AS "removed"'
       )
       .from('event e')
@@ -630,7 +630,7 @@ export class DatabaseServer extends SkeletonServer {
           e.index AS "logIndex",
           COALESCE(t.to, '\\x0000000000000000000000000000000000000000')::address AS "address",
           ARRAY_TO_STRING(e.topics, ';') AS "topics",
-          e.data AS "data",
+          coalesce(e.data, repeat('\\000', 32)::bytea) AS "data",
           false AS "removed"
         FROM event e
           LEFT JOIN transaction t ON e.transaction = t.id
