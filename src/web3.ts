@@ -167,4 +167,8 @@ export interface Service {
   eth_submitWork(nonce: Data, powHash: Data, mixDigest: Data): Promise<boolean>;
   eth_syncing(): Promise<SyncStatus | false>;
   eth_uninstallFilter(filterID: Quantity): Promise<boolean>;
+  parity_pendingTransactions(
+    limit?: number | null,
+    filter?: Record<string, any>
+  ): Promise<any[]>;
 }

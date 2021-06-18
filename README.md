@@ -158,6 +158,7 @@ Method | Status | Notes
 [`shh_post`] | ❌ | Discontinued
 [`shh_uninstallFilter`] | ❌ | Discontinued
 [`shh_version`] | ❌ | Discontinued
+[`parity_pendingTransactions`] | ✅ | Parity extension
 
 **Legend**: ❌ = not supported. 🚧 = work in progress. ✅ = supported.
 
@@ -228,3 +229,4 @@ Method | Status | Notes
 [`shh_post`]: https://eth.wiki/json-rpc/API#shh_post
 [`shh_uninstallFilter`]: https://eth.wiki/json-rpc/API#shh_uninstallFilter
 [`shh_version`]: https://eth.wiki/json-rpc/API#shh_version
+[`parity_pendingTransactions`]: https://openethereum.github.io/JSONRPC-parity-module#parity_pendingtransactions

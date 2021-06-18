@@ -389,3 +389,10 @@ eth_uninstallFilter:
   implementations:
     - etc/schema/functions/eth_uninstallFilter.sql
     - src/servers/ephemeral.ts
+
+parity_pendingTransactions:
+  status: ok
+  comment: Parity extension
+  link: https://openethereum.github.io/JSONRPC-parity-module#parity_pendingtransactions
+  implementations:
+    - src/servers/skeleton.ts

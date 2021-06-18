@@ -348,4 +348,12 @@ export abstract class SkeletonServer implements web3.Service {
     unimplemented('eth_uninstallFilter');
     return false;
   }
+
+  // @see {@link https://openethereum.github.io/JSONRPC-parity-module#parity_pendingtransactions}
+  async parity_pendingTransactions(
+    _limit?: number | null,
+    _filter?: Record<string, any>
+  ): Promise<any[]> {
+    return [];
+  }
 }
