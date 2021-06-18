@@ -62,5 +62,7 @@ export declare abstract class SkeletonServer implements web3.Service {
     eth_syncing(): Promise<false>;
     eth_uninstallFilter(_filterID: web3.Quantity): Promise<boolean>;
     txpool_content(): Promise<Record<string, any>>;
+    txpool_inspect(): Promise<Record<string, any>>;
+    txpool_status(): Promise<Record<string, number>>;
     parity_pendingTransactions(_limit?: number | null, _filter?: Record<string, any>): Promise<any[]>;
 }

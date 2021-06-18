@@ -397,6 +397,20 @@ txpool_content:
   implementations:
     - src/servers/skeleton.ts
 
+txpool_inspect:
+  status: ok
+  comment: Geth extension
+  link: https://geth.ethereum.org/docs/rpc/ns-txpool#txpool_inspect
+  implementations:
+    - src/servers/skeleton.ts
+
+txpool_status:
+  status: ok
+  comment: Geth extension
+  link: https://geth.ethereum.org/docs/rpc/ns-txpool#txpool_status
+  implementations:
+    - src/servers/skeleton.ts
+
 parity_pendingTransactions:
   status: ok
   comment: Parity extension

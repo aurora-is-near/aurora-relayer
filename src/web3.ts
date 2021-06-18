@@ -168,6 +168,8 @@ export interface Service {
   eth_syncing(): Promise<SyncStatus | false>;
   eth_uninstallFilter(filterID: Quantity): Promise<boolean>;
   txpool_content(): Promise<Record<string, any>>;
+  txpool_inspect(): Promise<Record<string, any>>;
+  txpool_status(): Promise<Record<string, number>>;
   parity_pendingTransactions(
     limit?: number | null,
     filter?: Record<string, any>
