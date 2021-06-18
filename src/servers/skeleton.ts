@@ -349,6 +349,11 @@ export abstract class SkeletonServer implements web3.Service {
     return false;
   }
 
+  // @see {@link https://geth.ethereum.org/docs/rpc/ns-txpool#txpool_content}
+  async txpool_content(): Promise<Record<string, any>> {
+    return { pending: {}, queued: {} };
+  }
+
   // @see {@link https://openethereum.github.io/JSONRPC-parity-module#parity_pendingtransactions}
   async parity_pendingTransactions(
     _limit?: number | null,

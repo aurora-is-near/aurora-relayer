@@ -158,6 +158,7 @@ Method | Status | Notes
 [`shh_post`] | ❌ | Discontinued
 [`shh_uninstallFilter`] | ❌ | Discontinued
 [`shh_version`] | ❌ | Discontinued
+[`txpool_content`] | ✅ | Geth extension
 [`parity_pendingTransactions`] | ✅ | Parity extension
 
 **Legend**: ❌ = not supported. 🚧 = work in progress. ✅ = supported.
@@ -229,4 +230,5 @@ Method | Status | Notes
 [`shh_post`]: https://eth.wiki/json-rpc/API#shh_post
 [`shh_uninstallFilter`]: https://eth.wiki/json-rpc/API#shh_uninstallFilter
 [`shh_version`]: https://eth.wiki/json-rpc/API#shh_version
+[`txpool_content`]: https://geth.ethereum.org/docs/rpc/ns-txpool#txpool_content
 [`parity_pendingTransactions`]: https://openethereum.github.io/JSONRPC-parity-module#parity_pendingtransactions
