@@ -25,7 +25,7 @@ import {
 import pg from 'pg';
 
 import { keccak256 } from 'ethereumjs-util';
-import { assert } from 'node:console';
+//import { assert } from 'node:console';
 import sql from 'sql-bricks';
 const sqlConvert = (sql as any).convert;
 (sql as any).convert = (val: unknown) => {
@@ -148,7 +148,7 @@ export class DatabaseServer extends SkeletonServer {
       } = await this._query('SELECT * FROM eth_getBlockByHash($1) LIMIT 1', [
         blockHash_,
       ]);
-      assert(block, 'block is not null');
+      //assert(block, 'block is not null');
       block.uncles = [];
       block.transactions = await this._fetchTransactions(
         blockHash_,
@@ -175,7 +175,7 @@ export class DatabaseServer extends SkeletonServer {
       } = await this._query('SELECT * FROM eth_getBlockByNumber($1) LIMIT 1', [
         blockNumber_,
       ]);
-      assert(block, 'block is not null');
+      //assert(block, 'block is not null');
       block.uncles = [];
       block.transactions = await this._fetchTransactions(
         blockNumber_ as number,
@@ -484,7 +484,7 @@ export class DatabaseServer extends SkeletonServer {
         'SELECT * FROM eth_getTransactionReceipt($1) LIMIT 1',
         [transactionHash_]
       );
-      assert(receipt, 'receipt is not null');
+      //assert(receipt, 'receipt is not null');
       receipt.logs = await this._fetchEvents(transactionHash_);
       return exportJSON(receipt);
     } catch (error) {

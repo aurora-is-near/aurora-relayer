@@ -18,7 +18,7 @@ import { Logger } from 'pino';
 
 export { Engine } from '@aurora-is-near/engine';
 
-import { assert } from 'node:console';
+//import { assert } from 'node:console';
 
 export async function createApp(
   config: Config,
@@ -151,7 +151,7 @@ function rpcMiddleware(server: jayson.Server): any {
       return error(415);
     }
 
-    assert(req.body && typeof req.body === 'object');
+    //assert(req.body && typeof req.body === 'object');
     server.call(req.body, req, function (error: any, success: any) {
       const response = error || success;
       const body = JSON.stringify(response);
