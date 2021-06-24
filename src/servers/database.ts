@@ -467,7 +467,9 @@ export class DatabaseServer extends SkeletonServer {
     const address_ = parseAddress(address);
     const nonce = (
       await this.engine.getNonce(address_, {
-        block: blockNumber_ !== null ? blockNumber_ : undefined,
+        block: Number.isInteger(blockNumber_)
+          ? (blockNumber_ as number) + 1
+          : undefined,
       })
     ).unwrap();
     return intToHex(nonce);
