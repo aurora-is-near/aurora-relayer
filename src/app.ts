@@ -104,7 +104,7 @@ class Method extends jayson.Method {
         return (callback as any)(
           server.error(
             -32603,
-            'Internal error, please report a bug at <https://github.com/aurora-is-near/aurora-relayer/issues>',
+            `Internal Error - ${error.message}. Please report a bug at <https://github.com/aurora-is-near/aurora-relayer/issues>`,
             metadata
           )
         );
