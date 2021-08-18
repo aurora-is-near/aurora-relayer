@@ -145,6 +145,17 @@ export class Indexer {
 
     const to = transaction.to;
     const result = transaction.result!;
+
+    let status ;
+    if (typeof result.result.status === 'boolean') {
+      status = result.result?.status
+    } else {
+      if(result.result?.status.enum === 'success')
+        status = true;
+      else
+        status = false;
+    }
+
     const query = sql
       .insert('transaction', {
         block: blockID,
@@ -158,14 +169,14 @@ export class Indexer {
         nonce: transaction.nonce,
         gas_price: transaction.gasPrice,
         gas_limit: transaction.gasLimit,
-        gas_used: result?.gasUsed || 0,
+        gas_used: result.result?.gasUsed || 0,
         value: transaction.value,
         input: transaction.data?.length ? transaction.data : null,
         v: transaction.v,
         r: transaction.r,
         s: transaction.s,
-        status: result?.status || true,
-        output: result?.output?.length ? result.output : null,
+        status: status || true,
+        output: result.output.length? result.output : null,
       })
       .returning('id');
 
@@ -183,7 +194,7 @@ export class Indexer {
     }
 
     // Index all log events emitted by this transaction:
-    (transaction.result?.logs || []).forEach(async (event, eventIndex) => {
+    (transaction.result?.result?.logs || []).forEach(async (event, eventIndex) => {
       await this.indexEvent(
         blockID,
         transactionIndex,

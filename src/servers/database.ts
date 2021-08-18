@@ -581,8 +581,8 @@ export class DatabaseServer extends SkeletonServer {
     const transactionHash = keccak256(transactionBytes);
     return (await this.engine.submit(transactionBytes)).match({
       ok: (result) => {
-        if (!result.status) {
-          throw new RevertError(result.output);
+        if (!result.result.status) {
+          throw new RevertError(result.result.output);
         }
         return bytesToHex(transactionHash);
       },
