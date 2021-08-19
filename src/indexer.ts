@@ -146,14 +146,15 @@ export class Indexer {
     const to = transaction.to;
     const result = transaction.result!;
 
-    let status ;
-    if (typeof result.result.status === 'boolean') {
-      status = result.result?.status
+    let status;
+    let output = null;
+    if (typeof result?.result?.status === 'boolean') {
+      status = result.result?.status;
+      output = result.output;
     } else {
-      if(result.result?.status.enum === 'success')
-        status = true;
-      else
-        status = false;
+      status = (result.result?.status.enum === 'success');
+      if (result.result?.status.success?.output.length)
+        output = result.result?.status.success?.output;
     }
 
     const query = sql
@@ -175,8 +176,8 @@ export class Indexer {
         v: transaction.v,
         r: transaction.r,
         s: transaction.s,
-        status: status || true,
-        output: result.output.length? result.output : null,
+        status: status,
+        output: output,
       })
       .returning('id');
 
