@@ -10,7 +10,7 @@ import {
   UnexpectedError,
   UnknownFilter,
 } from '../errors.js';
-import { compileTopics } from '../topics.js';
+import { compileTopics, toStringArray } from '../topics.js';
 
 import {
   Address,
@@ -370,6 +370,10 @@ export class DatabaseServer extends SkeletonServer {
       console.debug('eth_getLogs', 'query:', query.toString());
     }
     const { rows } = await this._query(query);
+    for(let i=0; i < rows.length; i++) {
+      rows[i]["topics"] = toStringArray(rows[i]["topics"]);
+    }
+
     if (this.config.debug) {
       console.debug('eth_getLogs', 'result:', rows);
     }
