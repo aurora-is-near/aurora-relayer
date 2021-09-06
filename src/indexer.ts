@@ -232,6 +232,7 @@ export class Indexer {
         ? event.topics.map((topic) => topic.toBytes())
         : null,
     });
+
     //if (this.config.debug) console.debug(query.toParams()); // DEBUG
     try {
       await this.pgClient.query(query.toParams());
