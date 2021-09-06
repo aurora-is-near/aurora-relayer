@@ -94,9 +94,14 @@ export class DatabaseServer extends SkeletonServer {
 
   async eth_call(
     transaction: web3.TransactionForCall,
-    blockNumber?: web3.Quantity | web3.Tag
+    blockNumber?: web3.Quantity | web3.Tag,
+    blockHash?: web3.Data
   ): Promise<web3.Data> {
-    const blockNumber_ = parseBlockSpec(blockNumber);
+    let blockNumber_ = parseBlockSpec(blockNumber);
+    if (blockHash !== undefined && blockNumber_ === undefined) {
+        const block_ = await(this.eth_getBlockByHash(blockHash))
+        blockNumber_ = block_ ? parseBlockSpec(block_['number']?.toString()) : null;
+    }
     const from = transaction.from
       ? parseAddress(transaction.from)
       : Address.zero();
