@@ -357,7 +357,7 @@ export class DatabaseServer extends SkeletonServer {
         't.hash AS "transactionHash"',
         'e.index AS "logIndex"',
         't.to AS "address"',
-        'e.topics AS "topics"',
+        'string_to_array(concat(\'0x\',encode(e.topics[1], \'hex\'), \',\', \'0x\', encode(e.topics[2], \'hex\'), \',\', \'0x\', encode(e.topics[3], \'hex\'), \',\', \'0x\', encode(e.topics[4], \'hex\')), \',\') AS "topics"',
         'coalesce(e.data, repeat(\'\\000\', 32)::bytea) AS "data"',
         '0::boolean AS "removed"'
       )
@@ -377,6 +377,13 @@ export class DatabaseServer extends SkeletonServer {
       rows.map((row: Record<string, unknown>) => {
         if (row['address'] === null) {
           row['address'] = Address.zero().toString();
+        }
+        // remove null values
+        if(Array.isArray(row['topics'])){
+          row['topics'] = row['topics']
+          .filter((t: string) => {
+            return t !== '0x';
+          });
         }
         return row;
       })
