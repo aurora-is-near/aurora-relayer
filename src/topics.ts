@@ -12,13 +12,13 @@ export function compileTopics(
     .map((topic: web3.FilterTopic, i: number): sql.WhereExpression[] => {
       if (topic === null) return [];
       if (typeof topic === 'string') {
-        return [sql.eq(`e.topics[${i}]`, hexToBytes(topic))];
+        return [sql.eq(`e.topics[${i+1}]`, hexToBytes(topic))];
       }
       if (Array.isArray(topic)) {
         const operands: sql.WhereExpression[] = topic
           .map((topic: web3.FilterTopic): sql.WhereExpression[] => {
             if (topic === null) return [];
-            return [sql.eq(`e.topics[${i}]`, hexToBytes(topic as string))];
+            return [sql.eq(`e.topics[${i+1}]`, hexToBytes(topic as string))];
           })
           .flat();
         return [sql.or(...operands)];
