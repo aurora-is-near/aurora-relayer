@@ -40,8 +40,8 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async net_version(): Promise<string> {
-    const net_version = (await this.engine.getChainID()).unwrap();
-    return net_version.toString();
+    const netVersion = (await this.engine.getChainID()).unwrap();
+    return netVersion.toString();
   }
 
   // eth_*
