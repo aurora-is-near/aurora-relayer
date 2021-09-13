@@ -4,7 +4,7 @@ import * as web3 from '../web3.js';
 import { Config } from '../config.js';
 import { unimplemented, unsupported } from '../errors.js';
 
-import { bytesToHex, Engine, intToHex } from '@aurora-is-near/engine';
+import { bytesToHex, Engine, hexToInt, intToHex } from '@aurora-is-near/engine';
 import { keccakFromHexString } from 'ethereumjs-util';
 import { Logger } from 'pino';
 
@@ -40,7 +40,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async net_version(): Promise<string> {
-    return await this.eth_chainId();
+    return hexToInt(await this.eth_chainId()).toString();
   }
 
   // eth_*
