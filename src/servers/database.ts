@@ -98,13 +98,15 @@ export class DatabaseServer extends SkeletonServer {
   ): Promise<web3.Data> {
     let blockNumber_
     // EIP-1898 (enables the argument to be not only blockNumber, but also blockHash)
-    if (blockNumberOrHash?.startsWith('0x')) {
-      const block_ = await(this.eth_getBlockByHash(blockNumberOrHash))
-      if (block_ === null) { throw new InvalidArguments(); }
-      blockNumber_ = parseBlockSpec(block_['number']?.toString());
-    }
-    if (!blockNumberOrHash?.startsWith('0x')) {
-      blockNumber_ = parseBlockSpec(blockNumberOrHash);
+    if(typeof blockNumberOrHash === 'string'){
+      if (/^0x([A-Fa-f0-9]{64})$/.test(blockNumberOrHash)) {
+        // Regex reference here https://ethereum.stackexchange.com/questions/34285/what-is-the-regex-to-validate-an-ethereum-transaction-hash/34286#34286
+        const block_ = await this.eth_getBlockByHash(blockNumberOrHash);
+        blockNumber_ = parseBlockSpec(block_? block_['number']?.toString(): null);
+      }
+      else {
+        blockNumber_ = parseBlockSpec(blockNumberOrHash);
+      }
     }
     const from = transaction.from
       ? parseAddress(transaction.from)
