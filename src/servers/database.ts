@@ -192,7 +192,7 @@ export class DatabaseServer extends SkeletonServer {
         blockNumber_ as number,
         fullObject || false
       );
-      return exportJSON(block);
+      return exportJSON(fullObject ? block : bytesToHex(block.hash))
     } catch (error) {
       if (this.config.debug) {
         console.debug('eth_getBlockByNumber', error);
