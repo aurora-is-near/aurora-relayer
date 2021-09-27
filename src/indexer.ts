@@ -172,7 +172,7 @@ export class Indexer {
         gas_limit: transaction.gasLimit,
         gas_used: result.result?.gasUsed || 0,
         value: transaction.value,
-        input: transaction.data?.length ? transaction.data : null,
+        input: transaction.data?.length ? transaction.data : '0x',
         v: transaction.v,
         r: transaction.r,
         s: transaction.s,
