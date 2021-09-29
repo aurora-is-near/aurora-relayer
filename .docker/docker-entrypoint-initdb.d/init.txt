@@ -146,7 +146,7 @@ CREATE TABLE transaction (
   nonce             u256 NOT NULL,
   gas_price         u256 NOT NULL,
   gas_limit         u256 NOT NULL,
-  gas_used          u256 NOT NULL CHECK (gas_used <= gas_limit),
+  gas_used          u256 NOT NULL, -- FIXME: CHECK (gas_used <= gas_limit),
   value             u256 NOT NULL,
   input             bytea NULL CHECK (length(input) > 0),
   v                 u64 NULL,
@@ -290,7 +290,7 @@ BEGIN
         e.index AS "logIndex",
         coalesce(t.to, \'\\x0000000000000000000000000000000000000000\')::address AS "address",
         e.topics AS "topics",
-        e.data AS "data",
+        coalesce(e.data, repeat(\'\\000\', 32)::bytea) AS "data",
         false AS "removed"
       FROM event e
         LEFT JOIN transaction t ON e.transaction = t.id
@@ -342,7 +342,7 @@ BEGIN
         e.index AS "logIndex",
         coalesce(t.to, \'\\x0000000000000000000000000000000000000000\')::address AS "address",
         e.topics AS "topics",
-        e.data AS "data",
+        coalesce(e.data, repeat(\'\\000\', 32)::bytea) AS "data",
         false AS "removed"
       FROM event e
         LEFT JOIN transaction t ON e.transaction = t.id
@@ -377,7 +377,7 @@ BEGIN
       t.gas_price AS "gasPrice",
       t.nonce AS "nonce",
       t.value AS "value",
-      t.input AS "input",
+      coalesce(t.input, '\x'::bytea) AS "input",
       t.v AS "v",
       t.r AS "r",
       t.s AS "s"
@@ -406,7 +406,7 @@ BEGIN
       t.gas_price AS "gasPrice",
       t.nonce AS "nonce",
       t.value AS "value",
-      t.input AS "input",
+      coalesce(t.input, '\x'::bytea) AS "input",
       t.v AS "v",
       t.r AS "r",
       t.s AS "s"
@@ -435,7 +435,7 @@ BEGIN
       t.gas_price AS "gasPrice",
       t.nonce AS "nonce",
       t.value AS "value",
-      t.input AS "input",
+      coalesce(t.input, '\x'::bytea) AS "input",
       t.v AS "v",
       t.r AS "r",
       t.s AS "s"
