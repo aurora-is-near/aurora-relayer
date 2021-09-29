@@ -152,7 +152,7 @@ export class Indexer {
       status = result.result?.status;
       output = result.output;
     } else {
-      status = (result.result?.status.enum === 'success');
+      status = result.result?.status.enum === 'success';
       if (result.result?.status.success?.output.length)
         output = result.result?.status.success?.output;
     }
@@ -195,15 +195,17 @@ export class Indexer {
     }
 
     // Index all log events emitted by this transaction:
-    (transaction.result?.result?.logs || []).forEach(async (event, eventIndex) => {
-      await this.indexEvent(
-        blockID,
-        transactionIndex,
-        transactionID,
-        eventIndex,
-        event
-      );
-    });
+    (transaction.result?.result?.logs || []).forEach(
+      async (event, eventIndex) => {
+        await this.indexEvent(
+          blockID,
+          transactionIndex,
+          transactionID,
+          eventIndex,
+          event
+        );
+      }
+    );
   }
 
   async indexEvent(

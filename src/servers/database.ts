@@ -94,18 +94,19 @@ export class DatabaseServer extends SkeletonServer {
 
   async eth_call(
     transaction: web3.TransactionForCall,
-    blockNumberOrHash?: web3.Quantity | web3.Tag | web3.Data,
+    blockNumberOrHash?: web3.Quantity | web3.Tag | web3.Data
   ): Promise<web3.Data> {
-    let blockNumber_
+    let blockNumber_;
     // EIP-1898 (enables the argument to be not only blockNumber, but also blockHash)
-    if(typeof blockNumberOrHash === 'string'){
+    if (typeof blockNumberOrHash === 'string') {
       if (/^0x([A-Fa-f0-9]{64})$/.test(blockNumberOrHash)) {
         // Regex reference here https://ethereum.stackexchange.com/questions/34285/what-is-the-regex-to-validate-an-ethereum-transaction-hash/34286#34286
         const block_ = await this.eth_getBlockByHash(blockNumberOrHash);
-        if(block_ === null) throw Error('Block is temporarily unavailable');
-        blockNumber_ = parseBlockSpec(block_? block_['number']?.toString(): null);
-      }
-      else {
+        if (block_ === null) throw Error('Block is temporarily unavailable');
+        blockNumber_ = parseBlockSpec(
+          block_ ? block_['number']?.toString() : null
+        );
+      } else {
         blockNumber_ = parseBlockSpec(blockNumberOrHash);
       }
     }
@@ -369,7 +370,7 @@ export class DatabaseServer extends SkeletonServer {
         't.hash AS "transactionHash"',
         'e.index AS "logIndex"',
         't.to AS "address"',
-        'string_to_array(concat(\'0x\',encode(e.topics[1], \'hex\'), \',\', \'0x\', encode(e.topics[2], \'hex\'), \',\', \'0x\', encode(e.topics[3], \'hex\'), \',\', \'0x\', encode(e.topics[4], \'hex\')), \',\') AS "topics"',
+        "string_to_array(concat('0x',encode(e.topics[1], 'hex'), ',', '0x', encode(e.topics[2], 'hex'), ',', '0x', encode(e.topics[3], 'hex'), ',', '0x', encode(e.topics[4], 'hex')), ',') AS \"topics\"",
         'coalesce(e.data, repeat(\'\\000\', 32)::bytea) AS "data"',
         '0::boolean AS "removed"'
       )
@@ -391,9 +392,8 @@ export class DatabaseServer extends SkeletonServer {
           row['address'] = Address.zero().toString();
         }
         // remove null values
-        if(Array.isArray(row['topics'])){
-          row['topics'] = row['topics']
-          .filter((t: string) => {
+        if (Array.isArray(row['topics'])) {
+          row['topics'] = row['topics'].filter((t: string) => {
             return t !== '0x';
           });
         }
