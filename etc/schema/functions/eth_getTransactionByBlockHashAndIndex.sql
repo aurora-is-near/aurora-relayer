@@ -15,7 +15,7 @@ BEGIN
       t.gas_price AS "gasPrice",
       t.nonce AS "nonce",
       t.value AS "value",
-      t.input AS "input",
+      coalesce(t.input, '\x'::bytea) AS "input",
       t.v AS "v",
       t.r AS "r",
       t.s AS "s"

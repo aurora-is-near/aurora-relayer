@@ -31,7 +31,8 @@
     "build": "tsc",
     "lint": "eslint test && eslint **/*.ts",
     "start": "nodemon",
-    "test": "jest"
+    "test": "jest",
+    "format": "prettier -w src"
   },
   "keywords": [
     "Aurora",
