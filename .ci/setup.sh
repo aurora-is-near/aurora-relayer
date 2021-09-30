@@ -44,7 +44,7 @@ cd ..
 
 
 echo "Starting nearcore..."
-docker run -it --rm \
+docker run --rm \
     -v $(pwd)/.ci/workdir/nearData:/srv/near \
     --name $NEARCORE_CONTAINER_NAME \
     nearprotocol/nearcore:$NEARCORE_TAG \
