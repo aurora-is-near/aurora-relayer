@@ -1,0 +1,27 @@
+---
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+name: Tests
+jobs:
+  rpc-test:
+    name: Simple RPC test
+    runs-on: self-hosted
+    steps:
+      - name: Clone the repository
+        uses: actions/checkout@v2
+      - name: Setup environment
+        run: ./.ci/setup.sh
+      - name: Test RPC
+        run: |
+          ENDPOINT_HOST=$(cat .ci/workdir/endpoint.txt)
+          curl -v -X POST \
+            -H 'Content-Type: application/json' \
+            -d '{"jsonrpc":"2.0","id":"1","method":"eth_blockNumber","params":[]}' \
+            http://${ENDPOINT_HOST}:8545
+      - name: Cleanup environment
+        if: ${{ always() }}
+        run: ./.ci/cleanup.sh
