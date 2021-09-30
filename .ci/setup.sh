@@ -109,7 +109,7 @@ docker run -d --rm --init \
     --network $NETWORK_NAME \
     -e NEAR_ENV=localnet \
     -e NODE_ENV=localnet \
-    -v ./config:/srv/aurora/relayer/config \
+    -v $(pwd)/config:/srv/aurora/relayer/config \
     --name $INDEXER_CONTAINER_NAME \
     $ENDPOINT_IMAGE_NAME \
     node lib/indexer.js
@@ -119,7 +119,7 @@ docker run -d --rm --init \
     --network $NETWORK_NAME \
     -e NEAR_ENV=localnet \
     -e NODE_ENV=localnet \
-    -v ./config:/srv/aurora/relayer/config \
+    -v $(pwd)/config:/srv/aurora/relayer/config \
     --name $ENDPOINT_CONTAINER_NAME \
     $ENDPOINT_IMAGE_NAME \
     node lib/index.js
