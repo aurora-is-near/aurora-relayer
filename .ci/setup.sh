@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 source $SCRIPT_DIR/common.sh
@@ -28,14 +28,14 @@ cd .ci/workdir
 echo "Installing near-cli..."
 git clone https://github.com/near/near-cli.git
 cd near-cli
-git checkout $NEAR_CLI_HEAD
+git checkout -q $NEAR_CLI_HEAD
 time npm install
 cd ..
 
 echo "Installing aurora-cli..."
 git clone https://github.com/aurora-is-near/aurora-cli.git
 cd aurora-cli
-git checkout $AURORA_CLI_HEAD
+git checkout -q $AURORA_CLI_HEAD
 time npm install
 cd ..
 
@@ -128,20 +128,8 @@ docker run -d --init \
     $ENDPOINT_IMAGE_NAME \
     node lib/index.js
 
+echo "Sleeping for 5 seconds..."
+sleep 5
 
-echo "Putting relayer endpoint hostname to .ci/workdir/endpoint.txt"
+echo "Setup finished! Putting relayer endpoint hostname to .ci/workdir/endpoint.txt"
 echo $ENDPOINT_CONTAINER_NAME > .ci/workdir/endpoint.txt
-
-
-echo "Sleeping for 30 seconds"
-sleep 30
-
-echo "[FOOBAR] DB logs:"
-docker logs $DATABASE_CONTAINER_NAME
-echo "[FOOBAR] Indexer logs:"
-docker logs $INDEXER_CONTAINER_NAME
-echo "[FOOBAR] Endpoint logs:"
-docker logs $ENDPOINT_CONTAINER_NAME
-
-
-echo "Setup finished!"

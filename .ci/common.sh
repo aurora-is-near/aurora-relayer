@@ -1,4 +1,4 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 
 
 # All CI-runners are docker containers, and creating new
