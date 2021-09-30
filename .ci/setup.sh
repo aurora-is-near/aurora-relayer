@@ -49,7 +49,8 @@ docker run --rm \
     --name $NEARCORE_CONTAINER_NAME \
     nearprotocol/nearcore:$NEARCORE_TAG \
     neard --home=/srv/near init
-docker run -d --rm \
+docker run -d \
+    --restart unless-stopped \
     -v $(pwd)/.ci/workdir/nearData:/srv/near \
     --network $NETWORK_NAME \
     --name $NEARCORE_CONTAINER_NAME \
@@ -99,13 +100,15 @@ signerKey: config/aurora.test.near.json
 EOF
 
 echo "Starting database..."
-docker run -d --rm \
+docker run -d \
+    --restart unless-stopped \
     --network $NETWORK_NAME \
     --name $DATABASE_CONTAINER_NAME \
     $DATABASE_IMAGE_NAME
 
 echo "Starting indexer..."
-docker run -d --rm --init \
+docker run -d --init \
+    --restart unless-stopped \
     --network $NETWORK_NAME \
     -e NEAR_ENV=localnet \
     -e NODE_ENV=localnet \
@@ -115,7 +118,8 @@ docker run -d --rm --init \
     node lib/indexer.js
 
 echo "Starting endpoint..."
-docker run -d --rm --init \
+docker run -d --init \
+    --restart unless-stopped \
     --network $NETWORK_NAME \
     -e NEAR_ENV=localnet \
     -e NODE_ENV=localnet \
