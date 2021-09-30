@@ -67,7 +67,7 @@ echo "Creating NEAR account..."
     --master-account=test.near \
     --initial-balance 1000000 \
     --key-path .ci/workdir/nearData/validator_key.json \
-    --node-url https://${NEARCORE_CONTAINER_NAME}:3030
+    --node-url http://${NEARCORE_CONTAINER_NAME}:3030
 
 echo "Downloading contract..."
 curl -L $CONTRACT_URL -o .ci/workdir/contract.wasm
@@ -78,7 +78,7 @@ echo "Installing contract..."
     --owner aurora.test.near \
     --signer aurora.test.near \
     --engine aurora.test.near \
-    --endpoint https://${NEARCORE_CONTAINER_NAME}:3030 \
+    --endpoint http://${NEARCORE_CONTAINER_NAME}:3030 \
     .ci/workdir/contract.wasm
 
 echo "Sleeping for 5 seconds..."
