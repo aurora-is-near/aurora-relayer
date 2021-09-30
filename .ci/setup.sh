@@ -29,14 +29,14 @@ echo "Installing near-cli..."
 git clone https://github.com/near/near-cli.git
 cd near-cli
 git checkout $NEAR_CLI_HEAD
-time npm ci
+time npm install
 cd ..
 
 echo "Installing aurora-cli..."
 git clone https://github.com/aurora-is-near/aurora-cli.git
 cd aurora-cli
 git checkout $AURORA_CLI_HEAD
-time npm ci
+time npm install
 cd ..
 
 mkdir nearData
