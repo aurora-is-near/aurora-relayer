@@ -18,10 +18,22 @@ jobs:
       - name: Test RPC
         run: |
           ENDPOINT_HOST=$(cat .ci/workdir/endpoint.txt)
-          curl -v -X POST \
+          curl -X POST \
             -H 'Content-Type: application/json' \
             -d '{"jsonrpc":"2.0","id":"1","method":"eth_blockNumber","params":[]}' \
             http://${ENDPOINT_HOST}:8545
+      - name: Print nearcore logs
+        if: ${{ always() }}
+        run: ./.ci/show_logs.sh nearcore
+      - name: Print database logs
+        if: ${{ always() }}
+        run: ./.ci/show_logs.sh database
+      - name: Print indexer logs
+        if: ${{ always() }}
+        run: ./.ci/show_logs.sh indexer
+      - name: Print endpoint logs
+        if: ${{ always() }}
+        run: ./.ci/show_logs.sh endpoint
       - name: Cleanup environment
         if: ${{ always() }}
         run: ./.ci/cleanup.sh
