@@ -1,4 +1,4 @@
-#!/bin/bash -ev
+#!/bin/bash -ex
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 source $SCRIPT_DIR/common.sh

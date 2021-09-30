@@ -1,4 +1,4 @@
-#!/bin/bash -ev
+#!/bin/bash -ex
 
 
 # All CI-runners are docker containers, and creating new
@@ -9,7 +9,7 @@
 # To avoid collision of such objects, $RUNNER_NAME suffix
 # is added to every object's name.
 
-UNIQUE_KEY=$RUNNER_NAME
+UNIQUE_KEY=$(echo $RUNNER_NAME | tr '[:upper:]' '[:lower:]')
 
 NETWORK_NAME=network-for-$UNIQUE_KEY
 DATABASE_IMAGE_NAME=relayer-database-img-$UNIQUE_KEY
