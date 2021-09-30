@@ -2,11 +2,11 @@
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 source $SCRIPT_DIR/common.sh
-cd $SCRIPT_DIR/..
 
 
 echo "Environment will be cleaned to avoid dirty start"
 ./.ci/cleanup.sh
+cd $SCRIPT_DIR/..
 
 
 echo "Establishing inner network..."
@@ -15,15 +15,20 @@ docker network connect $NETWORK_NAME $RUNNER_NAME
 
 
 echo "Building database image..."
+pwd
 time docker build -t $DATABASE_IMAGE_NAME -f .docker/Dockerfile.database .
 
 
 echo "Building endpoint image..."
+pwd
 time docker build -t $ENDPOINT_IMAGE_NAME -f .docker/Dockerfile.endpoint .
 
 
+pwd
 mkdir .ci/workdir
+pwd
 cd .ci/workdir
+pwd
 
 echo "Installing near-cli..."
 git clone https://github.com/near/near-cli.git
@@ -32,6 +37,8 @@ git checkout $NEAR_CLI_HEAD
 time npm install
 cd ..
 
+pwd
+
 echo "Installing aurora-cli..."
 git clone https://github.com/aurora-is-near/aurora-cli.git
 cd aurora-cli
@@ -39,9 +46,12 @@ git checkout $AURORA_CLI_HEAD
 time npm install
 cd ..
 
+pwd
+
 mkdir nearData
 cd ..
 
+pwd
 
 echo "Starting nearcore..."
 docker run --rm \
@@ -59,6 +69,7 @@ docker run -d --rm \
 echo "Sleeping for 5 seconds..."
 sleep 5
 
+pwd
 
 export NEAR_ENV=local
 
