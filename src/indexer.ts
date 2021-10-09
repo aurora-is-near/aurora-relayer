@@ -12,11 +12,11 @@ import {
   NetworkConfig,
   Transaction,
 } from '@aurora-is-near/engine';
+import { computeBlockHash } from './utils.js';
 import { program } from 'commander';
 import externalConfig from 'config';
 import pg from 'pg';
 import pino, { Logger } from 'pino';
-
 import sql from 'sql-bricks-postgres';
 const sqlConvert = (sql as any).convert;
 (sql as any).convert = (val: unknown) => {
@@ -58,6 +58,15 @@ export class Indexer {
     this.logger.info(`resuming from block #${this.blockID}`);
     for (;;) {
       await this.indexBlock(this.blockID);
+      /**  testing compute blockhash */
+      const contractId = AccountID.parse(this.config.engine).unwrap();
+      const blockHash = computeBlockHash(
+        this.blockID,
+        contractId.id,
+        this.network.chainID
+      );
+      console.log(`computed blockhash: 0x${blockHash}`);
+      /**  testing compute blockhash*/
       this.blockID += 1;
     }
   }
@@ -73,7 +82,6 @@ export class Indexer {
         transactions: 'full',
         contractID: AccountID.parse(this.config.engine).unwrap(),
       });
-
       if (proxy.isErr()) {
         const error = proxy.unwrapErr();
         if (error.startsWith('[-32000] Server error: DB Not Found Error')) {
@@ -85,15 +93,16 @@ export class Indexer {
             continue; // wait for the next block to be produced
           }
         }
-
         if (this.config.debug) console.error(error); // DEBUG
         this.logger.error(error);
         await new Promise((resolve) => setTimeout(resolve, 100));
         continue; // retry block
       }
-
       const block_ = proxy.unwrap();
       const block = block_.getMetadata();
+      /**  testing compute blockhash*/
+      console.log('The exact blockhash: ', block.hash);
+      /**  testing compute blockhash*/
       const query = sql.insert('block', {
         chain: this.network.chainID,
         id: block.number,
@@ -117,7 +126,6 @@ export class Indexer {
         if (this.config.debug) this.logger.error(error);
         return; // abort block
       }
-
       // Index all transactions contained in this block:
       (block.transactions as Transaction[]).forEach(
         async (transaction, transactionIndex) => {
