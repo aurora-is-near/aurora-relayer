@@ -12,7 +12,6 @@ import {
   NetworkConfig,
   Transaction,
 } from '@aurora-is-near/engine';
-import { computeBlockHash } from './utils.js';
 import { program } from 'commander';
 import externalConfig from 'config';
 import pg from 'pg';
@@ -58,15 +57,6 @@ export class Indexer {
     this.logger.info(`resuming from block #${this.blockID}`);
     for (;;) {
       await this.indexBlock(this.blockID);
-      /**  testing compute blockhash */
-      const contractId = AccountID.parse(this.config.engine).unwrap();
-      const blockHash = computeBlockHash(
-        this.blockID,
-        contractId.id,
-        this.network.chainID
-      );
-      console.log(`computed blockhash: 0x${blockHash}`);
-      /**  testing compute blockhash*/
       this.blockID += 1;
     }
   }
