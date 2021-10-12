@@ -1,27 +1,33 @@
-import jsSHA from 'jssha';
+import { sha256 } from 'ethereum-cryptography/sha256.js';
+
 export function computeBlockHash(
   blockHeight: number,
   accountId: string,
   chainId: number
-) {
-  const shaObj = new jsSHA('SHA-256', 'UINT8ARRAY');
-  console.log(
-    intToBinary(0),
-    intToBinary(chainId),
-    stringToBinary(accountId),
-    intToBinary(blockHeight)
-  );
-  shaObj.update(intToBinary(0)); // BLOCK_HASH_PREFIX
-  shaObj.update(intToBinary(chainId));
-  shaObj.update(stringToBinary(accountId));
-  shaObj.update(intToBinary(blockHeight));
-  return shaObj.getHash('HEX');
+): any {
+    return sha256(
+        generateBlockPreImage(
+            blockHeight, 
+            accountId, 
+            chainId
+        )
+    ).toString('hex');
 }
 
-function stringToBinary(str: string) {
-  return new Uint8Array(Buffer.from(str));
-}
-
-function intToBinary(int: number) {
-  return (int >>> 0).toString(2);
+function generateBlockPreImage(
+    blockHeight: number,
+    accountId: string,
+    chainId: number
+): any {
+    const blockHeightBuf = Buffer.alloc(4);
+    blockHeightBuf.writeInt32BE(blockHeight,0);
+    const chainIdBuf = Buffer.alloc(4);
+    chainIdBuf.writeInt32BE(chainId, 0);
+    return  Buffer.concat([
+      Buffer.alloc(29), 
+      chainIdBuf, 
+      Buffer.from(accountId, 'utf8'), 
+      Buffer.alloc(4), 
+      blockHeightBuf
+    ]);
 }

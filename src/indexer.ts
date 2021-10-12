@@ -100,9 +100,6 @@ export class Indexer {
       }
       const block_ = proxy.unwrap();
       const block = block_.getMetadata();
-      /**  testing compute blockhash*/
-      console.log('The exact blockhash: ', block.hash);
-      /**  testing compute blockhash*/
       const query = sql.insert('block', {
         chain: this.network.chainID,
         id: block.number,
