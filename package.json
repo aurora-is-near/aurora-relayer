@@ -30,6 +30,7 @@
   "scripts": {
     "build": "tsc",
     "lint": "eslint test && eslint **/*.ts",
+    "prettify": "npx prettier -w src && npx tsc",
     "start": "nodemon",
     "test": "jest",
     "format": "prettier -w src"
