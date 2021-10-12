@@ -28,12 +28,11 @@
     "aurora-relayer": "lib/index.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "npx tsc",
     "lint": "eslint test && eslint **/*.ts",
-    "prettify": "npx prettier -w src && npx tsc",
     "start": "nodemon",
     "test": "jest",
-    "format": "prettier -w src"
+    "format": "npx prettier -w src"
   },
   "keywords": [
     "Aurora",
