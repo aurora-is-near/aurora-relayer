@@ -32,7 +32,7 @@
     "lint": "eslint test && eslint **/*.ts",
     "start": "nodemon",
     "test": "jest",
-    "build:schema": "cat etc/schema.sql | cut -d' ' -f2 | xargs cat > .docker/docker-entrypoint-initdb.d/init.txt"
+    "build:schema": "cat etc/schema.sql | cut -d' ' -f2 | xargs cat > .docker/docker-entrypoint-initdb.d/init.txt",
     "format": "npx prettier -w src"
   },
   "keywords": [
