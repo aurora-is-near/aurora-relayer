@@ -1,6 +1,8 @@
 # macOS
 .DS_Store
 
+dist
+
 # Visual Studio Code
 .vscode/
 

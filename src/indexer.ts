@@ -16,7 +16,6 @@ import { program } from 'commander';
 import externalConfig from 'config';
 import pg from 'pg';
 import pino, { Logger } from 'pino';
-
 import sql from 'sql-bricks-postgres';
 const sqlConvert = (sql as any).convert;
 (sql as any).convert = (val: unknown) => {
@@ -73,7 +72,6 @@ export class Indexer {
         transactions: 'full',
         contractID: AccountID.parse(this.config.engine).unwrap(),
       });
-
       if (proxy.isErr()) {
         const error = proxy.unwrapErr();
         if (error.startsWith('[-32000] Server error: DB Not Found Error')) {
@@ -85,13 +83,11 @@ export class Indexer {
             continue; // wait for the next block to be produced
           }
         }
-
         if (this.config.debug) console.error(error); // DEBUG
         this.logger.error(error);
         await new Promise((resolve) => setTimeout(resolve, 100));
         continue; // retry block
       }
-
       const block_ = proxy.unwrap();
       const block = block_.getMetadata();
       const query = sql.insert('block', {
@@ -117,7 +113,6 @@ export class Indexer {
         if (this.config.debug) this.logger.error(error);
         return; // abort block
       }
-
       // Index all transactions contained in this block:
       (block.transactions as Transaction[]).forEach(
         async (transaction, transactionIndex) => {
