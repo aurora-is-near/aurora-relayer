@@ -123,7 +123,7 @@ export class DatabaseServer extends SkeletonServer {
         block: blockNumber_ !== null ? blockNumber_ : undefined,
       })
     ).match({
-      ok: (result) => bytesToHex(result),
+      ok: (result) => bytesToHex(result as Uint8Array),
       err: (message) => {
         throw new Error(message);
       },
