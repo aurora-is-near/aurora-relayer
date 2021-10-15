@@ -4,10 +4,8 @@ export function computeBlockHash(
   blockHeight: number,
   accountId: string,
   chainId: number
-): any {
-  return sha256(
-    generateBlockPreImage(blockHeight, accountId, chainId)
-  ).toString('hex');
+): Buffer {
+  return sha256(generateBlockPreImage(blockHeight, accountId, chainId));
 }
 
 function generateBlockPreImage(
