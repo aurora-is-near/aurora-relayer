@@ -12,7 +12,7 @@ function generateBlockPreImage(
   blockHeight: number,
   accountId: string,
   chainId: number
-): any {
+): Buffer {
   const blockHeightBuf = Buffer.alloc(4);
   blockHeightBuf.writeInt32BE(blockHeight, 0);
   const chainIdBuf = Buffer.alloc(4);

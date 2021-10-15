@@ -1,6 +1,7 @@
 /* This is free and unencumbered software released into the public domain. */
 
 import { Config, parseConfig } from './config.js';
+import { computeBlockHash } from './utils.js';
 
 import {
   AccountID,
@@ -64,13 +65,14 @@ export class Indexer {
   async indexBlock(blockID: BlockHeight): Promise<void> {
     //console.debug('indexBlock', blockID); // DEBUG
     this.logger.info({ block: { id: blockID } }, `indexing block #${blockID}`);
+    const contractID = AccountID.parse(this.config.engine).unwrap();
 
     for (;;) {
       const currentBlockHeight = (await this.engine.getBlockHeight()).unwrap();
 
       const proxy = await this.engine.getBlock(blockID, {
         transactions: 'full',
-        contractID: AccountID.parse(this.config.engine).unwrap(),
+        contractID: contractID,
       });
       if (proxy.isErr()) {
         const error = proxy.unwrapErr();
@@ -90,16 +92,26 @@ export class Indexer {
       }
       const block_ = proxy.unwrap();
       const block = block_.getMetadata();
+      const blockHash = computeBlockHash(
+        block.number as number,
+        contractID.toString(),
+        this.network.chainID
+      );
+      const parentHash = computeBlockHash(
+        (block.number as number) - 1,
+        contractID.toString(),
+        this.network.chainID
+      );
       const query = sql.insert('block', {
         chain: this.network.chainID,
         id: block.number,
-        hash: hexToBytes(block.hash!),
+        hash: blockHash,
         near_hash: block_.near?.hash,
         timestamp: new Date((block.timestamp as number) * 1000).toISOString(),
         size: block.size,
         gas_limit: 0, // FIXME: block.gasLimit,
         gas_used: 0, // FIXME: block.gasUsed,
-        parent_hash: hexToBytes(block.parentHash),
+        parent_hash: parentHash,
         transactions_root: block.transactionsRoot,
         state_root: block.stateRoot,
         receipts_root: block.receiptsRoot,
