@@ -1,3 +1,5 @@
+/* This is free and unencumbered software released into the public domain. */
+
 import { sha256 } from 'ethereum-cryptography/sha256.js';
 
 export function computeBlockHash(
