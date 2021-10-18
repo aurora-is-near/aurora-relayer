@@ -28,12 +28,12 @@
     "aurora-relayer": "lib/index.js"
   },
   "scripts": {
-    "build": "npx tsc",
+    "build": "tsc",
+    "format": "npx prettier -w src",
     "lint": "eslint test && eslint **/*.ts",
     "start": "nodemon",
     "test": "jest",
-    "build:schema": "cat etc/schema.sql | cut -d' ' -f2 | xargs cat > .docker/docker-entrypoint-initdb.d/init.txt",
-    "format": "npx prettier -w src"
+    "build:schema": "cat etc/schema.sql | cut -d' ' -f2 | xargs cat > .docker/docker-entrypoint-initdb.d/init.txt"
   },
   "keywords": [
     "Aurora",
@@ -51,7 +51,7 @@
   "bugs": "https://github.com/aurora-is-near/aurora-relayer/issues",
   "repository": "https://github.com/aurora-is-near/aurora-relayer.git",
   "dependencies": {
-    "@aurora-is-near/engine": "aurora-is-near/aurora.js#46df44a",
+    "@aurora-is-near/engine": "aurora-is-near/aurora.js#f76b203",
     "commander": "^7.2.0",
     "config": "^3.3.6",
     "cors": "^2.8.5",
