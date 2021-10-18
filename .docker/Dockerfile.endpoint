@@ -1,4 +1,6 @@
 FROM node:15-alpine
+ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.9.0/wait /wait
+RUN chmod +x /wait
 RUN mkdir -p /srv/aurora
 RUN mkdir -p /srv/aurora/.near-credentials/mainnet
 RUN mkdir -p /srv/aurora/.near-credentials/testnet
@@ -11,5 +13,5 @@ COPY --chown=node:node package*.json ./
 USER node
 RUN npm ci --only=production
 COPY --chown=node:node . .
-CMD ["node", "lib/index.js"]
+CMD /wait && node lib/index.js
 EXPOSE 8545

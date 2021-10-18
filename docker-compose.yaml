@@ -16,6 +16,7 @@ services:
     depends_on:
       - database
     environment:
+      - WAIT_HOSTS=database:5432
       - NEAR_ENV=${NEAR_ENV:-testnet}
       - NODE_ENV=${NEAR_ENV:-testnet}
     volumes:
@@ -31,6 +32,7 @@ services:
     depends_on:
       - database
     environment:
+      - WAIT_HOSTS=database:5432
       - NEAR_ENV=${NEAR_ENV:-testnet}
       - NODE_ENV=${NEAR_ENV:-testnet}
     ports:
