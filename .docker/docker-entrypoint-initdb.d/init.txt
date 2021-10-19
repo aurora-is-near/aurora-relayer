@@ -104,7 +104,7 @@ CREATE TABLE block (
   chain             chainid NOT NULL,
   id                blockno NOT NULL PRIMARY KEY,
   hash              hash NOT NULL UNIQUE,
-  near_hash         hash NOT NULL UNIQUE,
+  near_hash         hash NULL UNIQUE,
   timestamp         instant NOT NULL,
   size              int4 NOT NULL,
   gas_limit         u256 NOT NULL,
