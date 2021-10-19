@@ -15,6 +15,6 @@ export declare class PrehistoryIndexer {
     protected readonly archive: pg.Client;
     protected blockID: number;
     constructor(config: Config, network: NetworkConfig, logger: Logger);
-    start(blockID: number, mode?: string): Promise<void>;
+    start(startBlockID: number, mode?: string): Promise<void>;
     serialize(query: any): any;
 }

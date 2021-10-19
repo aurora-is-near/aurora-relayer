@@ -47,21 +47,21 @@ export class PrehistoryIndexer {
     this.archive = new pg.Client(network.archiveURL);
   }
 
-  async start(blockID: number, mode?: string): Promise<void> {
+  async start(startBlockID: number, mode?: string): Promise<void> {
     const contractID = AccountID.parse(this.config.engine).unwrap();
     await this.archive.connect();
 
     const step = Number(this.config.batchSize || 1000);
     for (
-      let offset = blockID;
-      offset < this.network.firstBlock;
-      offset += step
+      let blockID = startBlockID;
+      blockID < this.network.firstBlock;
+      blockID += step
     ) {
       const query = sql
         .select()
         .from('blocks')
         .where(
-          sql(`block_height >= ${offset} AND block_height < ${offset + step}`)
+          sql(`block_height >= ${blockID} AND block_height < ${blockID + step}`)
         )
         .limit(step);
       //console.debug(query.toString()); // DEBUG
@@ -73,6 +73,7 @@ export class PrehistoryIndexer {
       }
       for (let i = 0; i < step; i++) {
         const blockID_ = blockID + i;
+        if (blockID_ >= this.network.firstBlock) break;
         const blockHash = computeBlockHash(
           blockID_ as number,
           contractID.toString(),
