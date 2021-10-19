@@ -16,7 +16,7 @@ CREATE DOMAIN hash AS bytea
 
 DROP DOMAIN IF EXISTS instant CASCADE;
 CREATE DOMAIN instant AS timestamptz
-  CHECK (value > timestamptz '2015-07-30T00:00:00Z');
+  CHECK (value = timestamptz '1970-01-01T00:00:00Z' OR value > timestamptz '2015-07-30T00:00:00Z');
 
 DROP DOMAIN IF EXISTS u64 CASCADE;
 CREATE DOMAIN u64 AS numeric(20, 0)
