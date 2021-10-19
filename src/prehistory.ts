@@ -78,11 +78,14 @@ export class PrehistoryIndexer {
           contractID.toString(),
           this.network.chainID
         );
-        const parentHash = computeBlockHash(
-          (blockID_ as number) - 1,
-          contractID.toString(),
-          this.network.chainID
-        );
+        const parentHash =
+          blockID_ == 0
+            ? Buffer.alloc(32)
+            : computeBlockHash(
+                (blockID_ as number) - 1,
+                contractID.toString(),
+                this.network.chainID
+              );
 
         const row = rows[blockID_];
         const query = sql.insert('block', {
@@ -101,7 +104,7 @@ export class PrehistoryIndexer {
           state_root: Buffer.alloc(32),
           receipts_root: Buffer.alloc(32),
         });
-        console.log(this.serialize(query.toParams()));
+        console.log(this.serialize(query.toParams()) + ';');
       }
     } // for
     process.exit(0); // EX_OK
