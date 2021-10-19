@@ -95,7 +95,7 @@ export class PrehistoryIndexer {
           near_hash: row ? base58ToBytes(row.block_hash) : null,
           timestamp: row
             ? new Date(Number(row.block_timestamp) / 1_000_000.0).toISOString()
-            : '1970-01-01T00:00:00.000Z', // TODO?
+            : null,
           size: 0,
           gas_limit: 0,
           gas_used: 0,
