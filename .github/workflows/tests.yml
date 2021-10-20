@@ -9,7 +9,7 @@ name: Tests
 jobs:
   rpc-test:
     name: Simple RPC test
-    runs-on: self-hosted
+    runs-on: [self-hosted, heavy]
     steps:
       - name: Clone the repository
         uses: actions/checkout@v2
