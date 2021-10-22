@@ -94,9 +94,14 @@ export class PrehistoryIndexer {
           id: blockID_,
           hash: blockHash,
           near_hash: row ? base58ToBytes(row.block_hash) : null,
-          timestamp: row
-            ? new Date(Number(row.block_timestamp) / 1_000_000.0).toISOString()
-            : null,
+          timestamp:
+            blockID_ == 0
+              ? new Date(this.network.genesisDate!).toISOString()
+              : row
+              ? new Date(
+                  Number(row.block_timestamp) / 1_000_000.0
+                ).toISOString()
+              : null,
           size: 0,
           gas_limit: 0,
           gas_used: 0,
