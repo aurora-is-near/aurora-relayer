@@ -4,7 +4,6 @@ import { Config } from './config.js';
 import { ExpectedError } from './errors.js';
 import middleware from './middleware.js';
 import { DatabaseServer } from './servers/database.js';
-import { EphemeralServer } from './servers/ephemeral.js';
 import { SkeletonServer } from './servers/skeleton.js';
 
 import { bytesToHex, Engine } from '@aurora-is-near/engine';
@@ -122,8 +121,7 @@ function createServer(
   logger: Logger,
   engine: Engine
 ): connect.HandleFunction {
-  const serverClass = config.database ? DatabaseServer : EphemeralServer;
-  const server = new serverClass(config, logger, engine);
+  const server = new DatabaseServer(config, logger, engine);
   const methodList = Object.getOwnPropertyNames(SkeletonServer.prototype)
     .filter((id: string) => id !== 'constructor' && id[0] != '_')
     .map((id: string) => [id, (server as any)[id]]);

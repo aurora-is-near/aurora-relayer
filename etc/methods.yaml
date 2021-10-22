@@ -39,7 +39,7 @@ eth_accounts:
   comment:
   link: https://eth.wiki/json-rpc/API#eth_accounts
   implementations:
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_blockNumber:
   status: ok
@@ -47,7 +47,7 @@ eth_blockNumber:
   link: https://eth.wiki/json-rpc/API#eth_blockNumber
   implementations:
     - etc/schema/functions/eth_blockNumber.sql
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_call:
   status: ok
@@ -55,21 +55,21 @@ eth_call:
   link: https://eth.wiki/json-rpc/API#eth_call
   implementations:
     - src/servers/database.ts
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_chainId:
   status: ok
   comment: EIP-695
   link: https://eips.ethereum.org/EIPS/eip-695
   implementations:
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_coinbase:
   status: ok
   comment:
   link: https://eth.wiki/json-rpc/API#eth_coinbase
   implementations:
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_compileLLL:
   status: unsupported
@@ -111,7 +111,7 @@ eth_getBalance:
   comment:
   link: https://eth.wiki/json-rpc/API#eth_getBalance
   implementations:
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_getBlockByHash:
   status: ok
@@ -119,7 +119,7 @@ eth_getBlockByHash:
   link: https://eth.wiki/json-rpc/API#eth_getBlockByHash
   implementations:
     - etc/schema/functions/eth_getBlockByHash.sql
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_getBlockByNumber:
   status: ok
@@ -127,7 +127,7 @@ eth_getBlockByNumber:
   link: https://eth.wiki/json-rpc/API#eth_getBlockByNumber
   implementations:
     - etc/schema/functions/eth_getBlockByNumber.sql
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_getBlockTransactionCountByHash:
   status: ok
@@ -135,7 +135,7 @@ eth_getBlockTransactionCountByHash:
   link: https://eth.wiki/json-rpc/API#eth_getBlockTransactionCountByHash
   implementations:
     - etc/schema/functions/eth_getBlockTransactionCountByHash.sql
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_getBlockTransactionCountByNumber:
   status: ok
@@ -143,14 +143,14 @@ eth_getBlockTransactionCountByNumber:
   link: https://eth.wiki/json-rpc/API#eth_getBlockTransactionCountByNumber
   implementations:
     - etc/schema/functions/eth_getBlockTransactionCountByNumber.sql
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_getCode:
   status: ok
   comment:
   link: https://eth.wiki/json-rpc/API#eth_getCode
   implementations:
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_getCompilers:
   status: ok
@@ -165,7 +165,7 @@ eth_getFilterChanges:
   link: https://eth.wiki/json-rpc/API#eth_getFilterChanges
   implementations:
     - etc/schema/functions/eth_getFilterChanges.sql
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_getFilterLogs:
   status: wip
@@ -173,14 +173,14 @@ eth_getFilterLogs:
   link: https://eth.wiki/json-rpc/API#eth_getFilterLogs
   implementations:
     - etc/schema/functions/eth_getFilterLogs.sql
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_getLogs:
   status: wip
   comment:
   link: https://eth.wiki/json-rpc/API#eth_getLogs
   implementations:
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_getProof:
   status: unsupported
@@ -194,7 +194,7 @@ eth_getStorageAt:
   comment:
   link: https://eth.wiki/json-rpc/API#eth_getStorageAt
   implementations:
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_getTransactionByBlockHashAndIndex:
   status: ok
@@ -202,7 +202,7 @@ eth_getTransactionByBlockHashAndIndex:
   link: https://eth.wiki/json-rpc/API#eth_getTransactionByBlockHashAndIndex
   implementations:
     - etc/schema/functions/eth_getTransactionByBlockHashAndIndex.sql
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_getTransactionByBlockNumberAndIndex:
   status: ok
@@ -210,7 +210,7 @@ eth_getTransactionByBlockNumberAndIndex:
   link: https://eth.wiki/json-rpc/API#eth_getTransactionByBlockNumberAndIndex
   implementations:
     - etc/schema/functions/eth_getTransactionByBlockNumberAndIndex.sql
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_getTransactionByHash:
   status: wip
@@ -218,7 +218,7 @@ eth_getTransactionByHash:
   link: https://eth.wiki/json-rpc/API#eth_getTransactionByHash
   implementations:
     - etc/schema/functions/eth_getTransactionByHash.sql
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_getTransactionCount:
   status: ok
@@ -226,14 +226,14 @@ eth_getTransactionCount:
   link: https://eth.wiki/json-rpc/API#eth_getTransactionCount
   implementations:
     - etc/schema/functions/eth_getTransactionCount.sql
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_getTransactionReceipt:
   status: wip
   comment:
   link: https://eth.wiki/json-rpc/API#eth_getTransactionReceipt
   implementations:
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_getUncleByBlockHashAndIndex:
   status: ok
@@ -257,7 +257,7 @@ eth_getUncleCountByBlockHash:
   link: https://eth.wiki/json-rpc/API#eth_getUncleCountByBlockHash
   implementations:
     - etc/schema/functions/eth_getUncleCountByBlockHash.sql
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_getUncleCountByBlockNumber:
   status: ok
@@ -265,7 +265,7 @@ eth_getUncleCountByBlockNumber:
   link: https://eth.wiki/json-rpc/API#eth_getUncleCountByBlockNumber
   implementations:
     - etc/schema/functions/eth_getUncleCountByBlockNumber.sql
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_getWork:
   status: unsupported
@@ -294,7 +294,7 @@ eth_newBlockFilter:
   link: https://eth.wiki/json-rpc/API#eth_newBlockFilter
   implementations:
     - etc/schema/functions/eth_newBlockFilter.sql
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_newFilter:
   status: wip
@@ -302,7 +302,7 @@ eth_newFilter:
   link: https://eth.wiki/json-rpc/API#eth_newFilter
   implementations:
     - etc/schema/functions/eth_newFilter.sql
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_newPendingTransactionFilter:
   status: ok
@@ -310,7 +310,7 @@ eth_newPendingTransactionFilter:
   link: https://eth.wiki/json-rpc/API#eth_newPendingTransactionFilter
   implementations:
     - etc/schema/functions/eth_newPendingTransactionFilter.sql
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_pendingTransactions:
   status: ok
@@ -331,7 +331,7 @@ eth_sendRawTransaction:
   comment:
   link: https://eth.wiki/json-rpc/API#eth_sendRawTransaction
   implementations:
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 eth_sendTransaction:
   status: unsupported
@@ -388,7 +388,7 @@ eth_uninstallFilter:
   link: https://eth.wiki/json-rpc/API#eth_uninstallFilter
   implementations:
     - etc/schema/functions/eth_uninstallFilter.sql
-    - src/servers/ephemeral.ts
+    - src/servers/skeleton.ts
 
 txpool_content:
   status: ok
