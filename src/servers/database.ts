@@ -9,6 +9,7 @@ import {
   TransactionError,
   UnexpectedError,
   UnknownFilter,
+  UnsupportedMethod,
 } from '../errors.js';
 import { compileTopics } from '../topics.js';
 
@@ -596,6 +597,9 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_sendRawTransaction(transaction: web3.Data): Promise<web3.Data> {
+    if (!this.config.writable) {
+      throw new UnsupportedMethod('eth_sendRawTransaction');
+    }
     const transactionBytes = Buffer.from(hexToBytes(transaction));
     const transactionHash = keccak256(transactionBytes);
     return (await this.engine.submit(transactionBytes)).match({

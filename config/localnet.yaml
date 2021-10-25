@@ -6,3 +6,4 @@ endpoint: http://host.docker.internal:3030
 engine: aurora.test.near
 signer: test.near
 signerKey: ~/.near/validator_key.json
+writable: true

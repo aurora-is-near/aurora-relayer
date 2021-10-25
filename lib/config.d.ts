@@ -17,6 +17,7 @@ export interface Config {
     };
     block?: number | string;
     batchSize?: number | string;
+    writable?: boolean;
 }
 export declare const localConfig: Config;
 export declare function parseConfig(options: Config, config: Config, env: ConnectEnv): [NetworkConfig, Config];

@@ -6,3 +6,4 @@ endpoint: https://rpc.betanet.near.org
 engine: aurora
 signer: relay.aurora
 signerKey:
+writable: true

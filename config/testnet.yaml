@@ -6,3 +6,4 @@ endpoint: https://archival-rpc.testnet.near.org
 engine: aurora
 signer: relay.aurora
 signerKey:
+writable: true
