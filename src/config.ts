@@ -13,6 +13,7 @@ export interface Config {
   engine: string;
   signer: string;
   signerKey?: string;
+  signerKeys?: string[];
   blacklist: { ipv4?: string[]; ipv6?: string[] };
   block?: number | string;
   batchSize?: number | string;
@@ -29,6 +30,7 @@ export const localConfig: Config = {
   engine: 'aurora.test.near',
   signer: 'test.near',
   signerKey: undefined,
+  signerKeys: [],
   blacklist: { ipv4: [], ipv6: [] },
 };
 
@@ -67,6 +69,7 @@ export function parseConfig(
         network.contractID,
       signer: options.signer || env.NEAR_MASTER_ACCOUNT || config.signer,
       signerKey: options.signerKey || config.signerKey,
+      signerKeys: config.signerKeys || [],
       blacklist: config.blacklist || {},
       batchSize: parseInt(
         (options.batchSize as string) || (config.batchSize as string) || '1000'

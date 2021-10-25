@@ -10,6 +10,7 @@ export interface Config {
     engine: string;
     signer: string;
     signerKey?: string;
+    signerKeys?: string[];
     blacklist: {
         ipv4?: string[];
         ipv6?: string[];

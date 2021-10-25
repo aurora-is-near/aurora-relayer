@@ -90,7 +90,10 @@ async function main(argv: string[], env: NodeJS.ProcessEnv): Promise<void> {
     env
   );
 
-  if (config.signerKey) {
+  if (Array.isArray(config.signerKeys) && config.signerKeys.length > 0) {
+    engine.keyStore.loadKeyFiles(config.signerKeys);
+    console.error(`Loaded signer key files ${config.signerKeys.join(', ')}.`);
+  } else if (config.signerKey) {
     engine.keyStore.loadKeyFile(config.signerKey);
     console.error(`Loaded signer key file ${config.signerKey}.`);
   }
