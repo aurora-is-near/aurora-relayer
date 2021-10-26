@@ -642,14 +642,17 @@ export class DatabaseServer extends SkeletonServer {
         return bytesToHex(transactionHash);
       },
       err: (code) => {
+        const ip = request.headers['cf-connecting-ip'];
         if (this.config.errorLog) {
-          const ip = request.headers['cf-connecting-ip'];
           const country = request.headers['cf-ipcountry'];
           fs.appendFileSync(this.config.errorLog, `${ip}\t${country}\t${code}`);
         }
         switch (code) {
           case 'ERR_INTRINSIC_GAS':
             throw new TransactionError('intrinsic gas too low');
+          case 'ERR_INCORRECT_NONCE':
+            this.config.blacklist.add(ip); // temporary zero tolerance policy
+            throw new TransactionError(code);
           default: {
             if (!code.startsWith('ERR_')) {
               throw new UnexpectedError(code);
