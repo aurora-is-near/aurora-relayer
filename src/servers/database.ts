@@ -636,8 +636,26 @@ export class DatabaseServer extends SkeletonServer {
     const transactionHash = keccak256(transactionBytes);
     return (await this.engine.submit(transactionBytes)).match({
       ok: (result) => {
-        if (!result.result.status) {
-          throw new RevertError(result.result.output);
+        // Check if an error occurred
+        if (result.output().isErr()) {
+          if (result.result.kind === 'LegacyExecutionResult') {
+            // legacy SubmitResult just put any error message in the output bytes
+            throw new RevertError(result.result.output);
+          } else {
+            // new versions of SubmitResult carry error information in the status
+            if (result.result.status.revert) {
+              const message = Buffer.from(result.result.status.revert.output);
+              throw new RevertError(message);
+            } else if (result.result.status.outOfFund) {
+              throw new TransactionError('Out Of Fund');
+            } else if (result.result.status.outOfGas) {
+              throw new TransactionError('Out Of Gas');
+            } else if (result.result.status.outOfOffset) {
+              throw new TransactionError('Out Of Offset');
+            } else if (result.result.status.callTooDeep) {
+              throw new TransactionError('Call Too Deep');
+            }
+          }
         }
         return bytesToHex(transactionHash);
       },
