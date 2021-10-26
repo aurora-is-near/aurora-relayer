@@ -18,6 +18,7 @@ export interface Config {
   block?: number | string;
   batchSize?: number | string;
   writable?: boolean;
+  errorLog?: string;
 }
 
 export const localConfig: Config = {
@@ -34,6 +35,7 @@ export const localConfig: Config = {
   signerKeys: [],
   blacklist: { ipv4: [], ipv6: [] },
   writable: true,
+  errorLog: undefined,
 };
 
 export function parseConfig(
@@ -77,6 +79,7 @@ export function parseConfig(
         (options.batchSize as string) || (config.batchSize as string) || '1000'
       ),
       writable: config.writable !== undefined ? config.writable : true,
+      errorLog: config.errorLog,
     },
   ];
 }

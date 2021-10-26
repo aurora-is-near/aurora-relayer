@@ -24,6 +24,7 @@ import {
   intToHex,
 } from '@aurora-is-near/engine';
 import pg from 'pg';
+import fs from 'fs';
 
 import { keccak256 } from 'ethereumjs-util';
 //import { assert } from 'node:console';
@@ -625,7 +626,7 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_sendRawTransaction(
-    _request: any,
+    request: any,
     transaction: web3.Data
   ): Promise<web3.Data> {
     if (!this.config.writable) {
@@ -641,6 +642,11 @@ export class DatabaseServer extends SkeletonServer {
         return bytesToHex(transactionHash);
       },
       err: (code) => {
+        if (this.config.errorLog) {
+          const ip = request.headers['cf-connecting-ip'];
+          const country = request.headers['cf-ipcountry'];
+          fs.appendFileSync(this.config.errorLog, `${ip}\t${country}\t${code}`);
+        }
         switch (code) {
           case 'ERR_INTRINSIC_GAS':
             throw new TransactionError('intrinsic gas too low');
