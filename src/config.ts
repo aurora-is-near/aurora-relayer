@@ -14,7 +14,7 @@ export interface Config {
   signer: string;
   signerKey?: string;
   signerKeys?: string[];
-  blacklist: { ipv4?: string[]; ipv6?: string[] };
+  blacklist: Set<string>;
   block?: number | string;
   batchSize?: number | string;
   writable?: boolean;
@@ -33,7 +33,7 @@ export const localConfig: Config = {
   signer: 'test.near',
   signerKey: undefined,
   signerKeys: [],
-  blacklist: { ipv4: [], ipv6: [] },
+  blacklist: new Set(),
   writable: true,
   errorLog: undefined,
 };
@@ -74,7 +74,7 @@ export function parseConfig(
       signer: options.signer || env.NEAR_MASTER_ACCOUNT || config.signer,
       signerKey: options.signerKey || config.signerKey,
       signerKeys: config.signerKeys || [],
-      blacklist: config.blacklist || {},
+      blacklist: new Set(config.blacklist || []),
       batchSize: parseInt(
         (options.batchSize as string) || (config.batchSize as string) || '1000'
       ),

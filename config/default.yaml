@@ -7,5 +7,3 @@ engine:
 signer:
 signerKey:
 blacklist:
-  ipv4:
-  ipv6:
