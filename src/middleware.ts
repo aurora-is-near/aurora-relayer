@@ -42,10 +42,13 @@ export function logger(logger: Logger): any {
 }
 
 export function blacklistIPs(config: Config): any {
-  const ipv4 = config?.blacklist?.ipv4 || [];
-  return IpFilter(ipv4, {
+  const ips = (config?.blacklist?.ipv4 || []).concat(
+    config?.blacklist?.ipv6 || []
+  );
+  return IpFilter(ips, {
     mode: 'deny',
     log: false,
+    trustProxy: true,
   });
 }
 
