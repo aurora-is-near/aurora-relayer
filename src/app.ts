@@ -72,6 +72,7 @@ class Method extends jayson.Method {
     const args = (requestParams || []) as any[];
     const result: Promise<any> = (this.handler as any).call(
       this.server,
+      request,
       ...args
     );
     result

@@ -68,109 +68,157 @@ export type LogObject =
   | Record<string, boolean | Quantity | Data | Data[] | null>;
 
 export interface Service {
-  web3_clientVersion(): Promise<string>;
-  web3_sha3(input: Data): Promise<Data>;
-  net_listening(): Promise<boolean>;
-  net_peerCount(): Promise<Quantity>;
-  net_version(): Promise<string>;
-  eth_accounts(): Promise<Data[]>;
-  eth_blockNumber(): Promise<Quantity>;
+  web3_clientVersion(_request: any): Promise<string>;
+  web3_sha3(_request: any, input: Data): Promise<Data>;
+  net_listening(_request: any): Promise<boolean>;
+  net_peerCount(_request: any): Promise<Quantity>;
+  net_version(_request: any): Promise<string>;
+  eth_accounts(_request: any): Promise<Data[]>;
+  eth_blockNumber(_request: any): Promise<Quantity>;
   eth_call(
+    _request: any,
     transaction: TransactionForCall,
     blockNumber?: Quantity | Tag
   ): Promise<Data>;
-  eth_chainId(): Promise<Quantity>; // EIP-695
-  eth_coinbase(): Promise<Data>;
-  eth_compileLLL(code: string): Promise<Data>;
-  eth_compileSerpent(code: string): Promise<Data>;
-  eth_compileSolidity(code: string): Promise<Data>;
+  eth_chainId(_request: any): Promise<Quantity>; // EIP-695
+  eth_coinbase(_request: any): Promise<Data>;
+  eth_compileLLL(_request: any, code: string): Promise<Data>;
+  eth_compileSerpent(_request: any, code: string): Promise<Data>;
+  eth_compileSolidity(_request: any, code: string): Promise<Data>;
   eth_estimateGas(
+    _request: any,
     transaction: TransactionForCall,
     blockNumber?: Quantity | Tag
   ): Promise<Quantity>;
-  eth_gasPrice(): Promise<Quantity>;
+  eth_gasPrice(_request: any): Promise<Quantity>;
   eth_getBalance(
+    _request: any,
     address: Data,
     blockNumber?: Quantity | Tag
   ): Promise<Quantity>;
   eth_getBlockByHash(
+    _request: any,
     blockHash: Data,
     fullObject?: boolean
   ): Promise<BlockResult | null>;
   eth_getBlockByNumber(
+    _request: any,
     blockNumber: Quantity | Tag,
     fullObject?: boolean
   ): Promise<BlockResult | null>;
-  eth_getBlockTransactionCountByHash(blockHash: Data): Promise<Quantity | null>;
+  eth_getBlockTransactionCountByHash(
+    _request: any,
+    blockHash: Data
+  ): Promise<Quantity | null>;
   eth_getBlockTransactionCountByNumber(
+    _request: any,
     blockNumber: Quantity | Tag
   ): Promise<Quantity | null>;
-  eth_getCode(address: Data, blockNumber: Quantity | Tag): Promise<Data>;
-  eth_getCompilers(): Promise<string[]>;
-  eth_getFilterChanges(filterID: Quantity): Promise<LogObject[]>;
-  eth_getFilterLogs(filterID: Quantity): Promise<LogObject[]>;
-  eth_getLogs(filter: FilterOptions): Promise<LogObject[]>;
+  eth_getCode(
+    _request: any,
+    address: Data,
+    blockNumber: Quantity | Tag
+  ): Promise<Data>;
+  eth_getCompilers(__request: any, request: any): Promise<string[]>;
+  eth_getFilterChanges(_request: any, filterID: Quantity): Promise<LogObject[]>;
+  eth_getFilterLogs(_request: any, filterID: Quantity): Promise<LogObject[]>;
+  eth_getLogs(_request: any, filter: FilterOptions): Promise<LogObject[]>;
   eth_getProof(
+    _request: any,
     address: Data,
     keys: Data[],
     blockNumber: Quantity | Tag
   ): Promise<ProofResult>; // EIP-1186
   eth_getStorageAt(
+    _request: any,
     address: Data,
     key: Quantity,
     blockNumber: Quantity | Tag
   ): Promise<Data>;
   eth_getTransactionByBlockHashAndIndex(
+    _request: any,
     blockHash: Data,
     transactionIndex: Quantity
   ): Promise<TransactionResult | null>;
   eth_getTransactionByBlockNumberAndIndex(
+    _request: any,
     blockNumber: Quantity | Tag,
     transactionIndex: Quantity
   ): Promise<TransactionResult | null>;
   eth_getTransactionByHash(
+    _request: any,
     transactionHash: Data
   ): Promise<TransactionResult | null>;
   eth_getTransactionCount(
+    _request: any,
     address: Data,
     blockNumber: Quantity | Tag
   ): Promise<Quantity>;
   eth_getTransactionReceipt(
+    _request: any,
     transactionHash: string
   ): Promise<TransactionReceipt | null>;
   eth_getUncleByBlockHashAndIndex(
+    _request: any,
     blockHash: Data,
     uncleIndex: Quantity
   ): Promise<BlockResult | null>;
   eth_getUncleByBlockNumberAndIndex(
+    _request: any,
     blockNumber: Quantity | Tag,
     uncleIndex: Quantity
   ): Promise<BlockResult | null>;
-  eth_getUncleCountByBlockHash(blockHash: Data): Promise<Quantity | null>;
+  eth_getUncleCountByBlockHash(
+    _request: any,
+    blockHash: Data
+  ): Promise<Quantity | null>;
   eth_getUncleCountByBlockNumber(
+    _request: any,
     blockNumber: Quantity | Tag
   ): Promise<Quantity | null>;
-  eth_getWork(): Promise<Data[]>;
-  eth_hashrate(): Promise<Quantity>;
-  eth_mining(): Promise<boolean>;
-  eth_newBlockFilter(): Promise<Quantity>;
-  eth_newFilter(filter: FilterOptions): Promise<Quantity>;
-  eth_newPendingTransactionFilter(): Promise<Quantity>;
-  eth_pendingTransactions(): Promise<Record<string, string | number | null>[]>; // undocumented
-  eth_protocolVersion(): Promise<string>;
-  eth_sendRawTransaction(transaction: Data): Promise<Data>;
-  eth_sendTransaction(transaction: TransactionForSend): Promise<Data>;
-  eth_sign(account: Data, message: Data): Promise<Data>;
-  eth_signTransaction(transaction: TransactionForSend): Promise<Data>;
-  eth_signTypedData(address: Data, data: TypedData): Promise<Data>; // EIP-712
-  eth_submitHashrate(hashrate: Quantity, clientID: Quantity): Promise<boolean>;
-  eth_submitWork(nonce: Data, powHash: Data, mixDigest: Data): Promise<boolean>;
-  eth_syncing(): Promise<SyncStatus | false>;
-  eth_uninstallFilter(filterID: Quantity): Promise<boolean>;
-  txpool_content(): Promise<Record<string, any>>;
-  txpool_inspect(): Promise<Record<string, any>>;
-  txpool_status(): Promise<Record<string, number>>;
+  eth_getWork(_request: any): Promise<Data[]>;
+  eth_hashrate(_request: any): Promise<Quantity>;
+  eth_mining(_request: any): Promise<boolean>;
+  eth_newBlockFilter(_request: any): Promise<Quantity>;
+  eth_newFilter(_request: any, filter: FilterOptions): Promise<Quantity>;
+  eth_newPendingTransactionFilter(_request: any): Promise<Quantity>;
+  eth_pendingTransactions(
+    _request: any
+  ): Promise<Record<string, string | number | null>[]>; // undocumented
+  eth_protocolVersion(_request: any): Promise<string>;
+  eth_sendRawTransaction(_request: any, transaction: Data): Promise<Data>;
+  eth_sendTransaction(
+    _request: any,
+    transaction: TransactionForSend
+  ): Promise<Data>;
+  eth_sign(_request: any, account: Data, message: Data): Promise<Data>;
+  eth_signTransaction(
+    _request: any,
+    transaction: TransactionForSend
+  ): Promise<Data>;
+  eth_signTypedData(
+    _request: any,
+    address: Data,
+    data: TypedData
+  ): Promise<Data>; // EIP-712
+  eth_submitHashrate(
+    _request: any,
+    hashrate: Quantity,
+    clientID: Quantity
+  ): Promise<boolean>;
+  eth_submitWork(
+    _request: any,
+    nonce: Data,
+    powHash: Data,
+    mixDigest: Data
+  ): Promise<boolean>;
+  eth_syncing(_request: any): Promise<SyncStatus | false>;
+  eth_uninstallFilter(_request: any, filterID: Quantity): Promise<boolean>;
+  txpool_content(_request: any): Promise<Record<string, any>>;
+  txpool_inspect(_request: any): Promise<Record<string, any>>;
+  txpool_status(_request: any): Promise<Record<string, number>>;
   parity_pendingTransactions(
+    _request: any,
     limit?: number | null,
     filter?: Record<string, any>
   ): Promise<any[]>;
