@@ -643,7 +643,7 @@ export class DatabaseServer extends SkeletonServer {
       },
       err: (code) => {
         const ip = request.headers['cf-connecting-ip'];
-        if (this.config.errorLog) {
+        if (this.config.errorLog && !code.includes('<html>')) {
           const country = request.headers['cf-ipcountry'];
           fs.appendFileSync(
             this.config.errorLog,
