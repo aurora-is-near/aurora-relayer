@@ -34,5 +34,5 @@ export declare class TransactionError extends ExpectedError {
     constructor(message: string);
 }
 export declare class RevertError extends ExpectedError {
-    constructor(reason: Uint8Array);
+    constructor(reason: string);
 }

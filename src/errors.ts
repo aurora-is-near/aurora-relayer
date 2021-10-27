@@ -97,8 +97,8 @@ export class TransactionError extends ExpectedError {
 }
 
 export class RevertError extends ExpectedError {
-  constructor(reason: Uint8Array) {
-    super(3, `execution reverted:`, reason);
+  constructor(reason: string) {
+    super(3, `execution reverted: ${reason}`);
     Object.setPrototypeOf(this, RevertError.prototype);
   }
 }
