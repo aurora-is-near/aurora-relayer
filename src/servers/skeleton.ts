@@ -6,6 +6,7 @@ import { unimplemented, unsupported } from '../errors.js';
 
 import { bytesToHex, Engine, intToHex } from '@aurora-is-near/engine';
 import { keccakFromHexString } from 'ethereumjs-util';
+import { Address6 } from 'ip-address';
 import { Logger } from 'pino';
 
 import { spawn } from 'child_process';
@@ -28,6 +29,11 @@ export abstract class SkeletonServer implements web3.Service {
       process.env.CF_ACCOUNT_ID &&
       process.env.CF_LIST_ID
     ) {
+      if (ip.includes(':')) {
+        ip =
+          new Address6(ip).canonicalForm().split(':').slice(0, 4).join(':') +
+          '::/64';
+      }
       const subprocess = spawn(
         '/srv/aurora/relayer/util/ban', // FIXME: don't use absolute path
         [ip, reason || ''],
