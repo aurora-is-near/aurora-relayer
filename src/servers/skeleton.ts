@@ -6,8 +6,10 @@ import { unimplemented, unsupported } from '../errors.js';
 
 import { bytesToHex, Engine, intToHex } from '@aurora-is-near/engine';
 import { keccakFromHexString } from 'ethereumjs-util';
-import { Address6 } from 'ip-address';
 import { Logger } from 'pino';
+
+import ipAddress from 'ip-address';
+const { Address6 } = ipAddress;
 
 import { spawn } from 'child_process';
 
