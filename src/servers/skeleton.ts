@@ -8,6 +8,8 @@ import { bytesToHex, Engine, intToHex } from '@aurora-is-near/engine';
 import { keccakFromHexString } from 'ethereumjs-util';
 import { Logger } from 'pino';
 
+import { spawn } from 'child_process';
+
 export abstract class SkeletonServer implements web3.Service {
   constructor(
     public readonly config: Config,
@@ -18,6 +20,28 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   protected abstract _init(): Promise<void>;
+
+  protected async _banIP(ip: string, reason?: string): Promise<void> {
+    this.config.blacklist.add(ip);
+    if (
+      process.env.CF_API_TOKEN &&
+      process.env.CF_ACCOUNT_ID &&
+      process.env.CF_LIST_ID
+    ) {
+      const subprocess = spawn(
+        '/srv/aurora/relayer/util/ban', // FIXME: don't use absolute path
+        [ip, reason || ''],
+        {
+          shell: false,
+          detached: true,
+          stdio: 'ignore',
+          timeout: 60 * 1000,
+          env: process.env,
+        }
+      );
+      subprocess.unref();
+    }
+  }
 
   // web3_*
 

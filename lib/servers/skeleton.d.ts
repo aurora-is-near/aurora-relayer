@@ -8,6 +8,7 @@ export declare abstract class SkeletonServer implements web3.Service {
     readonly engine: Engine;
     constructor(config: Config, logger: Logger, engine: Engine);
     protected abstract _init(): Promise<void>;
+    protected _banIP(ip: string, reason?: string): Promise<void>;
     web3_clientVersion(_request: any): Promise<string>;
     web3_sha3(_request: any, input: web3.Data): Promise<web3.Data>;
     net_listening(_request: any): Promise<boolean>;

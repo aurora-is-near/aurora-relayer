@@ -654,7 +654,7 @@ export class DatabaseServer extends SkeletonServer {
           case 'ERR_INTRINSIC_GAS':
             throw new TransactionError('intrinsic gas too low');
           case 'ERR_INCORRECT_NONCE':
-            this.config.blacklist.add(ip); // temporary zero tolerance policy
+            this._banIP(ip, 'ERR_INCORRECT_NONCE'); // temporarily heavy ban hammer
             throw new TransactionError(code);
           default: {
             if (!code.startsWith('ERR_')) {

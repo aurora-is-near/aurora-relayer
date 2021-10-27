@@ -14,7 +14,11 @@ declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace NodeJS {
     // eslint-disable-next-line @typescript-eslint/no-empty-interface
-    interface ProcessEnv extends ConnectEnv {}
+    interface ProcessEnv extends ConnectEnv {
+      CF_API_TOKEN?: string; // Cloudflare API token
+      CF_ACCOUNT_ID?: string; // Cloudflare account ID
+      CF_LIST_ID?: string; // Cloudflare IP blacklist ID
+    }
   }
 }
 
