@@ -64,7 +64,6 @@
     "express-pino-logger": "^6.0.0",
     "got": "^11.8.2",
     "helmet": "^4.5.0",
-    "ip-address": "^8.1.0",
     "jayson": "aurora-is-near/jayson#d4bd9da",
     "jest": "^27.0.4",
     "js-yaml": "^4.1.0",
