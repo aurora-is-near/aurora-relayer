@@ -60,22 +60,36 @@ func main() {
 	channel := jhttp.NewChannel(endpointURL, nil)
 	client := jrpc2.NewClient(channel, nil)
 
+	prevBlockNumber := int64(0)
 	for {
-		response, err := client.Call(ctx, "status", []string{})
+		nearResponse, err := client.Call(ctx, "status", []string{})
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s", err)
 			os.Exit(69) // EX_UNAVAILABLE
 		}
 
-		var status NEARStatus
-		if err := response.UnmarshalResult(&status); err != nil {
+		var nearStatus NEARStatus
+		if err := nearResponse.UnmarshalResult(&nearStatus); err != nil {
 			fmt.Fprintf(os.Stderr, "%s", err)
 			os.Exit(76) // EX_PROTOCOL
 		}
-		blockNumber := status.SyncInfo.LatestBlockHeight
-		//fmt.Println(blockNumber)
 
-		_, err = api.WriteWorkersKV(ctx, cfNamespaceID, "eth_blockNumber", []byte(strconv.FormatInt(blockNumber, 10)))
+		blockNumber := nearStatus.SyncInfo.LatestBlockHeight
+		if blockNumber <= prevBlockNumber {
+			continue // enforce monotonicity invariant
+		}
+		prevBlockNumber = blockNumber
+		fmt.Println(blockNumber)
+
+		kvRequest := cloudflare.WorkersKVBulkWriteRequest{
+			{
+				Key:           "eth_blockNumber",
+				Value:         strconv.FormatInt(blockNumber, 10),
+				ExpirationTTL: 60,
+				Metadata:      nearStatus.SyncInfo.LatestBlockTime,
+			},
+		}
+		_, err = api.WriteWorkersKVBulk(ctx, cfNamespaceID, kvRequest)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "%s", err)
 			os.Exit(69) // EX_UNAVAILABLE
