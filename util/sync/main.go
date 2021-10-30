@@ -8,22 +8,11 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/auroraisnear/aurora-relayer/util/near"
 	"github.com/cloudflare/cloudflare-go"
 	"github.com/creachadair/jrpc2"
 	"github.com/creachadair/jrpc2/jhttp"
 )
-
-type NEARSyncInfo struct {
-	LatestBlockHeight int64  `json:"latest_block_height"`
-	LatestBlockTime   string `json:"latest_block_time"`
-}
-
-type NEARStatus struct {
-	ChainID               string       `json:"chain_id"`
-	LatestProtocolVersion int          `json:"latest_protocol_version"`
-	ProtocolVersion       int          `json:"protocol_version"`
-	SyncInfo              NEARSyncInfo `json:"sync_info"`
-}
 
 func main() {
 	if len(os.Args) < 2 {
@@ -68,7 +57,7 @@ func main() {
 			os.Exit(69) // EX_UNAVAILABLE
 		}
 
-		var nearStatus NEARStatus
+		var nearStatus near.NEARStatus
 		if err := nearResponse.UnmarshalResult(&nearStatus); err != nil {
 			fmt.Fprintf(os.Stderr, "%s", err)
 			os.Exit(76) // EX_PROTOCOL

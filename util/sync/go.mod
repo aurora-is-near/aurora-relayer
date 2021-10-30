@@ -2,6 +2,9 @@ module util
 
 go 1.17
 
+replace github.com/auroraisnear/aurora-relayer/util/near v0.0.0 => ../near
+require github.com/auroraisnear/aurora-relayer/util/near v0.0.0
+
 require (
 	github.com/cloudflare/cloudflare-go v0.26.0
 	github.com/creachadair/jrpc2 v0.30.1
