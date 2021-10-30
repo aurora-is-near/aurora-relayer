@@ -5,22 +5,19 @@ UPXFLAGS = --quiet --best --lzma
 
 # The default target:
 
-all: ban sync
+all: sync
 
 .PHONY: all
 
 # Output executables:
 
-ban: ban.go
-	GOOS=linux GOARCH=amd64 $(GO) build $(GOFLAGS) -o $@ $< && $(UPX) $(UPXFLAGS) $@
-
-sync: sync.go
+sync: main.go
 	GOOS=linux GOARCH=amd64 $(GO) build $(GOFLAGS) -o $@ $< && $(UPX) $(UPXFLAGS) $@
 
 # Rules for development:
 
 clean:
-	@rm -Rf ban sync *~
+	@rm -Rf sync *~
 
 distclean: clean
 
