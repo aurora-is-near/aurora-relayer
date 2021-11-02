@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* This is free and unencumbered software released into the public domain. */
 
-import { createApp } from './app.js';
+import { createApp } from './ws_app.js';
 import { Config, parseConfig } from './config.js';
 
 import { ConnectEnv, Engine } from '@aurora-is-near/engine';
@@ -30,7 +30,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv): Promise<void> {
       '--database <url>',
       `specify PostgreSQL database URL (default: none)`
     )
-    .option('--port <port>', `specify port to listen to (default: ${8545})`)
+    .option('--ws_port <port>', `specify port to listen to (default: ${80})`)
     .option(
       '--network <network>',
       `specify NEAR network ID (default: "${env.NEAR_ENV || 'local'}")`
@@ -102,14 +102,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv): Promise<void> {
     console.error(`Loaded signer key file ${config.signerKey}.`);
   }
 
-  const app = await createApp(config, logger, engine);
-  app.listen(config.port, () => {
-    if (config.verbose || config.debug) {
-      console.error(
-        `Relayer for the NEAR ${network.label} listening at http://localhost:${config.port}...`
-      );
-    }
-  });
+  await createApp(config, logger, engine);
 }
 
 main(process.argv, process.env).catch((error: Error) => {

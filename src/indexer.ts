@@ -122,7 +122,7 @@ export class Indexer {
         await this.pgClient.query(query.toParams());
       } catch (error) {
         console.error('indexBlock', error);
-        if (this.config.debug) this.logger.error(error);
+        if (this.config.debug) this.logger.error(error as Error);
         return; // abort block
       }
       // Index all transactions contained in this block:
@@ -197,7 +197,7 @@ export class Indexer {
       transactionID = parseInt(id as string);
     } catch (error) {
       console.error('indexTransaction', error);
-      if (this.config.debug) this.logger.error(error);
+      if (this.config.debug) this.logger.error(error as Error);
       return;
     }
 
@@ -247,7 +247,7 @@ export class Indexer {
       await this.pgClient.query(query.toParams());
     } catch (error) {
       console.error('indexEvent', error);
-      if (this.config.debug) this.logger.error(error);
+      if (this.config.debug) this.logger.error(error as Error);
       return;
     }
   }

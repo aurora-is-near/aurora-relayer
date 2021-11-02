@@ -42,5 +42,22 @@ services:
     volumes:
       - ./config:/srv/aurora/relayer/config
     entrypoint: ["node", "lib/index.js"]
+  ws:
+    container_name: "${NEAR_ENV:-testnet}_ws"
+    image: auroraisnear/relayer-endpoint
+    restart: unless-stopped
+    init: true
+    depends_on:
+      - database
+    environment:
+      - WAIT_HOSTS=database:5432
+      - WAIT_BEFORE=1
+      - NEAR_ENV=${NEAR_ENV:-testnet}
+      - NODE_ENV=${NEAR_ENV:-testnet}
+    ports:
+      - '127.0.0.1:80:80'
+    volumes:
+      - ./config:/srv/aurora/relayer/config
+    entrypoint: ["node", "lib/ws.js"]
 volumes:
   database:

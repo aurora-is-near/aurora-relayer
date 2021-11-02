@@ -51,6 +51,7 @@
   "repository": "https://github.com/aurora-is-near/aurora-relayer.git",
   "dependencies": {
     "@aurora-is-near/engine": "aurora-is-near/aurora.js#6d37aeb",
+    "@types/ws": "^8.2.0",
     "cloudflare": "^2.9.1",
     "commander": "^7.2.0",
     "config": "^3.3.6",
@@ -71,7 +72,8 @@
     "pg": "^8.6.0",
     "rlp": "^2.2.6",
     "sql-bricks-postgres": "^0.5.0",
-    "ts-jest": "^27.0.3"
+    "ts-jest": "^27.0.3",
+    "ws": "^8.2.3"
   },
   "devDependencies": {
     "@tsconfig/node14": "^1.0.1",
