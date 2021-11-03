@@ -1,6 +1,6 @@
 import * as web3 from '../web3.js';
 import { Config } from '../config.js';
-import { Engine } from '@aurora-is-near/engine';
+import { Address, Engine } from '@aurora-is-near/engine';
 import { Logger } from 'pino';
 export declare abstract class SkeletonServer implements web3.Service {
     readonly config: Config;
@@ -8,6 +8,11 @@ export declare abstract class SkeletonServer implements web3.Service {
     readonly engine: Engine;
     constructor(config: Config, logger: Logger, engine: Engine);
     protected abstract _init(): Promise<void>;
+    protected _isBannedEOA(address: Address): boolean;
+    protected _isBannedCA(address: Address): boolean;
+    protected _enforceEOABan(address: Address, method: string): void;
+    protected _enforceCABan(address: Address, method: string): void;
+    protected _scanForBans(bytes: string): string | null;
     protected _banIP(ip: string, reason?: string): Promise<void>;
     web3_clientVersion(_request: any): Promise<string>;
     web3_sha3(_request: any, input: web3.Data): Promise<web3.Data>;

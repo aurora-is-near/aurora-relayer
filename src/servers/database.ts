@@ -120,6 +120,7 @@ export class DatabaseServer extends SkeletonServer {
       ? parseAddress(transaction.from)
       : Address.zero();
     const to = parseAddress(transaction.to);
+    this._enforceCABan(to, 'eth_call');
     const value = transaction.value ? hexToInt(transaction.value) : 0;
     const data = transaction.data
       ? hexToBytes(transaction.data)
@@ -250,6 +251,7 @@ export class DatabaseServer extends SkeletonServer {
   ): Promise<web3.Data> {
     const blockNumber_ = parseBlockSpec(blockNumber);
     const address_ = parseAddress(address);
+    this._enforceCABan(address_, 'eth_getCode');
     const code = (
       await this.engine.getCode(address_, {
         block: blockNumber_ !== null ? blockNumber_ : undefined,
@@ -428,6 +430,7 @@ export class DatabaseServer extends SkeletonServer {
     blockNumber: web3.Quantity | web3.Tag
   ): Promise<web3.Data> {
     const address_ = parseAddress(address);
+    this._enforceCABan(address_, 'eth_getStorageAt');
     const result = (await this.engine.getStorageAt(address_, key)).unwrap();
     return formatU256(result);
   }
@@ -632,6 +635,12 @@ export class DatabaseServer extends SkeletonServer {
     if (!this.config.writable) {
       throw new UnsupportedMethod('eth_sendRawTransaction');
     }
+    const ip = request.headers['cf-connecting-ip'];
+    let banReason;
+    if ((banReason = this._scanForBans(transaction))) {
+      this._banIP(ip, banReason);
+      throw new UnsupportedMethod('eth_sendRawTransaction');
+    }
     const transactionBytes = Buffer.from(hexToBytes(transaction));
     const transactionHash = keccak256(transactionBytes);
     return (await this.engine.submit(transactionBytes)).match({
@@ -642,7 +651,6 @@ export class DatabaseServer extends SkeletonServer {
         return bytesToHex(transactionHash);
       },
       err: (code) => {
-        const ip = request.headers['cf-connecting-ip'];
         if (this.config.errorLog && !code.includes('<html>')) {
           const country = request.headers['cf-ipcountry'];
           fs.appendFileSync(
@@ -654,6 +662,7 @@ export class DatabaseServer extends SkeletonServer {
           case 'ERR_INTRINSIC_GAS':
             throw new TransactionError('intrinsic gas too low');
           case 'ERR_INCORRECT_NONCE':
+          case 'Exceeded the maximum amount of gas allowed to burn per contract.':
             this._banIP(ip, 'ERR_INCORRECT_NONCE'); // temporarily heavy ban hammer
             throw new TransactionError(code);
           default: {

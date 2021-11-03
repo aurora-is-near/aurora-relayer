@@ -4,7 +4,7 @@ import * as web3 from '../web3.js';
 import { Config } from '../config.js';
 import { unimplemented, unsupported } from '../errors.js';
 
-import { bytesToHex, Engine, intToHex } from '@aurora-is-near/engine';
+import { Address, bytesToHex, Engine, intToHex } from '@aurora-is-near/engine';
 import { keccakFromHexString } from 'ethereumjs-util';
 import { Logger } from 'pino';
 
@@ -20,6 +20,38 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   protected abstract _init(): Promise<void>;
+
+  protected _isBannedEOA(address: Address): boolean {
+    const key = address.toString().toLowerCase();
+    return this.config.blacklistEOAs.has(key);
+  }
+
+  protected _isBannedCA(address: Address): boolean {
+    const key = address.toString().toLowerCase();
+    return this.config.blacklistCAs.has(key);
+  }
+
+  protected _enforceEOABan(address: Address, method: string): void {
+    if (this._isBannedEOA(address)) {
+      unsupported(method);
+    }
+  }
+
+  protected _enforceCABan(address: Address, method: string): void {
+    if (this._isBannedCA(address)) {
+      unsupported(method);
+    }
+  }
+
+  protected _scanForBans(bytes: string): string | null {
+    for (const [address, _] of this.config.blacklistCAs.entries()) {
+      const match = address.substring(2); // strip '0x' prefix
+      if (bytes.includes(match)) {
+        return address;
+      }
+    }
+    return null;
+  }
 
   protected async _banIP(ip: string, reason?: string): Promise<void> {
     this.config.blacklistIPs.add(ip);
