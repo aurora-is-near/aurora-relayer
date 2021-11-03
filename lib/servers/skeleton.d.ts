@@ -10,6 +10,7 @@ export declare abstract class SkeletonServer implements web3.Service {
     protected abstract _init(): Promise<void>;
     protected _isBannedEOA(address: Address): boolean;
     protected _isBannedCA(address: Address): boolean;
+    protected _enforceBans(address: Address, method: string): void;
     protected _enforceEOABan(address: Address, method: string): void;
     protected _enforceCABan(address: Address, method: string): void;
     protected _scanForBans(bytes: string): string | null;

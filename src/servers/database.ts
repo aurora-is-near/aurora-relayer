@@ -119,8 +119,9 @@ export class DatabaseServer extends SkeletonServer {
     const from = transaction.from
       ? parseAddress(transaction.from)
       : Address.zero();
+    this._enforceEOABan(from, 'eth_call');
     const to = parseAddress(transaction.to);
-    this._enforceCABan(to, 'eth_call');
+    this._enforceBans(to, 'eth_call');
     const value = transaction.value ? hexToInt(transaction.value) : 0;
     const data = transaction.data
       ? hexToBytes(transaction.data)
@@ -153,6 +154,7 @@ export class DatabaseServer extends SkeletonServer {
     blockNumber?: web3.Quantity | web3.Tag
   ): Promise<web3.Quantity> {
     const address_ = parseAddress(address);
+    this._enforceBans(address_, 'eth_getBalance');
     const balance = (await this.engine.getBalance(address_)).unwrap();
     return intToHex(balance);
   }
@@ -251,7 +253,7 @@ export class DatabaseServer extends SkeletonServer {
   ): Promise<web3.Data> {
     const blockNumber_ = parseBlockSpec(blockNumber);
     const address_ = parseAddress(address);
-    this._enforceCABan(address_, 'eth_getCode');
+    this._enforceBans(address_, 'eth_getCode');
     const code = (
       await this.engine.getCode(address_, {
         block: blockNumber_ !== null ? blockNumber_ : undefined,
@@ -430,7 +432,7 @@ export class DatabaseServer extends SkeletonServer {
     blockNumber: web3.Quantity | web3.Tag
   ): Promise<web3.Data> {
     const address_ = parseAddress(address);
-    this._enforceCABan(address_, 'eth_getStorageAt');
+    this._enforceBans(address_, 'eth_getStorageAt');
     const result = (await this.engine.getStorageAt(address_, key)).unwrap();
     return formatU256(result);
   }
@@ -511,6 +513,7 @@ export class DatabaseServer extends SkeletonServer {
   ): Promise<web3.Quantity> {
     const blockNumber_ = parseBlockSpec(blockNumber);
     const address_ = parseAddress(address);
+    this._enforceBans(address_, 'eth_getTransactionCount');
     const nonce = (
       await this.engine.getNonce(address_, {
         block: Number.isInteger(blockNumber_)

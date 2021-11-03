@@ -31,6 +31,11 @@ export abstract class SkeletonServer implements web3.Service {
     return this.config.blacklistCAs.has(key);
   }
 
+  protected _enforceBans(address: Address, method: string): void {
+    this._enforceEOABan(address, method);
+    this._enforceCABan(address, method);
+  }
+
   protected _enforceEOABan(address: Address, method: string): void {
     if (this._isBannedEOA(address)) {
       unsupported(method);
