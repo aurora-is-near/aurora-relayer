@@ -22,7 +22,7 @@ export abstract class SkeletonServer implements web3.Service {
   protected abstract _init(): Promise<void>;
 
   protected async _banIP(ip: string, reason?: string): Promise<void> {
-    this.config.blacklist.add(ip);
+    this.config.blacklistIPs.add(ip);
     if (
       process.env.CF_API_TOKEN &&
       process.env.CF_ACCOUNT_ID &&

@@ -11,7 +11,9 @@ export interface Config {
     signer: string;
     signerKey?: string;
     signerKeys?: string[];
-    blacklist: Set<string>;
+    blacklistIPs: Set<string>;
+    blacklistEOAs: Set<string>;
+    blacklistCAs: Set<string>;
     block?: number | string;
     batchSize?: number | string;
     writable?: boolean;
