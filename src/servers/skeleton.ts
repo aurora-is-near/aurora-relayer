@@ -67,7 +67,7 @@ export abstract class SkeletonServer implements web3.Service {
       process.env.CF_LIST_ID
     ) {
       const subprocess = spawn(
-        '/srv/aurora/relayer/util/ban', // FIXME: don't use absolute path
+        '/srv/aurora/relayer/util/ban/ban', // FIXME: don't use absolute path
         [ip, reason || ''],
         {
           shell: false,
