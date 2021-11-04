@@ -48,7 +48,7 @@ export abstract class SkeletonServer implements web3.Service {
     }
   }
 
-  protected _scanForBans(bytes: string): string | null {
+  protected _scanForCABans(bytes: string): string | null {
     for (const [address, _] of this.config.blacklistCAs.entries()) {
       const match = address.substring(2); // strip '0x' prefix
       if (bytes.includes(match)) {

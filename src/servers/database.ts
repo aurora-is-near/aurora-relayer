@@ -26,6 +26,10 @@ import {
 import pg from 'pg';
 import fs from 'fs';
 
+import {
+  parse as parseRawTransaction,
+  Transaction,
+} from '@ethersproject/transactions';
 import { keccak256 } from 'ethereumjs-util';
 //import { assert } from 'node:console';
 import sql from 'sql-bricks';
@@ -638,14 +642,32 @@ export class DatabaseServer extends SkeletonServer {
     if (!this.config.writable) {
       throw new UnsupportedMethod('eth_sendRawTransaction');
     }
+
     const ip = request.headers['cf-connecting-ip'];
+    const transactionBytes = Buffer.from(hexToBytes(transaction));
+    const transactionHash = keccak256(transactionBytes);
+
+    // Enforce the EOA blacklist:
+    let rawTransaction: Transaction | undefined;
+    try {
+      rawTransaction = parseRawTransaction(transactionBytes);
+      // eslint-disable-next-line no-empty
+    } catch (error) {}
+    if (rawTransaction?.from) {
+      const sender = Address.parse(rawTransaction.from).unwrap();
+      if (this._isBannedEOA(sender)) {
+        this._banIP(ip, sender.toString());
+        throw new UnsupportedMethod('eth_sendRawTransaction');
+      }
+    }
+
+    // Enforce the CA blacklist:
     let banReason;
-    if ((banReason = this._scanForBans(transaction))) {
+    if ((banReason = this._scanForCABans(transaction))) {
       this._banIP(ip, banReason);
       throw new UnsupportedMethod('eth_sendRawTransaction');
     }
-    const transactionBytes = Buffer.from(hexToBytes(transaction));
-    const transactionHash = keccak256(transactionBytes);
+
     return (await this.engine.submit(transactionBytes)).match({
       ok: (result) => {
         if (!result.result.status) {
