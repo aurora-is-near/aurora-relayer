@@ -3,6 +3,7 @@
 import { Config } from './config.js';
 import middleware from './middleware.js';
 import { createServer } from './server.js';
+import { createWsServer } from './ws_server.js';
 
 import { Engine } from '@aurora-is-near/engine';
 import bodyParser from 'body-parser';
@@ -35,6 +36,7 @@ export async function createApp(
   });
   app.use(rpcMiddleware(createServer(config, logger, engine)));
   app.use(middleware.handleErrors());
+  createWsServer(config, logger, engine, app);
 
   return app;
 }
@@ -42,6 +44,8 @@ export async function createApp(
 function rpcMiddleware(server: jayson.Server): any {
   return function (req: any, res: any): any {
     const options: any = server.options;
+
+    if (req.headers['sec-websocket-key']) { res.next() }
 
     if ((req.method || '') != 'POST') {
       return error(405, { Allow: 'POST' });

@@ -120,6 +120,7 @@ export class Indexer {
       //if (this.config.debug) console.debug(query.toString()); // DEBUG
       try {
         await this.pgClient.query(query.toParams());
+        await this.pgClient.query(`NOTIFY block, '${block.number}'`);
       } catch (error) {
         console.error('indexBlock', error);
         if (this.config.debug) this.logger.error(error as Error);
@@ -195,6 +196,7 @@ export class Indexer {
         rows: [{ id }],
       } = await this.pgClient.query(query.toParams());
       transactionID = parseInt(id as string);
+      await this.pgClient.query(`NOTIFY transaction, '${JSON.stringify({blockId: blockID, index: transactionIndex})}'`);
     } catch (error) {
       console.error('indexTransaction', error);
       if (this.config.debug) this.logger.error(error as Error);

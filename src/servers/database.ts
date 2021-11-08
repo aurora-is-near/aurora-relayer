@@ -25,6 +25,7 @@ import {
 } from '@aurora-is-near/engine';
 import pg from 'pg';
 import fs from 'fs';
+import { getRandomBytesSync } from 'ethereum-cryptography/random.js';
 
 import { keccak256 } from 'ethereumjs-util';
 //import { assert } from 'node:console';
@@ -63,7 +64,6 @@ export class DatabaseServer extends SkeletonServer {
         (pgClient as any).setTypeParser(oid, (val: string) => BigInt(val));
       }
     }
-
     // Listen to new block notifications:
     pgClient.on('notification', (message: pg.Notification) => {
       if (!message.payload) return;
@@ -667,6 +667,16 @@ export class DatabaseServer extends SkeletonServer {
     });
   }
 
+  async eth_subscribe(
+    _request: any,
+    _subsciptionType: web3.Data
+  ): Promise<web3.Data> {
+    // Skip unsupported subs
+    let id = bytesToHex(getRandomBytesSync(16));
+    await this._query(`INSERT INTO subscription (id, sec_websocket_key, type, ip) VALUES ('${id}', '${_request.secWebsocketKey}', '${_subsciptionType}', '${_request.ip}') ON CONFLICT (sec_websocket_key, type) DO UPDATE SET id = EXCLUDED.id ;`);
+    return id;
+  }
+
   async eth_uninstallFilter(
     _request: any,
     filterID: web3.Quantity
@@ -682,6 +692,14 @@ export class DatabaseServer extends SkeletonServer {
       ['0.0.0.0', filterID_] // TODO: IPv4
     );
     return found;
+  }
+
+  async eth_unsubscribe(
+    _request: any,
+    _subsciptionId: web3.Data
+  ): Promise<boolean> {
+    await this._query(`DELETE FROM subscription WHERE id = '${_subsciptionId}';`);
+    return true;
   }
 
   protected async _fetchCurrentBlockID(): Promise<number> {

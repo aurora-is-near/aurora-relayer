@@ -31,7 +31,9 @@ export declare class DatabaseServer extends SkeletonServer {
     eth_newFilter(_request: any, filter: web3.FilterOptions): Promise<web3.Quantity>;
     eth_newPendingTransactionFilter(_request: any): Promise<web3.Quantity>;
     eth_sendRawTransaction(request: any, transaction: web3.Data): Promise<web3.Data>;
+    eth_subscribe(_request: any, _subsciptionType: web3.Data): Promise<web3.Data>;
     eth_uninstallFilter(_request: any, filterID: web3.Quantity): Promise<boolean>;
+    eth_unsubscribe(_request: any, _subsciptionId: web3.Data): Promise<boolean>;
     protected _fetchCurrentBlockID(): Promise<number>;
     protected _fetchEvents(transactionID: Uint8Array): Promise<unknown[]>;
     protected _fetchTransactions(blockID: number | Uint8Array, fullObject: boolean): Promise<unknown[] | string[]>;
