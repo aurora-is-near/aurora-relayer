@@ -16,7 +16,6 @@ export interface Config {
     batchSize?: number | string;
     writable?: boolean;
     errorLog?: string;
-    wsPort: number | undefined;
 }
 export declare const localConfig: Config;
 export declare function parseConfig(options: Config, config: Config, env: ConnectEnv): [NetworkConfig, Config];

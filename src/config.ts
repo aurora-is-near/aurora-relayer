@@ -19,7 +19,6 @@ export interface Config {
   batchSize?: number | string;
   writable?: boolean;
   errorLog?: string;
-  wsPort: number | undefined;
 }
 
 export const localConfig: Config = {
@@ -37,7 +36,6 @@ export const localConfig: Config = {
   blacklist: new Set(),
   writable: true,
   errorLog: undefined,
-  wsPort: 80,
 };
 
 export function parseConfig(
@@ -82,7 +80,6 @@ export function parseConfig(
       ),
       writable: config.writable !== undefined ? config.writable : true,
       errorLog: config.errorLog,
-      wsPort: options.wsPort || config.wsPort || 80,
     },
   ];
 }
