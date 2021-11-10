@@ -388,7 +388,7 @@ export class DatabaseServer extends SkeletonServer {
         't.index AS "transactionIndex"',
         't.hash AS "transactionHash"',
         'e.index AS "logIndex"',
-        't.to AS "address"',
+        'e.from AS "address"',
         "string_to_array(concat('0x',encode(e.topics[1], 'hex'), ',', '0x', encode(e.topics[2], 'hex'), ',', '0x', encode(e.topics[3], 'hex'), ',', '0x', encode(e.topics[4], 'hex')), ',') AS \"topics\"",
         'coalesce(e.data, repeat(\'\\000\', 32)::bytea) AS "data"',
         '0::boolean AS "removed"'
@@ -673,7 +673,9 @@ export class DatabaseServer extends SkeletonServer {
   ): Promise<web3.Data> {
     // Skip unsupported subs
     let id = bytesToHex(getRandomBytesSync(16));
-    await this._query(`INSERT INTO subscription (id, sec_websocket_key, type, ip) VALUES ('${id}', '${_request.secWebsocketKey}', '${_subsciptionType}', '${_request.ip}') ON CONFLICT (sec_websocket_key, type) DO UPDATE SET id = EXCLUDED.id ;`);
+    await this._query(
+      `INSERT INTO subscription (id, sec_websocket_key, type, ip) VALUES ('${id}', '${_request.secWebsocketKey}', '${_subsciptionType}', '${_request.ip}') ON CONFLICT (sec_websocket_key, type) DO UPDATE SET id = EXCLUDED.id ;`
+    );
     return id;
   }
 
@@ -698,7 +700,9 @@ export class DatabaseServer extends SkeletonServer {
     _request: any,
     _subsciptionId: web3.Data
   ): Promise<boolean> {
-    await this._query(`DELETE FROM subscription WHERE id = '${_subsciptionId}';`);
+    await this._query(
+      `DELETE FROM subscription WHERE id = '${_subsciptionId}';`
+    );
     return true;
   }
 
@@ -717,7 +721,7 @@ export class DatabaseServer extends SkeletonServer {
           t.index AS "transactionIndex",
           t.hash AS "transactionHash",
           e.index AS "logIndex",
-          COALESCE(t.to, '\\x0000000000000000000000000000000000000000')::address AS "address",
+          COALESCE(e.from, '\\x0000000000000000000000000000000000000000')::address AS "from",
           ARRAY_TO_STRING(e.topics, ';') AS "topics",
           coalesce(e.data, repeat('\\000', 32)::bytea) AS "data",
           false AS "removed"

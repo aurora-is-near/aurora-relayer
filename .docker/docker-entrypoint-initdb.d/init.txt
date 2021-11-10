@@ -132,6 +132,16 @@ CREATE TABLE filter (
   addresses         address[] NULL CHECK (array_length(addresses, 1) > 0),
   topics            jsonb NULL
 );
+DROP TABLE IF EXISTS subscription CASCADE;
+
+CREATE TABLE subscription (
+	sec_websocket_key varchar COLLATE "default",
+  id                varchar COLLATE "default",
+	type              varchar COLLATE "default",
+	ip                varchar COLLATE "default"
+);
+
+CREATE UNIQUE INDEX subscription_sec_websocket_key_type_index_idx ON subscription (sec_websocket_key, type);
 DROP TABLE IF EXISTS transaction CASCADE;
 
 CREATE TABLE transaction (
@@ -170,22 +180,12 @@ CREATE TABLE event (
   index             int NOT NULL CHECK (index >= 0),
   id                bigserial NOT NULL PRIMARY KEY,
   data              bytea NULL CHECK (length(data) > 0),
+  "from"            address NOT NULL,
   topics            hash[] NULL CHECK (array_length(topics, 1) > 0 AND array_length(topics, 1) <= 4)
 );
 
 CREATE UNIQUE INDEX event_transaction_index_idx ON event (transaction, index);
 DROP FUNCTION IF EXISTS eth_blockNumber() RESTRICT;
-
-DROP TABLE IF EXISTS subscription CASCADE;
-
-CREATE TABLE subscription (
-	sec_websocket_key varchar COLLATE "default",
-  id                varchar COLLATE "default",
-	type              varchar COLLATE "default",
-	ip                varchar COLLATE "default"
-);
-
-CREATE UNIQUE INDEX subscription_sec_websocket_key_type_index_idx ON subscription (sec_websocket_key, type);
 
 CREATE FUNCTION eth_blockNumber() RETURNS blockno AS $$
 DECLARE
@@ -230,7 +230,7 @@ BEGIN
       size,                         -- size
       gas_limit,                    -- gasLimit
       gas_used,                     -- gasUsed
-      EXTRACT(EPOCH FROM timestamp) -- timestamp
+      COALESCE(EXTRACT(EPOCH FROM timestamp), 0)::int4 -- timestamp
     FROM block
     WHERE id = block_id
     LIMIT 1

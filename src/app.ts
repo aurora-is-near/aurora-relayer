@@ -45,7 +45,9 @@ function rpcMiddleware(server: jayson.Server): any {
   return function (req: any, res: any): any {
     const options: any = server.options;
 
-    if (req.headers['sec-websocket-key']) { res.next() }
+    if (req.headers['sec-websocket-key']) {
+      res.next();
+    }
 
     if ((req.method || '') != 'POST') {
       return error(405, { Allow: 'POST' });

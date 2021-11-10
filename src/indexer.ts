@@ -10,6 +10,7 @@ import {
   Engine,
   hexToBytes,
   LogEvent,
+  LogEventWithAddress,
   NetworkConfig,
   Transaction,
 } from '@aurora-is-near/engine';
@@ -196,7 +197,12 @@ export class Indexer {
         rows: [{ id }],
       } = await this.pgClient.query(query.toParams());
       transactionID = parseInt(id as string);
-      await this.pgClient.query(`NOTIFY transaction, '${JSON.stringify({blockId: blockID, index: transactionIndex})}'`);
+      await this.pgClient.query(
+        `NOTIFY transaction, '${JSON.stringify({
+          blockId: blockID,
+          index: transactionIndex,
+        })}'`
+      );
     } catch (error) {
       console.error('indexTransaction', error);
       if (this.config.debug) this.logger.error(error as Error);
@@ -222,7 +228,7 @@ export class Indexer {
     transactionIndex: number,
     transactionID: number,
     eventIndex: number,
-    event: LogEvent
+    event: LogEventWithAddress | LogEvent
   ): Promise<void> {
     //console.debug('indexEvent', blockID, transactionIndex, transactionID, eventIndex, event); // DEBUG
     this.logger.info(
@@ -233,12 +239,20 @@ export class Indexer {
       },
       `indexing log event at #${blockID}:${transactionIndex}:${eventIndex}`
     );
+    console.log(
+      '-------------------------------------- EVENT -----------------------'
+    );
+    console.log(Buffer.from(event.address));
+    console.log(
+      '-------------------------------------- EVENT -----------------------'
+    );
 
     const query = sql.insert('event', {
       transaction: transactionID,
       index: eventIndex,
       //id: null,
       data: event.data?.length ? event.data : null,
+      from: Buffer.from(event.address),
       topics: event.topics?.length
         ? event.topics.map((topic) => topic.toBytes())
         : null,
