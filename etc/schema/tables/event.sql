@@ -5,6 +5,7 @@ CREATE TABLE event (
   index             int NOT NULL CHECK (index >= 0),
   id                bigserial NOT NULL PRIMARY KEY,
   data              bytea NULL CHECK (length(data) > 0),
+  "from"            address NOT NULL,
   topics            hash[] NULL CHECK (array_length(topics, 1) > 0 AND array_length(topics, 1) <= 4)
 );
 
