@@ -224,7 +224,7 @@ export class Indexer {
     event: LogEventWithAddress | LogEvent
   ): Promise<void> {
     //console.debug('indexEvent', blockID, transactionIndex, transactionID, eventIndex, event); // DEBUG
-    let event_ = event as LogEventWithAddress;
+    const event_ = event as LogEventWithAddress;
     this.logger.info(
       {
         block: { id: blockID },

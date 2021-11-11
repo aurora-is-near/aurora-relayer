@@ -199,7 +199,6 @@ export class DatabaseServer extends SkeletonServer {
     const blockNumber_ =
       parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID());
     try {
-      console.log(`-----------------------------${blockNumber_}-----------------`)
       const {
         rows: [block],
       } = await this._query('SELECT * FROM eth_getBlockByNumber($1) LIMIT 1', [
