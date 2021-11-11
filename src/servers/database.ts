@@ -197,7 +197,9 @@ export class DatabaseServer extends SkeletonServer {
     fullObject?: boolean
   ): Promise<web3.BlockResult | null> {
     const blockNumber_ =
-      parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID());
+      parseBlockSpec(blockNumber) != 0
+        ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
+        : parseBlockSpec(blockNumber);
     try {
       const {
         rows: [block],
@@ -240,7 +242,9 @@ export class DatabaseServer extends SkeletonServer {
     blockNumber: web3.Quantity | web3.Tag
   ): Promise<web3.Quantity | null> {
     const blockNumber_ =
-      parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID());
+      parseBlockSpec(blockNumber) != 0
+        ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
+        : parseBlockSpec(blockNumber);
     const {
       rows: [{ result }],
     } = await this._query(
@@ -472,7 +476,9 @@ export class DatabaseServer extends SkeletonServer {
     transactionIndex: web3.Quantity
   ): Promise<web3.TransactionResult | null> {
     const blockNumber_ =
-      parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID());
+      parseBlockSpec(blockNumber) != 0
+        ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
+        : parseBlockSpec(blockNumber);
     const transactionIndex_ = parseInt(transactionIndex);
     try {
       const {
@@ -571,7 +577,9 @@ export class DatabaseServer extends SkeletonServer {
     blockNumber: web3.Quantity | web3.Tag
   ): Promise<web3.Quantity | null> {
     const blockNumber_ =
-      parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID());
+      parseBlockSpec(blockNumber) != 0
+        ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
+        : parseBlockSpec(blockNumber);
     const {
       rows: [{ result }],
     } = await this._query(
