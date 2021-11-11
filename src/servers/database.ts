@@ -26,6 +26,10 @@ import {
 import pg from 'pg';
 import fs from 'fs';
 
+import {
+  parse as parseRawTransaction,
+  Transaction,
+} from '@ethersproject/transactions';
 import { keccak256 } from 'ethereumjs-util';
 //import { assert } from 'node:console';
 import sql from 'sql-bricks';
@@ -718,14 +722,32 @@ export class DatabaseServer extends SkeletonServer {
     if (!this.config.writable) {
       throw new UnsupportedMethod('eth_sendRawTransaction');
     }
+
     const ip = request.headers['cf-connecting-ip'];
+    const transactionBytes = Buffer.from(hexToBytes(transaction));
+    const transactionHash = keccak256(transactionBytes);
+
+    // Enforce the EOA blacklist:
+    let rawTransaction: Transaction | undefined;
+    try {
+      rawTransaction = parseRawTransaction(transactionBytes);
+      // eslint-disable-next-line no-empty
+    } catch (error) {}
+    if (rawTransaction?.from) {
+      const sender = Address.parse(rawTransaction.from).unwrap();
+      if (this._isBannedEOA(sender)) {
+        this._banIP(ip, sender.toString());
+        throw new UnsupportedMethod('eth_sendRawTransaction');
+      }
+    }
+
+    // Enforce the CA blacklist:
     let banReason;
-    if ((banReason = this._scanForBans(transaction))) {
+    if ((banReason = this._scanForCABans(transaction))) {
       this._banIP(ip, banReason);
       throw new UnsupportedMethod('eth_sendRawTransaction');
     }
-    const transactionBytes = Buffer.from(hexToBytes(transaction));
-    const transactionHash = keccak256(transactionBytes);
+
     return (await this.engine.submit(transactionBytes)).match({
       ok: (result) => {
         if (!result.result.status) {
@@ -745,8 +767,11 @@ export class DatabaseServer extends SkeletonServer {
           case 'ERR_INTRINSIC_GAS':
             throw new TransactionError('intrinsic gas too low');
           case 'ERR_INCORRECT_NONCE':
+          case 'ERR_TX_RLP_DECODE':
+          case 'ERR_UNKNOWN_TX_TYPE':
+            throw new TransactionError(code);
           case 'Exceeded the maximum amount of gas allowed to burn per contract.':
-            this._banIP(ip, 'ERR_INCORRECT_NONCE'); // temporarily heavy ban hammer
+            this._banIP(ip, 'ERR_MAX_GAS'); // temporarily heavy ban hammer
             throw new TransactionError(code);
           default: {
             if (!code.startsWith('ERR_')) {

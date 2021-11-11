@@ -48,7 +48,7 @@ export abstract class SkeletonServer implements web3.Service {
     }
   }
 
-  protected _scanForBans(bytes: string): string | null {
+  protected _scanForCABans(bytes: string): string | null {
     for (const [address, _] of this.config.blacklistCAs.entries()) {
       const match = address.substring(2); // strip '0x' prefix
       if (bytes.includes(match)) {
@@ -67,7 +67,7 @@ export abstract class SkeletonServer implements web3.Service {
       process.env.CF_LIST_ID
     ) {
       const subprocess = spawn(
-        '/srv/aurora/relayer/util/ban', // FIXME: don't use absolute path
+        '/srv/aurora/relayer/util/ban/ban', // FIXME: don't use absolute path
         [ip, reason || ''],
         {
           shell: false,

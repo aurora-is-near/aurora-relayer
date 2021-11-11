@@ -13,7 +13,7 @@ export declare abstract class SkeletonServer implements web3.Service {
     protected _enforceBans(address: Address, method: string): void;
     protected _enforceEOABan(address: Address, method: string): void;
     protected _enforceCABan(address: Address, method: string): void;
-    protected _scanForBans(bytes: string): string | null;
+    protected _scanForCABans(bytes: string): string | null;
     protected _banIP(ip: string, reason?: string): Promise<void>;
     web3_clientVersion(_request: any): Promise<string>;
     web3_sha3(_request: any, input: web3.Data): Promise<web3.Data>;
