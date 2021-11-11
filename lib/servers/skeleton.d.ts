@@ -60,7 +60,7 @@ export declare abstract class SkeletonServer implements web3.Service {
     eth_signTypedData(_request: any, _address: web3.Data, _data: web3.TypedData): Promise<web3.Data>;
     eth_submitHashrate(_request: any, _hashrate: web3.Quantity, _clientID: web3.Quantity): Promise<false>;
     eth_submitWork(_request: any, _nonce: web3.Data, _powHash: web3.Data, _mixDigest: web3.Data): Promise<false>;
-    eth_subscribe(_request: any, _subsciptionType: web3.Data): Promise<web3.Data>;
+    eth_subscribe(_request: any, _subsciptionType: web3.Data, _filter: any): Promise<web3.Data>;
     eth_syncing(_request: any): Promise<false>;
     eth_uninstallFilter(_request: any, _filterID: web3.Quantity): Promise<boolean>;
     eth_unsubscribe(_request: any, _subsciptionId: web3.Data): Promise<boolean>;

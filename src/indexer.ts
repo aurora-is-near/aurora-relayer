@@ -247,6 +247,7 @@ export class Indexer {
     //if (this.config.debug) console.debug(query.toParams()); // DEBUG
     try {
       await this.pgClient.query(query.toParams());
+      await this.pgClient.query(`NOTIFY log, '${JSON.stringify({blockId: blockID, index: transactionIndex})}'`);
     } catch (error) {
       console.error('indexEvent', error);
       if (this.config.debug) this.logger.error(error as Error);

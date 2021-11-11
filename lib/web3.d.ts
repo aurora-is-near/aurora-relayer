@@ -44,6 +44,7 @@ export interface FilterOptions {
     address: Data | Data[];
     topics?: FilterTopic[];
     blockHash?: Data;
+    index?: Quantity | null;
 }
 export declare type ProofResult = Record<string, unknown>;
 export declare type SyncStatus = Record<string, Quantity>;

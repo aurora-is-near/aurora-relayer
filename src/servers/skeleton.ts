@@ -408,7 +408,8 @@ export abstract class SkeletonServer implements web3.Service {
 
   async eth_subscribe(
     _request: any,
-    _subsciptionType: web3.Data
+    _subsciptionType: web3.Data,
+    _filter: any
   ): Promise<web3.Data> {
     unimplemented('eth_subscribe');
     return '0x';

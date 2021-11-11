@@ -4,6 +4,7 @@ import { SkeletonServer } from './skeleton.js';
 
 import * as web3 from '../web3.js';
 import {
+  InvalidAddress,
   InvalidArguments,
   RevertError,
   TransactionError,
@@ -381,6 +382,10 @@ export class DatabaseServer extends SkeletonServer {
       }
     }
 
+    if (typeof filter.index === 'number') {
+      where.push({ 't.index': parseInt(filter.index) });
+    }
+
     const query = sql
       .select(
         'b.id AS "blockNumber"',
@@ -669,11 +674,33 @@ export class DatabaseServer extends SkeletonServer {
 
   async eth_subscribe(
     _request: any,
-    _subsciptionType: web3.Data
+    _subsciptionType: web3.Data,
+    _filter: any
   ): Promise<web3.Data> {
     // Skip unsupported subs
     let id = bytesToHex(getRandomBytesSync(16));
-    await this._query(`INSERT INTO subscription (id, sec_websocket_key, type, ip) VALUES ('${id}', '${_request.secWebsocketKey}', '${_subsciptionType}', '${_request.ip}') ON CONFLICT (sec_websocket_key, type) DO UPDATE SET id = EXCLUDED.id ;`);
+    const filter: any = {  };
+    if (_filter !== null && _filter !== undefined) {
+      if(_filter.address !== undefined && _filter.address !== null) {
+        try {
+          filter.address = parseAddress(_filter.address);
+        } catch (error) {
+          throw new InvalidAddress();
+        }
+      }
+      if (_filter.topics !== undefined && _filter.topics !== null) {
+        filter.topics = _filter.topics;
+      }
+    }
+
+    let query = sql.insert('subscription', {
+      'id': id,
+      'sec_websocket_key': _request.secWebsocketKey,
+      'type': _subsciptionType,
+      'ip': _request.ip,
+      'filter': JSON.stringify(filter) // is jsonb needet?
+    });
+    await this._query(`${query.toString()} ON CONFLICT (sec_websocket_key, type, filter) DO UPDATE SET id = EXCLUDED.id `);
     return id;
   }
 
@@ -698,7 +725,8 @@ export class DatabaseServer extends SkeletonServer {
     _request: any,
     _subsciptionId: web3.Data
   ): Promise<boolean> {
-    await this._query(`DELETE FROM subscription WHERE id = '${_subsciptionId}';`);
+    let query = sql.delete('subscription').where({ 'id': _subsciptionId })
+    await this._query(query.toString());
     return true;
   }
 

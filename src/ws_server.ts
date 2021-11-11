@@ -42,30 +42,72 @@ export function createWsServer(
     if (message.channel === 'block') {
       const blockID = parseInt(message.payload);
       if (isNaN(blockID)) return; // ignore UFOs
-      pgClient.query('SELECT * FROM eth_getBlockByNumber($1) LIMIT 1', [ blockID, ])
-        .then(function (res: any) {
-          pgClient.query("SELECT COALESCE(array_agg(sec_websocket_key), '{}') AS wskeys FROM subscription WHERE type = 'newHeads'")
-            .then(function (sec_websocket_keys: any) {
-              expressWsApp.getWss().clients.forEach( function (client: any) {
-                if (sec_websocket_keys.rows[0].wskeys.indexOf(client.id) > -1) { client.send(JSON.stringify(exportJSON(res.rows[0]))) }
-              })
+      const body = {"jsonrpc": "2.0", "id": 1, "method": "eth_getBlockByNumber", "params": [blockID, true] }
+      jaysonWsServer.call(body, {}, function (error: any, success: any) {
+        pgClient.query("SELECT COALESCE(array_agg(sec_websocket_key), '{}') AS wskeys, COALESCE(array_agg(id), '{}') AS subids FROM subscription WHERE type = 'newHeads'")
+          .then(function (sec_websocket_keys: any) {
+            expressWsApp.getWss().clients.forEach( function (client: any) {
+              let index = sec_websocket_keys.rows[0].wskeys.indexOf(client.id)
+              if (index > -1) { client.send(wsResponse(error || success, sec_websocket_keys.rows[0].subids[index])) }
             })
-        })
+          })
+      });
     }
+
+    if (message.channel === 'log') {
+      const parsedObject = JSON.parse(message.payload)
+      const params = { "fromBlock": parsedObject.blockId, "toBlock": parsedObject.blockId, "index": parsedObject.index }
+      const body = {"jsonrpc": "2.0", "id": 1, "method": "eth_getLogs", "params": [params] }
+      jaysonWsServer.call(body, {}, function (error: any, success: any) {
+        pgClient.query("SELECT sec_websocket_key as wskey, filter, id AS subid FROM subscription WHERE type = 'logs'")
+          .then(function (result: any) {
+            result.rows.forEach( function (row: any) {
+              const address = (row.filter && row.filter.address && row.filter.address.id.toLowerCase()) || null
+              const topics = (row.filter && row.filter.topics) || null
+              if(address && address != success.result[0].address) {
+                // Skip delivery
+              } else if(topics && topics.filter(function(x: any) { return success.result[0].topics.includes(x) } ).length == 0) {
+                // Skip delivery
+              } else {
+                expressWsApp.getWss().clients.forEach( function (client: any) {
+                  if (row.wskey == client.id) { client.send(wsResponse(error || success, row.subid)) }
+                })
+              }
+            })
+          })
+      })
+    }
+
+    // How to determine if transaction is pending? is it by status column
     if (message.channel === 'transaction') {
       const parsedObject = JSON.parse(message.payload)
-      pgClient.query('SELECT * FROM eth_getTransactionByBlockNumberAndIndex($1, $2) LIMIT 1', [ parsedObject.blockId, parsedObject.index])
-        .then(function (res: any) {
-          pgClient.query("SELECT COALESCE(array_agg(sec_websocket_key), '{}') AS wskeys FROM subscription WHERE type = 'newPendingTransactions'")
-            .then(function (sec_websocket_keys: any) {
-              expressWsApp.getWss().clients.forEach( function (client: any) {
-                if (sec_websocket_keys.rows[0].wskeys.indexOf(client.id) > -1) { client.send(JSON.stringify(exportJSON(res.rows[0]))) }
-              })
+      const body = {"jsonrpc": "2.0", "id": 1, "method": "eth_getTransactionByBlockNumberAndIndex", "params": [parsedObject.blockId, parsedObject.index] }
+      jaysonWsServer.call(body, {}, function (error: any, success: any) {
+        pgClient.query("SELECT COALESCE(array_agg(sec_websocket_key), '{}') AS wskeys, COALESCE(array_agg(id), '{}') AS subids FROM subscription WHERE type = 'newPendingTransactions'")
+          .then(function (sec_websocket_keys: any) {
+            expressWsApp.getWss().clients.forEach( function (client: any) {
+              let index = sec_websocket_keys.rows[0].wskeys.indexOf(client.id)
+              if (index > -1) { client.send(wsResponse(error || success, sec_websocket_keys.rows[0].subids[index])) }
             })
-        })
+          })
+      })
     }
   });
   pgClient.query('LISTEN block');
   pgClient.query('LISTEN transaction');
+  pgClient.query('LISTEN log');
   return true;
+}
+
+function wsResponse(rpcResponse: any, clientId: any) {
+  const response = {
+    "jsonrpc": "2.0",
+    "method": "eth_subscription",
+    "params": {
+      "result": rpcResponse.result,
+      "subscription": clientId
+    }
+  }
+
+  return JSON.stringify(exportJSON(response))
 }
