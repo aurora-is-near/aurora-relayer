@@ -718,7 +718,9 @@ export class DatabaseServer extends SkeletonServer {
   ): Promise<web3.Data> {
     // Skip unsupported subs
     let id = bytesToHex(getRandomBytesSync(16));
-    await this._query(`INSERT INTO subscription (id, sec_websocket_key, type, ip) VALUES ('${id}', '${_request.secWebsocketKey}', '${_subsciptionType}', '${_request.ip}') ON CONFLICT (sec_websocket_key, type) DO UPDATE SET id = EXCLUDED.id ;`);
+    await this._query(
+      `INSERT INTO subscription (id, sec_websocket_key, type, ip) VALUES ('${id}', '${_request.secWebsocketKey}', '${_subsciptionType}', '${_request.ip}') ON CONFLICT (sec_websocket_key, type) DO UPDATE SET id = EXCLUDED.id ;`
+    );
     return id;
   }
 
@@ -743,7 +745,9 @@ export class DatabaseServer extends SkeletonServer {
     _request: any,
     _subsciptionId: web3.Data
   ): Promise<boolean> {
-    await this._query(`DELETE FROM subscription WHERE id = '${_subsciptionId}';`);
+    await this._query(
+      `DELETE FROM subscription WHERE id = '${_subsciptionId}';`
+    );
     return true;
   }
 

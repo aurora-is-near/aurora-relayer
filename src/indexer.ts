@@ -196,7 +196,12 @@ export class Indexer {
         rows: [{ id }],
       } = await this.pgClient.query(query.toParams());
       transactionID = parseInt(id as string);
-      await this.pgClient.query(`NOTIFY transaction, '${JSON.stringify({blockId: blockID, index: transactionIndex})}'`);
+      await this.pgClient.query(
+        `NOTIFY transaction, '${JSON.stringify({
+          blockId: blockID,
+          index: transactionIndex,
+        })}'`
+      );
     } catch (error) {
       console.error('indexTransaction', error);
       if (this.config.debug) this.logger.error(error as Error);
