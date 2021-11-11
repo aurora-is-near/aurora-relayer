@@ -233,13 +233,6 @@ export class Indexer {
       },
       `indexing log event at #${blockID}:${transactionIndex}:${eventIndex}`
     );
-    console.log(
-      '-------------------------------------- EVENT -----------------------'
-    );
-    console.log(Buffer.from(event_.address));
-    console.log(
-      '-------------------------------------- EVENT -----------------------'
-    );
     const query = sql.insert('event', {
       transaction: transactionID,
       index: eventIndex,
