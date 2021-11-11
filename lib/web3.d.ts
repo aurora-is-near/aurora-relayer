@@ -77,6 +77,8 @@ export interface Service {
     eth_getProof(_request: any, address: Data, keys: Data[], blockNumber: Quantity | Tag): Promise<ProofResult>;
     eth_getStorageAt(_request: any, address: Data, key: Quantity, blockNumber: Quantity | Tag): Promise<Data>;
     eth_getTransactionByBlockHashAndIndex(_request: any, blockHash: Data, transactionIndex: Quantity): Promise<TransactionResult | null>;
+    eth_getTransactionsByBlockNumber(_request: any, blockNumber: Quantity | Tag): Promise<TransactionResult | null>;
+    eth_getTransactionReceiptsByBlockNumber(_request: any, blockNumber: Quantity | Tag): Promise<TransactionReceipt[] | null>;
     eth_getTransactionByBlockNumberAndIndex(_request: any, blockNumber: Quantity | Tag, transactionIndex: Quantity): Promise<TransactionResult | null>;
     eth_getTransactionByHash(_request: any, transactionHash: Data): Promise<TransactionResult | null>;
     eth_getTransactionCount(_request: any, address: Data, blockNumber: Quantity | Tag): Promise<Quantity>;

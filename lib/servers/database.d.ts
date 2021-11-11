@@ -21,10 +21,12 @@ export declare class DatabaseServer extends SkeletonServer {
     eth_getLogs(_request: any, filter: web3.FilterOptions): Promise<web3.LogObject[]>;
     eth_getStorageAt(_request: any, address: web3.Data, key: web3.Quantity, blockNumber: web3.Quantity | web3.Tag): Promise<web3.Data>;
     eth_getTransactionByBlockHashAndIndex(_request: any, blockHash: web3.Data, transactionIndex: web3.Quantity): Promise<web3.TransactionResult | null>;
+    eth_getTransactionsByBlockNumber(_request: any, blockNumber: web3.Quantity | web3.Tag): Promise<web3.TransactionResult | null>;
     eth_getTransactionByBlockNumberAndIndex(_request: any, blockNumber: web3.Quantity | web3.Tag, transactionIndex: web3.Quantity): Promise<web3.TransactionResult | null>;
     eth_getTransactionByHash(_request: any, transactionHash: web3.Data): Promise<web3.TransactionResult | null>;
     eth_getTransactionCount(_request: any, address: web3.Data, blockNumber: web3.Quantity | web3.Tag): Promise<web3.Quantity>;
     eth_getTransactionReceipt(_request: any, transactionHash: string): Promise<web3.TransactionReceipt | null>;
+    eth_getTransactionReceiptsByBlockNumber(_request: any, blockNumber: web3.Quantity | web3.Tag): Promise<web3.TransactionReceipt[] | null>;
     eth_getUncleCountByBlockHash(_request: any, blockHash: web3.Data): Promise<web3.Quantity | null>;
     eth_getUncleCountByBlockNumber(_request: any, blockNumber: web3.Quantity | web3.Tag): Promise<web3.Quantity | null>;
     eth_newBlockFilter(_request: any): Promise<web3.Quantity>;

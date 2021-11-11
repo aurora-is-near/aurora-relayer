@@ -461,7 +461,45 @@ export class DatabaseServer extends SkeletonServer {
       return null;
     }
   }
-
+  async eth_getTransactionsByBlockNumber(
+    _request: any,
+    blockNumber: web3.Quantity | web3.Tag
+  ): Promise<web3.TransactionResult | null> {
+    const blockNumber_ =
+      parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID());
+      
+    try {
+      const {
+        rows,
+      } = await this._query(
+        `SELECT
+        b.id AS "blockNumber",
+        b.hash AS "blockHash",
+        t.index AS "transactionIndex",
+        t.hash AS "hash",
+        t.from AS "from",
+        t.to AS "to",
+        t.gas_limit AS "gas",
+        t.gas_price AS "gasPrice",
+        t.nonce AS "nonce",
+        t.value AS "value",
+        coalesce(t.input, '\\x'::bytea) AS "input",
+        t.v AS "v",
+        t.r AS "r",
+        t.s AS "s"
+      FROM transaction t
+      LEFT JOIN block b ON t.block = b.id
+      WHERE b.id = $1`,
+      [blockNumber_]
+      );
+      return !rows || !rows.length ? null : exportJSON(rows[0]);
+    } catch (error) {
+      if (this.config.debug) {
+        console.debug('eth_getTransactionsByBlockNumber', error);
+      }
+      return null;
+    }
+  }
   async eth_getTransactionByBlockNumberAndIndex(
     _request: any,
     blockNumber: web3.Quantity | web3.Tag,
@@ -546,7 +584,49 @@ export class DatabaseServer extends SkeletonServer {
       return null;
     }
   }
+  async eth_getTransactionReceiptsByBlockNumber(
+    _request: any,
+    blockNumber: web3.Quantity | web3.Tag
+  ): Promise<web3.TransactionReceipt[] | null> {
+    const blockNumber_ =
+      parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID());
+    try {
+      const {
+        rows: [receipt],
+      } = await this._query(
+        `SELECT
+        b.id AS "blockNumber",
+        b.hash AS "blockHash",
+        t.index AS "transactionIndex",
+        t.hash AS "transactionHash",
+        t.from AS "from",
+        t.to AS "to",
+        t.gas_used AS "gasUsed",
+        0::u256 AS "cumulativeGasUsed", -- TODO: tally?
+        CASE WHEN t.to IS NULL OR t.to = '\\x0000000000000000000000000000000000000000' THEN t.output
+             ELSE NULL
+        END AS "contractAddress",
+        NULL AS "logs",                 -- TODO: fetch event.id[]
+        repeat('\\000', 256)::bytea AS "logsBloom",
+        CASE WHEN t.status THEN 1 ELSE 0 END AS "status",
+        t.near_hash AS "nearTransactionHash",
+        t.near_receipt_hash AS "nearReceiptHash"
+      FROM transaction t
+        LEFT JOIN block b ON t.block = b.id
+      WHERE b.id = $1`,
+        [blockNumber_]
+      );
+      //assert(receipt, 'receipt is not null');
 
+      receipt.logs = await this._fetchEvents(hexToBytes(receipt.transactionHash.toString()));
+      return exportJSON(receipt);
+    } catch (error) {
+      if (this.config.debug) {
+        console.debug('eth_getTransactionReceiptsByBlockNumber', error);
+      }
+      return null;
+    }
+  }
   async eth_getUncleCountByBlockHash(
     _request: any,
     blockHash: web3.Data
