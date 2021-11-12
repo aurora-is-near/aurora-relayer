@@ -119,7 +119,7 @@ function wsResponse(rpcResponse: any, clientId: any) {
 }
 
 function forSubscriptions(pgClient: any, subscriptionType: string, callback: any) {
-  pgClient.query("SELECT sec_websocket_key AS ws_key, id AS sub_id, filter FROM subscription WHERE type = 'sync'")
+  pgClient.query(`SELECT sec_websocket_key AS ws_key, id AS sub_id, filter FROM subscription WHERE type = '${subscriptionType}'`)
     .then(function (pgResult: any) {
       pgResult.rows.forEach( function (row: any) {
         callback(row)
