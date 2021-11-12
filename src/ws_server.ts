@@ -12,7 +12,7 @@ export function createWsServer(
   logger: Logger,
   engine: Engine,
   app: any
-): Boolean {
+): boolean {
   const pgClient = new pg.Client(config.database);
   pgClient.connect();
   const jaysonWsServer = createServer(config, logger, engine)
@@ -89,9 +89,9 @@ export function createWsServer(
 
 function sync(pgClient: any, expressWsApp: any, blockNumber: any) {
   pgClient.query('SELECT MAX(id)::int AS max_id FROM block').then(function (max_idResult: any) {
-    let max_id = max_idResult.rows[0].max_id || 0
+    const max_id = max_idResult.rows[0].max_id || 0
     forSubscriptions(pgClient, 'sync', function (row: any){
-      let payload = { "jsonrpc":"2.0", "subscription": row.sub_id, "result": { "syncing": max_id > blockNumber } }
+      const payload = { "jsonrpc":"2.0", "subscription": row.sub_id, "result": { "syncing": max_id > blockNumber } }
       sendPayload(expressWsApp, row.ws_key, row.sub_id, JSON.stringify(payload))
     })
     setTimeout(sync, 10000, pgClient, expressWsApp, max_id);

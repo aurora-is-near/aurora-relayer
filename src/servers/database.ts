@@ -723,7 +723,7 @@ export class DatabaseServer extends SkeletonServer {
     _filter: any
   ): Promise<web3.Data> {
     // Skip unsupported subs
-    let id = bytesToHex(getRandomBytesSync(16));
+    const id = bytesToHex(getRandomBytesSync(16));
     const filter: any = {  };
     if (_filter !== null && _filter !== undefined) {
       if(_filter.address !== undefined && _filter.address !== null) {
@@ -738,7 +738,7 @@ export class DatabaseServer extends SkeletonServer {
       }
     }
 
-    let query = sql.insert('subscription', {
+    const query = sql.insert('subscription', {
       'id': id,
       'sec_websocket_key': _request.secWebsocketKey,
       'type': _subsciptionType,
@@ -770,7 +770,7 @@ export class DatabaseServer extends SkeletonServer {
     _request: any,
     _subsciptionId: web3.Data
   ): Promise<boolean> {
-    let query = sql.delete('subscription').where({ 'id': _subsciptionId })
+    const query = sql.delete('subscription').where({ 'id': _subsciptionId })
     await this._query(query.toString());
     return true;
   }
