@@ -44,14 +44,10 @@ export function createWsServer(
       if (isNaN(blockID)) return; // ignore UFOs
       const body = {"jsonrpc": "2.0", "id": 1, "method": "eth_getBlockByNumber", "params": [blockID, true] }
       jaysonWsServer.call(body, {}, function (error: any, success: any) {
-        pgClient.query("SELECT COALESCE(array_agg(sec_websocket_key), '{}') AS wskeys, COALESCE(array_agg(id), '{}') AS subids FROM subscription WHERE type = 'newHeads'")
-          .then(function (sec_websocket_keys: any) {
-            expressWsApp.getWss().clients.forEach( function (client: any) {
-              let index = sec_websocket_keys.rows[0].wskeys.indexOf(client.id)
-              if (index > -1) { client.send(wsResponse(error || success, sec_websocket_keys.rows[0].subids[index])) }
-            })
-          })
-      });
+        forSubscriptions(pgClient, 'newHeads', function (row: any){
+          sendPayload(expressWsApp, row.ws_key, row.sub_id, error || success)
+        })
+      })
     }
 
     if (message.channel === 'log') {
@@ -59,22 +55,17 @@ export function createWsServer(
       const params = { "fromBlock": parsedObject.blockId, "toBlock": parsedObject.blockId, "index": parsedObject.index }
       const body = {"jsonrpc": "2.0", "id": 1, "method": "eth_getLogs", "params": [params] }
       jaysonWsServer.call(body, {}, function (error: any, success: any) {
-        pgClient.query("SELECT sec_websocket_key as wskey, filter, id AS subid FROM subscription WHERE type = 'logs'")
-          .then(function (result: any) {
-            result.rows.forEach( function (row: any) {
-              const address = (row.filter && row.filter.address && row.filter.address.id.toLowerCase()) || null
-              const topics = (row.filter && row.filter.topics) || null
-              if(address && address != success.result[0].address) {
-                // Skip delivery
-              } else if(topics && topics.filter(function(x: any) { return success.result[0].topics.includes(x) } ).length == 0) {
-                // Skip delivery
-              } else {
-                expressWsApp.getWss().clients.forEach( function (client: any) {
-                  if (row.wskey == client.id) { client.send(wsResponse(error || success, row.subid)) }
-                })
-              }
-            })
-          })
+        forSubscriptions(pgClient, 'logs', function (row: any){
+          const address = (row.filter && row.filter.address && row.filter.address.id.toLowerCase()) || null
+          const topics = (row.filter && row.filter.topics) || null
+          if(address && address != success.result[0].address) {
+            // Skip delivery
+          } else if(topics && topics.filter(function(x: any) { return success.result[0].topics.includes(x) } ).length == 0) {
+            // Skip delivery
+          } else {
+            sendPayload(expressWsApp, row.ws_key, row.sub_id, error || success)
+          }
+        })
       })
     }
 
@@ -83,13 +74,9 @@ export function createWsServer(
       const parsedObject = JSON.parse(message.payload)
       const body = {"jsonrpc": "2.0", "id": 1, "method": "eth_getTransactionByBlockNumberAndIndex", "params": [parsedObject.blockId, parsedObject.index] }
       jaysonWsServer.call(body, {}, function (error: any, success: any) {
-        pgClient.query("SELECT COALESCE(array_agg(sec_websocket_key), '{}') AS wskeys, COALESCE(array_agg(id), '{}') AS subids FROM subscription WHERE type = 'newPendingTransactions'")
-          .then(function (sec_websocket_keys: any) {
-            expressWsApp.getWss().clients.forEach( function (client: any) {
-              let index = sec_websocket_keys.rows[0].wskeys.indexOf(client.id)
-              if (index > -1) { client.send(wsResponse(error || success, sec_websocket_keys.rows[0].subids[index])) }
-            })
-          })
+        forSubscriptions(pgClient, 'newPendingTransactions', function (row: any){
+          sendPayload(expressWsApp, row.ws_key, row.sub_id, error || success)
+        })
       })
     }
   });
@@ -98,6 +85,25 @@ export function createWsServer(
   pgClient.query('LISTEN log');
   setTimeout(sync, 1000, pgClient, expressWsApp);
   return true;
+}
+
+function sync(pgClient: any, expressWsApp: any, blockNumber: any) {
+  pgClient.query('SELECT MAX(id)::int AS max_id FROM block').then(function (max_idResult: any) {
+    let max_id = max_idResult.rows[0].max_id || 0
+    forSubscriptions(pgClient, 'sync', function (row: any){
+      let payload = { "jsonrpc":"2.0", "subscription": row.sub_id, "result": { "syncing": max_id > blockNumber } }
+      sendPayload(expressWsApp, row.ws_key, row.sub_id, JSON.stringify(payload))
+    })
+    setTimeout(sync, 10000, pgClient, expressWsApp, max_id);
+  })
+}
+
+function sendPayload(express: any, ws_key: any, subId: any, payload: any) {
+  express.getWss().clients.forEach( function (client: any) {
+    if (ws_key == client.id) {
+      typeof payload === 'string' ? client.send(payload) : client.send(wsResponse(payload, subId))
+    }
+  })
 }
 
 function wsResponse(rpcResponse: any, clientId: any) {
@@ -109,21 +115,14 @@ function wsResponse(rpcResponse: any, clientId: any) {
       "subscription": clientId
     }
   }
-
   return JSON.stringify(exportJSON(response))
 }
 
-function sync(pgClient: any, exspress: any, blockNumber: any) {
-  pgClient.query('SELECT MAX(id)::int AS "maxID" FROM block').then(function (res: any) {
-    pgClient.query("SELECT COALESCE(array_agg(sec_websocket_key), '{}') AS wskeys, COALESCE(array_agg(id), '{}') AS subids FROM subscription WHERE type = 'sync'")
-      .then(function (sec_websocket_keys: any) {
-        exspress.getWss().clients.forEach( function (client: any) {
-          let index = sec_websocket_keys.rows[0].wskeys.indexOf(client.id)
-          let syncing = res.rows[0].maxID > blockNumber
-          let payload = { "jsonrpc":"2.0", "subscription": sec_websocket_keys.rows[0].subids[index], "result": { "syncing": syncing } }
-          if (index > -1) { client.send(JSON.stringify(payload)) }
-        })
+function forSubscriptions(pgClient: any, subscriptionType: string, callback: any) {
+  pgClient.query("SELECT sec_websocket_key AS ws_key, id AS sub_id, filter FROM subscription WHERE type = 'sync'")
+    .then(function (pgResult: any) {
+      pgResult.rows.forEach( function (row: any) {
+        callback(row)
       })
-    setTimeout(sync, 10000, pgClient, exspress, res.rows[0].maxID);
-  })
+    })
 }
