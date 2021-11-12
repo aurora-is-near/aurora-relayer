@@ -43,7 +43,7 @@ export function logger(logger: Logger): any {
 
 export function blacklistIPs(config: Config): any {
   const ipLookup = () => {
-    return [...(config?.blacklist || [])];
+    return [...(config?.blacklistIPs || [])];
   };
   return IpFilter(ipLookup, {
     mode: 'deny',

@@ -28,6 +28,10 @@ import pg from 'pg';
 import fs from 'fs';
 import { getRandomBytesSync } from 'ethereum-cryptography/random.js';
 
+import {
+  parse as parseRawTransaction,
+  Transaction,
+} from '@ethersproject/transactions';
 import { keccak256 } from 'ethereumjs-util';
 //import { assert } from 'node:console';
 import sql from 'sql-bricks';
@@ -120,7 +124,9 @@ export class DatabaseServer extends SkeletonServer {
     const from = transaction.from
       ? parseAddress(transaction.from)
       : Address.zero();
+    this._enforceEOABan(from, 'eth_call');
     const to = parseAddress(transaction.to);
+    this._enforceBans(to, 'eth_call');
     const value = transaction.value ? hexToInt(transaction.value) : 0;
     const data = transaction.data
       ? hexToBytes(transaction.data)
@@ -153,6 +159,7 @@ export class DatabaseServer extends SkeletonServer {
     blockNumber?: web3.Quantity | web3.Tag
   ): Promise<web3.Quantity> {
     const address_ = parseAddress(address);
+    this._enforceBans(address_, 'eth_getBalance');
     const balance = (await this.engine.getBalance(address_)).unwrap();
     return intToHex(balance);
   }
@@ -191,7 +198,9 @@ export class DatabaseServer extends SkeletonServer {
     fullObject?: boolean
   ): Promise<web3.BlockResult | null> {
     const blockNumber_ =
-      parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID());
+      parseBlockSpec(blockNumber) != 0
+        ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
+        : parseBlockSpec(blockNumber);
     try {
       const {
         rows: [block],
@@ -234,7 +243,9 @@ export class DatabaseServer extends SkeletonServer {
     blockNumber: web3.Quantity | web3.Tag
   ): Promise<web3.Quantity | null> {
     const blockNumber_ =
-      parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID());
+      parseBlockSpec(blockNumber) != 0
+        ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
+        : parseBlockSpec(blockNumber);
     const {
       rows: [{ result }],
     } = await this._query(
@@ -251,6 +262,7 @@ export class DatabaseServer extends SkeletonServer {
   ): Promise<web3.Data> {
     const blockNumber_ = parseBlockSpec(blockNumber);
     const address_ = parseAddress(address);
+    this._enforceBans(address_, 'eth_getCode');
     const code = (
       await this.engine.getCode(address_, {
         block: blockNumber_ !== null ? blockNumber_ : undefined,
@@ -433,6 +445,7 @@ export class DatabaseServer extends SkeletonServer {
     blockNumber: web3.Quantity | web3.Tag
   ): Promise<web3.Data> {
     const address_ = parseAddress(address);
+    this._enforceBans(address_, 'eth_getStorageAt');
     const result = (await this.engine.getStorageAt(address_, key)).unwrap();
     return formatU256(result);
   }
@@ -468,7 +481,9 @@ export class DatabaseServer extends SkeletonServer {
     transactionIndex: web3.Quantity
   ): Promise<web3.TransactionResult | null> {
     const blockNumber_ =
-      parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID());
+      parseBlockSpec(blockNumber) != 0
+        ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
+        : parseBlockSpec(blockNumber);
     const transactionIndex_ = parseInt(transactionIndex);
     try {
       const {
@@ -513,6 +528,7 @@ export class DatabaseServer extends SkeletonServer {
   ): Promise<web3.Quantity> {
     const blockNumber_ = parseBlockSpec(blockNumber);
     const address_ = parseAddress(address);
+    this._enforceBans(address_, 'eth_getTransactionCount');
     const nonce = (
       await this.engine.getNonce(address_, {
         block: Number.isInteger(blockNumber_)
@@ -566,7 +582,9 @@ export class DatabaseServer extends SkeletonServer {
     blockNumber: web3.Quantity | web3.Tag
   ): Promise<web3.Quantity | null> {
     const blockNumber_ =
-      parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID());
+      parseBlockSpec(blockNumber) != 0
+        ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
+        : parseBlockSpec(blockNumber);
     const {
       rows: [{ result }],
     } = await this._query(
@@ -637,8 +655,32 @@ export class DatabaseServer extends SkeletonServer {
     if (!this.config.writable) {
       throw new UnsupportedMethod('eth_sendRawTransaction');
     }
+
+    const ip = request.headers['cf-connecting-ip'];
     const transactionBytes = Buffer.from(hexToBytes(transaction));
     const transactionHash = keccak256(transactionBytes);
+
+    // Enforce the EOA blacklist:
+    let rawTransaction: Transaction | undefined;
+    try {
+      rawTransaction = parseRawTransaction(transactionBytes);
+      // eslint-disable-next-line no-empty
+    } catch (error) {}
+    if (rawTransaction?.from) {
+      const sender = Address.parse(rawTransaction.from).unwrap();
+      if (this._isBannedEOA(sender)) {
+        this._banIP(ip, sender.toString());
+        throw new UnsupportedMethod('eth_sendRawTransaction');
+      }
+    }
+
+    // Enforce the CA blacklist:
+    let banReason;
+    if ((banReason = this._scanForCABans(transaction))) {
+      this._banIP(ip, banReason);
+      throw new UnsupportedMethod('eth_sendRawTransaction');
+    }
+
     return (await this.engine.submit(transactionBytes)).match({
       ok: (result) => {
         if (!result.result.status) {
@@ -647,7 +689,6 @@ export class DatabaseServer extends SkeletonServer {
         return bytesToHex(transactionHash);
       },
       err: (code) => {
-        const ip = request.headers['cf-connecting-ip'];
         if (this.config.errorLog && !code.includes('<html>')) {
           const country = request.headers['cf-ipcountry'];
           fs.appendFileSync(
@@ -659,7 +700,11 @@ export class DatabaseServer extends SkeletonServer {
           case 'ERR_INTRINSIC_GAS':
             throw new TransactionError('intrinsic gas too low');
           case 'ERR_INCORRECT_NONCE':
-            this._banIP(ip, 'ERR_INCORRECT_NONCE'); // temporarily heavy ban hammer
+          case 'ERR_TX_RLP_DECODE':
+          case 'ERR_UNKNOWN_TX_TYPE':
+            throw new TransactionError(code);
+          case 'Exceeded the maximum amount of gas allowed to burn per contract.':
+            this._banIP(ip, 'ERR_MAX_GAS'); // temporarily heavy ban hammer
             throw new TransactionError(code);
           default: {
             if (!code.startsWith('ERR_')) {
