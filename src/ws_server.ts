@@ -96,6 +96,7 @@ export function createWsServer(
   pgClient.query('LISTEN block');
   pgClient.query('LISTEN transaction');
   pgClient.query('LISTEN log');
+  setTimeout(sync, 1000, pgClient, expressWsApp);
   return true;
 }
 
@@ -110,4 +111,19 @@ function wsResponse(rpcResponse: any, clientId: any) {
   }
 
   return JSON.stringify(exportJSON(response))
+}
+
+function sync(pgClient: any, exspress: any, blockNumber: any) {
+  pgClient.query('SELECT MAX(id)::int AS "maxID" FROM block').then(function (res: any) {
+    pgClient.query("SELECT COALESCE(array_agg(sec_websocket_key), '{}') AS wskeys, COALESCE(array_agg(id), '{}') AS subids FROM subscription WHERE type = 'sync'")
+      .then(function (sec_websocket_keys: any) {
+        exspress.getWss().clients.forEach( function (client: any) {
+          let index = sec_websocket_keys.rows[0].wskeys.indexOf(client.id)
+          let syncing = res.rows[0].maxID > blockNumber
+          let payload = { "jsonrpc":"2.0", "subscription": sec_websocket_keys.rows[0].subids[index], "result": { "syncing": syncing } }
+          if (index > -1) { client.send(JSON.stringify(payload)) }
+        })
+      })
+    setTimeout(sync, 10000, pgClient, exspress, res.rows[0].maxID);
+  })
 }
