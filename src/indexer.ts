@@ -1,7 +1,7 @@
 /* This is free and unencumbered software released into the public domain. */
 
 import { Config, parseConfig } from './config.js';
-import { computeBlockHash } from './utils.js';
+import { computeBlockHash, EmptyBlock, generateEmptyBlock } from './utils.js';
 
 import {
   AccountID,
@@ -66,7 +66,7 @@ export class Indexer {
     //console.debug('indexBlock', blockID); // DEBUG
     this.logger.info({ block: { id: blockID } }, `indexing block #${blockID}`);
     const contractID = AccountID.parse(this.config.engine).unwrap();
-
+    let timestamp = Math.floor(Date.now() / 1000); // init timestamp
     for (;;) {
       const currentBlockHeight = (await this.engine.getBlockHeight()).unwrap();
 
@@ -78,8 +78,37 @@ export class Indexer {
         const error = proxy.unwrapErr();
         if (error.startsWith('[-32000] Server error: DB Not Found Error')) {
           if (blockID < currentBlockHeight) {
-            this.logger.error(error);
-            return; // a skip block, or an unavailable block on a nonarchival node
+            // Handling empty blocks
+            const emptyBlock: EmptyBlock = generateEmptyBlock(
+              blockID as number,
+              contractID.toString(),
+              this.network.chainID,
+              timestamp + 1 // arbitrary timestamp = previous block.timestamp + 1
+            );
+            //if (this.config.debug) console.debug(emptyBlock); // DEBUG
+            const query = sql.insert('block', {
+              chain: this.network.chainID,
+              id: emptyBlock.id,
+              hash: emptyBlock.hash,
+              near_hash: null,
+              timestamp: emptyBlock.timestamp,
+              size: emptyBlock.size,
+              gas_limit: 0, // FIXME: block.gasLimit,
+              gas_used: 0, // FIXME: block.gasUsed,
+              parent_hash: emptyBlock.parentHash,
+              transactions_root: emptyBlock.transactionsRoot,
+              state_root: emptyBlock.stateRoot,
+              receipts_root: emptyBlock.receiptsRoot,
+            });
+
+            //if (this.config.debug) console.debug(query.toString()); // DEBUG
+            try {
+              await this.pgClient.query(query.toParams());
+            } catch (error) {
+              console.error('indexBlock', error);
+              if (this.config.debug) this.logger.error(error);
+            }
+            return;
           } else {
             await new Promise((resolve) => setTimeout(resolve, 100));
             continue; // wait for the next block to be produced
@@ -92,6 +121,7 @@ export class Indexer {
       }
       const block_ = proxy.unwrap();
       const block = block_.getMetadata();
+      timestamp = block.timestamp as number; // it is used only for empty blocks
       const blockHash = computeBlockHash(
         block.number as number,
         contractID.toString(),
@@ -116,7 +146,6 @@ export class Indexer {
         state_root: block.stateRoot,
         receipts_root: block.receiptsRoot,
       });
-
       //if (this.config.debug) console.debug(query.toString()); // DEBUG
       try {
         await this.pgClient.query(query.toParams());
