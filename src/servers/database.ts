@@ -23,8 +23,9 @@ import {
   hexToInt,
   intToHex,
 } from '@aurora-is-near/engine';
-import pg from 'pg';
 import fs from 'fs';
+import nats from 'nats';
+import pg from 'pg';
 
 import {
   parse as parseRawTransaction,
@@ -43,11 +44,18 @@ const sqlConvert = (sql as any).convert;
 
 export class DatabaseServer extends SkeletonServer {
   protected pgClient?: pg.Client;
+  protected broker?: nats.NatsConnection;
 
   protected async _init(): Promise<void> {
+    // Connect to the PostgreSQL database:
     const pgClient = new pg.Client(this.config.database);
     this.pgClient = pgClient;
     await pgClient.connect();
+
+    // Connect to the NATS message broker:
+    if (this.config.broker) {
+      this.broker = await nats.connect({ servers: this.config.broker });
+    }
 
     // Add type parsers for relevant numeric types:
     (pgClient as any).setTypeParser(pg.types.builtins.INT8, (val: string) =>

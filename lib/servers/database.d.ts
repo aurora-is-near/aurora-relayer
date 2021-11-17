@@ -1,9 +1,11 @@
 import { SkeletonServer } from './skeleton.js';
 import * as web3 from '../web3.js';
+import nats from 'nats';
 import pg from 'pg';
 import sql from 'sql-bricks';
 export declare class DatabaseServer extends SkeletonServer {
     protected pgClient?: pg.Client;
+    protected broker?: nats.NatsConnection;
     protected _init(): Promise<void>;
     protected _query(query: string | sql.SelectStatement, args?: unknown[]): Promise<pg.QueryResult<any>>;
     eth_blockNumber(_request: any): Promise<web3.Quantity>;

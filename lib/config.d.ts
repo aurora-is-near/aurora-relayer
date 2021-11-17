@@ -4,6 +4,7 @@ export interface Config {
     verbose: boolean;
     force: boolean;
     database?: string;
+    broker?: string;
     port: number | string;
     network: string;
     endpoint?: string;
