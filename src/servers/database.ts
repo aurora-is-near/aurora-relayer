@@ -2,7 +2,7 @@
 
 import { SkeletonServer } from './skeleton.js';
 
-import * as web3 from '../web3.js';
+import { Bus } from '../bus.js';
 import {
   InvalidArguments,
   RevertError,
@@ -12,6 +12,7 @@ import {
   UnsupportedMethod,
 } from '../errors.js';
 import { compileTopics } from '../topics.js';
+import * as web3 from '../web3.js';
 
 import {
   Address,
@@ -24,7 +25,6 @@ import {
   intToHex,
 } from '@aurora-is-near/engine';
 import fs from 'fs';
-import nats from 'nats';
 import pg from 'pg';
 
 import {
@@ -44,7 +44,7 @@ const sqlConvert = (sql as any).convert;
 
 export class DatabaseServer extends SkeletonServer {
   protected pgClient?: pg.Client;
-  protected broker?: nats.NatsConnection;
+  protected bus?: Bus;
 
   protected async _init(): Promise<void> {
     // Connect to the PostgreSQL database:
@@ -54,7 +54,7 @@ export class DatabaseServer extends SkeletonServer {
 
     // Connect to the NATS message broker:
     if (this.config.broker) {
-      this.broker = await nats.connect({ servers: this.config.broker });
+      this.bus = new Bus(this.config);
     }
 
     // Add type parsers for relevant numeric types:
@@ -705,8 +705,19 @@ export class DatabaseServer extends SkeletonServer {
           case 'ERR_INCORRECT_NONCE':
           case 'ERR_TX_RLP_DECODE':
           case 'ERR_UNKNOWN_TX_TYPE':
+            if (this.bus) {
+              this.bus.publishError('eth_sendRawTransaction', ip, code);
+            }
             throw new TransactionError(code);
+          case 'ERR_MAX_GAS': // TODO
           case 'Exceeded the maximum amount of gas allowed to burn per contract.':
+            if (this.bus) {
+              this.bus.publishError(
+                'eth_sendRawTransaction',
+                ip,
+                'ERR_MAX_GAS'
+              );
+            }
             if (!('authorization' in request.headers)) {
               this._banIP(ip, 'ERR_MAX_GAS'); // temporarily heavy ban hammer
             }
