@@ -699,7 +699,9 @@ export class DatabaseServer extends SkeletonServer {
           case 'ERR_UNKNOWN_TX_TYPE':
             throw new TransactionError(code);
           case 'Exceeded the maximum amount of gas allowed to burn per contract.':
-            this._banIP(ip, 'ERR_MAX_GAS'); // temporarily heavy ban hammer
+            if (!('authorization' in request.headers)) {
+              this._banIP(ip, 'ERR_MAX_GAS'); // temporarily heavy ban hammer
+            }
             throw new TransactionError(code);
           default: {
             if (!code.startsWith('ERR_')) {
