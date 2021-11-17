@@ -207,7 +207,7 @@ export class DatabaseServer extends SkeletonServer {
     const blockNumber_ =
       parseBlockSpec(blockNumber) != 0
         ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
-        : parseBlockSpec(blockNumber);
+        : 0;
     try {
       const {
         rows: [block],
@@ -252,7 +252,7 @@ export class DatabaseServer extends SkeletonServer {
     const blockNumber_ =
       parseBlockSpec(blockNumber) != 0
         ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
-        : parseBlockSpec(blockNumber);
+        : 0;
     const {
       rows: [{ result }],
     } = await this._query(
@@ -486,7 +486,7 @@ export class DatabaseServer extends SkeletonServer {
     const blockNumber_ =
       parseBlockSpec(blockNumber) != 0
         ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
-        : parseBlockSpec(blockNumber);
+        : 0;
     const transactionIndex_ = parseInt(transactionIndex);
     try {
       const {
@@ -587,7 +587,7 @@ export class DatabaseServer extends SkeletonServer {
     const blockNumber_ =
       parseBlockSpec(blockNumber) != 0
         ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
-        : parseBlockSpec(blockNumber);
+        : 0;
     const {
       rows: [{ result }],
     } = await this._query(
