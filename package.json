@@ -32,7 +32,8 @@
     "format": "prettier -w src",
     "lint": "eslint test && eslint **/*.ts",
     "start": "nodemon",
-    "test": "jest"
+    "test": "jest",
+    "build:schema": "cat etc/schema.sql | cut -d' ' -f2 | xargs cat > .docker/docker-entrypoint-initdb.d/init.txt"
   },
   "keywords": [
     "Aurora",
@@ -65,10 +66,11 @@
     "express-pino-logger": "^6.0.0",
     "got": "^11.8.2",
     "helmet": "^4.5.0",
-    "jayson": "aurora-is-near/jayson#d4bd9da",
+    "jayson": "aurora-is-near/jayson#8f9b2da",
     "jest": "^27.0.4",
     "js-yaml": "^4.1.0",
     "nanoid": "^3.1.22",
+    "nats": "^2.4.0",
     "pg": "^8.6.0",
     "rlp": "^2.2.6",
     "sql-bricks-postgres": "^0.5.0",

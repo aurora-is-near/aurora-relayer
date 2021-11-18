@@ -3,6 +3,7 @@
 import * as web3 from '../web3.js';
 import { Config } from '../config.js';
 import { unimplemented, unsupported } from '../errors.js';
+import { Request } from '../request.js';
 
 import { Address, bytesToHex, Engine, intToHex } from '@aurora-is-near/engine';
 import { keccakFromHexString } from 'ethereumjs-util';
@@ -83,42 +84,42 @@ export abstract class SkeletonServer implements web3.Service {
 
   // web3_*
 
-  async web3_clientVersion(_request: any): Promise<string> {
+  async web3_clientVersion(_request: Request): Promise<string> {
     return 'Aurora-Relayer/0.0.0'; // TODO
   }
 
-  async web3_sha3(_request: any, input: web3.Data): Promise<web3.Data> {
+  async web3_sha3(_request: Request, input: web3.Data): Promise<web3.Data> {
     return bytesToHex(keccakFromHexString(input));
   }
 
   // net_*
 
-  async net_listening(_request: any): Promise<boolean> {
+  async net_listening(_request: Request): Promise<boolean> {
     return true;
   }
 
-  async net_peerCount(_request: any): Promise<web3.Quantity> {
+  async net_peerCount(_request: Request): Promise<web3.Quantity> {
     return intToHex(0);
   }
 
-  async net_version(_request: any): Promise<string> {
+  async net_version(_request: Request): Promise<string> {
     const netVersion = (await this.engine.getChainID()).unwrap();
     return netVersion.toString();
   }
 
   // eth_*
 
-  async eth_accounts(_request: any): Promise<web3.Data[]> {
+  async eth_accounts(_request: Request): Promise<web3.Data[]> {
     return []; // no private keys under management here
   }
 
-  async eth_blockNumber(_request: any): Promise<web3.Quantity> {
+  async eth_blockNumber(_request: Request): Promise<web3.Quantity> {
     unimplemented('eth_blockNumber');
     return intToHex(0);
   }
 
   async eth_call(
-    _request: any,
+    _request: Request,
     _transaction: web3.TransactionForCall,
     _blockNumber?: web3.Quantity | web3.Tag
   ): Promise<web3.Data> {
@@ -126,34 +127,40 @@ export abstract class SkeletonServer implements web3.Service {
     return '0x';
   }
 
-  async eth_chainId(_request: any): Promise<web3.Quantity> {
+  async eth_chainId(_request: Request): Promise<web3.Quantity> {
     // EIP-695
     unimplemented('eth_chainId');
     return intToHex(0);
   }
 
-  async eth_coinbase(_request: any): Promise<web3.Data> {
+  async eth_coinbase(_request: Request): Promise<web3.Data> {
     unimplemented('eth_coinbase');
     return '0x';
   }
 
-  async eth_compileLLL(_request: any, _code: string): Promise<web3.Data> {
+  async eth_compileLLL(_request: Request, _code: string): Promise<web3.Data> {
     unsupported('eth_compileLLL');
     return '0x';
   }
 
-  async eth_compileSerpent(_request: any, _code: string): Promise<web3.Data> {
+  async eth_compileSerpent(
+    _request: Request,
+    _code: string
+  ): Promise<web3.Data> {
     unsupported('eth_compileSerpent');
     return '0x';
   }
 
-  async eth_compileSolidity(_request: any, _code: string): Promise<web3.Data> {
+  async eth_compileSolidity(
+    _request: Request,
+    _code: string
+  ): Promise<web3.Data> {
     unsupported('eth_compileSolidity');
     return '0x';
   }
 
   async eth_estimateGas(
-    _request: any,
+    _request: Request,
     _transaction: web3.TransactionForCall,
     _blockNumber?: web3.Quantity | web3.Tag
   ): Promise<web3.Quantity> {
@@ -161,12 +168,12 @@ export abstract class SkeletonServer implements web3.Service {
     return intToHex(6_721_975); // 0x6691b7
   }
 
-  async eth_gasPrice(_request: any): Promise<web3.Quantity> {
+  async eth_gasPrice(_request: Request): Promise<web3.Quantity> {
     return intToHex(0);
   }
 
   async eth_getBalance(
-    _request: any,
+    _request: Request,
     _address: web3.Data,
     _blockNumber?: web3.Quantity | web3.Tag
   ): Promise<web3.Quantity> {
@@ -175,7 +182,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_getBlockByHash(
-    _request: any,
+    _request: Request,
     _blockHash: web3.Data,
     _fullObject?: boolean
   ): Promise<web3.BlockResult | null> {
@@ -184,7 +191,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_getBlockByNumber(
-    _request: any,
+    _request: Request,
     _blockNumber: web3.Quantity | web3.Tag,
     _fullObject?: boolean
   ): Promise<web3.BlockResult | null> {
@@ -193,7 +200,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_getBlockTransactionCountByHash(
-    _request: any,
+    _request: Request,
     _blockHash: web3.Data
   ): Promise<web3.Quantity | null> {
     unimplemented('eth_getBlockTransactionCountByHash');
@@ -201,7 +208,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_getBlockTransactionCountByNumber(
-    _request: any,
+    _request: Request,
     _blockNumber: web3.Quantity | web3.Tag
   ): Promise<web3.Quantity | null> {
     unimplemented('eth_getBlockTransactionCountByNumber');
@@ -209,7 +216,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_getCode(
-    _request: any,
+    _request: Request,
     _address: web3.Data,
     _blockNumber: web3.Quantity | web3.Tag
   ): Promise<web3.Data> {
@@ -217,12 +224,12 @@ export abstract class SkeletonServer implements web3.Service {
     return '0x';
   }
 
-  async eth_getCompilers(_request: any): Promise<string[]> {
+  async eth_getCompilers(_request: Request): Promise<string[]> {
     return [];
   }
 
   async eth_getFilterChanges(
-    _request: any,
+    _request: Request,
     _filterID: web3.Quantity
   ): Promise<web3.LogObject[]> {
     unimplemented('eth_getFilterChanges');
@@ -230,7 +237,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_getFilterLogs(
-    _request: any,
+    _request: Request,
     _filterID: web3.Quantity
   ): Promise<web3.LogObject[]> {
     unimplemented('eth_getFilterLogs');
@@ -238,7 +245,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_getLogs(
-    _request: any,
+    _request: Request,
     _filter: web3.FilterOptions
   ): Promise<web3.LogObject[]> {
     unimplemented('eth_getLogs');
@@ -246,7 +253,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_getProof(
-    _request: any,
+    _request: Request,
     _address: web3.Data,
     _keys: web3.Data[],
     _blockNumber: web3.Quantity | web3.Tag
@@ -257,7 +264,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_getStorageAt(
-    _request: any,
+    _request: Request,
     _address: web3.Data,
     _key: web3.Quantity,
     _blockNumber: web3.Quantity | web3.Tag
@@ -267,7 +274,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_getTransactionByBlockHashAndIndex(
-    _request: any,
+    _request: Request,
     _blockHash: web3.Data,
     _transactionIndex: web3.Quantity
   ): Promise<web3.TransactionResult | null> {
@@ -276,7 +283,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_getTransactionByBlockNumberAndIndex(
-    _request: any,
+    _request: Request,
     _blockNumber: web3.Quantity | web3.Tag,
     _transactionIndex: web3.Quantity
   ): Promise<web3.TransactionResult | null> {
@@ -298,7 +305,7 @@ export abstract class SkeletonServer implements web3.Service {
     return null;
   }
   async eth_getTransactionByHash(
-    _request: any,
+    _request: Request,
     _transactionHash: web3.Data
   ): Promise<web3.TransactionResult | null> {
     unimplemented('eth_getTransactionByHash');
@@ -306,7 +313,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_getTransactionCount(
-    _request: any,
+    _request: Request,
     _address: web3.Data,
     _blockNumber: web3.Quantity | web3.Tag
   ): Promise<web3.Quantity> {
@@ -315,7 +322,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_getTransactionReceipt(
-    _request: any,
+    _request: Request,
     _transactionHash: string
   ): Promise<web3.TransactionReceipt | null> {
     unimplemented('eth_getTransactionReceipt');
@@ -323,7 +330,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_getUncleByBlockHashAndIndex(
-    _request: any,
+    _request: Request,
     _blockHash: web3.Data,
     _uncleIndex: web3.Quantity
   ): Promise<web3.BlockResult | null> {
@@ -331,7 +338,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_getUncleByBlockNumberAndIndex(
-    _request: any,
+    _request: Request,
     _blockNumber: web3.Quantity | web3.Tag,
     _uncleIndex: web3.Quantity
   ): Promise<web3.BlockResult | null> {
@@ -339,7 +346,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_getUncleCountByBlockHash(
-    _request: any,
+    _request: Request,
     _blockHash: web3.Data
   ): Promise<web3.Quantity | null> {
     unimplemented('eth_getUncleCountByBlockHash');
@@ -347,56 +354,58 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_getUncleCountByBlockNumber(
-    _request: any,
+    _request: Request,
     _blockNumber: web3.Quantity | web3.Tag
   ): Promise<web3.Quantity | null> {
     unimplemented('eth_getUncleCountByBlockNumber');
     return null;
   }
 
-  async eth_getWork(_request: any): Promise<web3.Data[]> {
+  async eth_getWork(_request: Request): Promise<web3.Data[]> {
     unsupported('eth_getWork');
     return [];
   }
 
-  async eth_hashrate(_request: any): Promise<web3.Quantity> {
+  async eth_hashrate(_request: Request): Promise<web3.Quantity> {
     return intToHex(0);
   }
 
-  async eth_mining(_request: any): Promise<false> {
+  async eth_mining(_request: Request): Promise<false> {
     return false;
   }
 
-  async eth_newBlockFilter(_request: any): Promise<web3.Quantity> {
+  async eth_newBlockFilter(_request: Request): Promise<web3.Quantity> {
     unimplemented('eth_newBlockFilter');
     return intToHex(0);
   }
 
   async eth_newFilter(
-    _request: any,
+    _request: Request,
     _filter: web3.FilterOptions
   ): Promise<web3.Quantity> {
     unimplemented('eth_newFilter');
     return intToHex(0);
   }
 
-  async eth_newPendingTransactionFilter(_request: any): Promise<web3.Quantity> {
+  async eth_newPendingTransactionFilter(
+    _request: Request
+  ): Promise<web3.Quantity> {
     return intToHex(0); // designates the empty filter
   }
 
   async eth_pendingTransactions(
-    _request: any
+    _request: Request
   ): Promise<Record<string, string | number | null>[]> {
     // undocumented
     return [];
   }
 
-  async eth_protocolVersion(_request: any): Promise<string> {
+  async eth_protocolVersion(_request: Request): Promise<string> {
     return intToHex(0x41);
   }
 
   async eth_sendRawTransaction(
-    _request: any,
+    _request: Request,
     _transaction: web3.Data
   ): Promise<web3.Data> {
     unimplemented('eth_sendRawTransaction');
@@ -404,7 +413,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_sendTransaction(
-    _request: any,
+    _request: Request,
     _transaction: web3.TransactionForSend
   ): Promise<web3.Data> {
     unsupported('eth_sendTransaction');
@@ -412,7 +421,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_sign(
-    _request: any,
+    _request: Request,
     _account: web3.Data,
     _message: web3.Data
   ): Promise<web3.Data> {
@@ -421,7 +430,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_signTransaction(
-    _request: any,
+    _request: Request,
     _transaction: web3.TransactionForSend
   ): Promise<web3.Data> {
     unsupported('eth_signTransaction'); // no private keys under management here
@@ -429,7 +438,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_signTypedData(
-    _request: any,
+    _request: Request,
     _address: web3.Data,
     _data: web3.TypedData
   ): Promise<web3.Data> {
@@ -439,7 +448,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_submitHashrate(
-    _request: any,
+    _request: Request,
     _hashrate: web3.Quantity,
     _clientID: web3.Quantity
   ): Promise<false> {
@@ -448,7 +457,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_submitWork(
-    _request: any,
+    _request: Request,
     _nonce: web3.Data,
     _powHash: web3.Data,
     _mixDigest: web3.Data
@@ -457,12 +466,12 @@ export abstract class SkeletonServer implements web3.Service {
     return false;
   }
 
-  async eth_syncing(_request: any): Promise<false> {
+  async eth_syncing(_request: Request): Promise<false> {
     return false;
   }
 
   async eth_uninstallFilter(
-    _request: any,
+    _request: Request,
     _filterID: web3.Quantity
   ): Promise<boolean> {
     unimplemented('eth_uninstallFilter');
@@ -470,23 +479,23 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   // @see {@link https://geth.ethereum.org/docs/rpc/ns-txpool#txpool_content}
-  async txpool_content(_request: any): Promise<Record<string, any>> {
+  async txpool_content(_request: Request): Promise<Record<string, any>> {
     return { pending: {}, queued: {} };
   }
 
   // @see {@link https://geth.ethereum.org/docs/rpc/ns-txpool#txpool_inspect}
-  async txpool_inspect(_request: any): Promise<Record<string, any>> {
+  async txpool_inspect(_request: Request): Promise<Record<string, any>> {
     return { pending: {}, queued: {} };
   }
 
   // @see {@link https://geth.ethereum.org/docs/rpc/ns-txpool#txpool_status}
-  async txpool_status(_request: any): Promise<Record<string, number>> {
+  async txpool_status(_request: Request): Promise<Record<string, number>> {
     return { pending: 0, queued: 0 };
   }
 
   // @see {@link https://openethereum.github.io/JSONRPC-parity-module#parity_pendingtransactions}
   async parity_pendingTransactions(
-    _request: any,
+    _request: Request,
     _limit?: number | null,
     _filter?: Record<string, any>
   ): Promise<any[]> {
