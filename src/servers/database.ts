@@ -469,8 +469,9 @@ export class DatabaseServer extends SkeletonServer {
     _request: any,
     blockNumber: web3.Quantity | web3.Tag
   ): Promise<web3.TransactionResult | null> {
-    const blockNumber_ =
-      parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID());
+    const blockNumber_ = parseBlockSpec(blockNumber) != 0
+            ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
+            : parseBlockSpec(blockNumber);
       
     try {
       const {
@@ -496,7 +497,7 @@ export class DatabaseServer extends SkeletonServer {
       WHERE b.id = $1`,
       [blockNumber_]
       );
-      return !rows || !rows.length ? null : exportJSON(rows[0]);
+      return !rows || !rows.length ? null : exportJSON(rows);
     } catch (error) {
       if (this.config.debug) {
         console.debug('eth_getTransactionsByBlockNumber', error);
@@ -592,11 +593,12 @@ export class DatabaseServer extends SkeletonServer {
     _request: any,
     blockNumber: web3.Quantity | web3.Tag
   ): Promise<web3.TransactionReceipt[] | null> {
-    const blockNumber_ =
-      parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID());
+    const blockNumber_ = parseBlockSpec(blockNumber) != 0
+            ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
+            : parseBlockSpec(blockNumber);
     try {
       const {
-        rows: [receipt],
+        rows,
       } = await this._query(
         `SELECT
         b.id AS "blockNumber",
@@ -612,18 +614,17 @@ export class DatabaseServer extends SkeletonServer {
         END AS "contractAddress",
         NULL AS "logs",                 -- TODO: fetch event.id[]
         repeat('\\000', 256)::bytea AS "logsBloom",
-        CASE WHEN t.status THEN 1 ELSE 0 END AS "status",
-        t.near_hash AS "nearTransactionHash",
-        t.near_receipt_hash AS "nearReceiptHash"
+        CASE WHEN t.status THEN 1 ELSE 0 END AS "status"
       FROM transaction t
         LEFT JOIN block b ON t.block = b.id
       WHERE b.id = $1`,
         [blockNumber_]
       );
       //assert(receipt, 'receipt is not null');
-
-      receipt.logs = await this._fetchEvents(hexToBytes(receipt.transactionHash.toString()));
-      return exportJSON(receipt);
+      for(var i = 0;i<rows.length;i++){
+        rows[i].logs = await this._fetchEvents(hexToBytes(rows[i].transactionHash.toString()));
+      }
+      return exportJSON(rows);
     } catch (error) {
       if (this.config.debug) {
         console.debug('eth_getTransactionReceiptsByBlockNumber', error);

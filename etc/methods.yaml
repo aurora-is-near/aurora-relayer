@@ -211,16 +211,16 @@ eth_getTransactionByBlockNumberAndIndex:
   implementations:
     - etc/schema/functions/eth_getTransactionByBlockNumberAndIndex.sql
     - src/servers/skeleton.ts
-eth_getTransactionByBlockNumber:
+eth_getTransactionsByBlockNumber:
   status: ok
   comment:
-  link: https://eth.wiki/json-rpc/API#eth_getTransactionByBlockNumber
+  link: 
   implementations:
     - src/servers/skeleton.ts
 eth_getTransactionReceiptsByBlockNumber:
   status: ok
   comment:
-  link: https://eth.wiki/json-rpc/API#eth_getTransactionReceiptsByBlockNumber
+  link: 
   implementations:
     - src/servers/skeleton.ts
 eth_getTransactionByHash:
