@@ -29,7 +29,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "format": "npx prettier -w src",
+    "format": "prettier -w src",
     "lint": "eslint test && eslint **/*.ts",
     "start": "nodemon",
     "test": "jest",
