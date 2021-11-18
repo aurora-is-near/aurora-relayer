@@ -3,8 +3,8 @@ export declare type EmptyBlock = {
     chain: number;
     id: number;
     hash: Buffer;
-    nearHash: Buffer;
-    timestamp: string;
+    nearHash: Buffer | null;
+    timestamp: string | null;
     size: number;
     gasLimit: number;
     gasUsed: number;
@@ -14,4 +14,4 @@ export declare type EmptyBlock = {
     receiptsRoot: Buffer;
 };
 export declare function computeBlockHash(blockHeight: number, accountId: string, chainId: number): Buffer;
-export declare function generateEmptyBlock(blockHeight: number, accountId: string, chainId: number, timestamp: number): EmptyBlock;
+export declare function generateEmptyBlock(blockHeight: number, accountId: string, chainId: number): EmptyBlock;

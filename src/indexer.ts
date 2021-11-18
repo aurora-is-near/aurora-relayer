@@ -66,7 +66,6 @@ export class Indexer {
     //console.debug('indexBlock', blockID); // DEBUG
     this.logger.info({ block: { id: blockID } }, `indexing block #${blockID}`);
     const contractID = AccountID.parse(this.config.engine).unwrap();
-    let timestamp = Math.floor(Date.now() / 1000); // init timestamp
     for (;;) {
       const currentBlockHeight = (await this.engine.getBlockHeight()).unwrap();
 
@@ -82,25 +81,23 @@ export class Indexer {
             const emptyBlock: EmptyBlock = generateEmptyBlock(
               blockID as number,
               contractID.toString(),
-              this.network.chainID,
-              timestamp + 1 // arbitrary timestamp = previous block.timestamp + 1
+              this.network.chainID
             );
             //if (this.config.debug) console.debug(emptyBlock); // DEBUG
             const query = sql.insert('block', {
-              chain: this.network.chainID,
+              chain: emptyBlock.chain,
               id: emptyBlock.id,
               hash: emptyBlock.hash,
-              near_hash: null,
+              near_hash: emptyBlock.nearHash,
               timestamp: emptyBlock.timestamp,
               size: emptyBlock.size,
-              gas_limit: 0, // FIXME: block.gasLimit,
-              gas_used: 0, // FIXME: block.gasUsed,
+              gas_limit: emptyBlock.gasLimit,
+              gas_used: emptyBlock.gasUsed,
               parent_hash: emptyBlock.parentHash,
               transactions_root: emptyBlock.transactionsRoot,
               state_root: emptyBlock.stateRoot,
               receipts_root: emptyBlock.receiptsRoot,
             });
-
             //if (this.config.debug) console.debug(query.toString()); // DEBUG
             try {
               await this.pgClient.query(query.toParams());
@@ -121,7 +118,6 @@ export class Indexer {
       }
       const block_ = proxy.unwrap();
       const block = block_.getMetadata();
-      timestamp = block.timestamp as number; // it is used only for empty blocks
       const blockHash = computeBlockHash(
         block.number as number,
         contractID.toString(),

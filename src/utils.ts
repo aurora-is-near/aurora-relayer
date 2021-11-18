@@ -6,8 +6,8 @@ export type EmptyBlock = {
   chain: number;
   id: number;
   hash: Buffer;
-  nearHash: Buffer;
-  timestamp: string;
+  nearHash: Buffer | null;
+  timestamp: string | null;
   size: number;
   gasLimit: number;
   gasUsed: number;
@@ -46,8 +46,7 @@ function generateBlockPreImage(
 export function generateEmptyBlock(
   blockHeight: number,
   accountId: string,
-  chainId: number,
-  timestamp: number
+  chainId: number
 ): EmptyBlock {
   const hash = computeBlockHash(blockHeight, accountId, chainId);
 
@@ -57,8 +56,8 @@ export function generateEmptyBlock(
     chain: chainId,
     id: blockHeight,
     hash: hash,
-    nearHash: Buffer.alloc(32),
-    timestamp: new Date(timestamp * 1000).toISOString(),
+    nearHash: null,
+    timestamp: null,
     size: 0,
     gasLimit: 0,
     gasUsed: 0,
