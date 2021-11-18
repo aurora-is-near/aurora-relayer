@@ -100,7 +100,7 @@ func followChainHead(previousBlockID int64) {
 		}
 		if currentBlockID > previousBlockID { // forward only
 			for blockID := previousBlockID + 1; blockID <= currentBlockID; blockID++ {
-				if debug {
+				if verbose || debug {
 					if blockID < currentBlockID {
 						fmt.Fprintf(os.Stderr, "Enqueued skipped block #%d.\n", blockID)
 					} else {
@@ -147,7 +147,7 @@ func scanForIndexGaps(tipBlockID int64) {
 			if err != nil {
 				panic(err)
 			}
-			if debug {
+			if verbose || debug {
 				fmt.Fprintf(os.Stderr, "Enqueued missing block #%d.\n", blockID)
 			}
 			queue.Enqueue(blockID)
