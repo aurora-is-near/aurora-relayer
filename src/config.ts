@@ -7,6 +7,7 @@ export interface Config {
   verbose: boolean;
   force: boolean;
   database?: string;
+  broker?: string;
   port: number | string;
   network: string;
   endpoint?: string;
@@ -28,6 +29,7 @@ export const localConfig: Config = {
   verbose: false,
   force: false,
   database: undefined,
+  broker: undefined,
   port: 8545,
   network: 'local',
   endpoint: 'http://127.0.0.1:3030',
@@ -63,6 +65,7 @@ export function parseConfig(
       verbose: debug || options.verbose || config.verbose,
       force: options.force || config.force,
       database: options.database || config.database,
+      broker: options.broker || config.broker,
       port: parseInt((options.port as string) || (config.port as string)),
       network: networkID,
       endpoint:

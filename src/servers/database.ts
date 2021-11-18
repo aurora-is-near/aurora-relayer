@@ -2,7 +2,7 @@
 
 import { SkeletonServer } from './skeleton.js';
 
-import * as web3 from '../web3.js';
+import { Bus } from '../bus.js';
 import {
   InvalidAddress,
   InvalidArguments,
@@ -12,7 +12,9 @@ import {
   UnknownFilter,
   UnsupportedMethod,
 } from '../errors.js';
+import { Request } from '../request.js';
 import { compileTopics } from '../topics.js';
+import * as web3 from '../web3.js';
 
 import {
   Address,
@@ -45,11 +47,18 @@ const sqlConvert = (sql as any).convert;
 
 export class DatabaseServer extends SkeletonServer {
   protected pgClient?: pg.Client;
+  protected bus?: Bus;
 
   protected async _init(): Promise<void> {
+    // Connect to the PostgreSQL database:
     const pgClient = new pg.Client(this.config.database);
     this.pgClient = pgClient;
     await pgClient.connect();
+
+    // Connect to the NATS message broker:
+    if (this.config.broker) {
+      this.bus = new Bus(this.config);
+    }
 
     // Add type parsers for relevant numeric types:
     (pgClient as any).setTypeParser(pg.types.builtins.INT8, (val: string) =>
@@ -95,12 +104,12 @@ export class DatabaseServer extends SkeletonServer {
     );
   }
 
-  async eth_blockNumber(_request: any): Promise<web3.Quantity> {
+  async eth_blockNumber(_request: Request): Promise<web3.Quantity> {
     return intToHex(await this._fetchCurrentBlockID());
   }
 
   async eth_call(
-    _request: any,
+    _request: Request,
     transaction: web3.TransactionForCall,
     blockNumberOrHash?: web3.Quantity | web3.Tag | web3.Data
   ): Promise<web3.Data> {
@@ -143,18 +152,18 @@ export class DatabaseServer extends SkeletonServer {
     });
   }
 
-  async eth_chainId(_request: any): Promise<web3.Quantity> {
+  async eth_chainId(_request: Request): Promise<web3.Quantity> {
     // EIP-695
     const chainID = (await this.engine.getChainID()).unwrap();
     return intToHex(chainID);
   }
 
-  async eth_coinbase(_request: any): Promise<web3.Data> {
+  async eth_coinbase(_request: Request): Promise<web3.Data> {
     return (await this.engine.getCoinbase()).unwrap().toString();
   }
 
   async eth_getBalance(
-    _request: any,
+    _request: Request,
     address: web3.Data,
     blockNumber?: web3.Quantity | web3.Tag
   ): Promise<web3.Quantity> {
@@ -165,7 +174,7 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getBlockByHash(
-    _request: any,
+    _request: Request,
     blockHash: web3.Data,
     fullObject?: boolean
   ): Promise<web3.BlockResult | null> {
@@ -193,14 +202,14 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getBlockByNumber(
-    _request: any,
+    _request: Request,
     blockNumber: web3.Quantity | web3.Tag,
     fullObject?: boolean
   ): Promise<web3.BlockResult | null> {
     const blockNumber_ =
       parseBlockSpec(blockNumber) != 0
         ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
-        : parseBlockSpec(blockNumber);
+        : 0;
     try {
       const {
         rows: [block],
@@ -223,7 +232,7 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getBlockTransactionCountByHash(
-    _request: any,
+    _request: Request,
     blockHash: web3.Data
   ): Promise<web3.Quantity | null> {
     const blockHash_ = blockHash.startsWith('0x')
@@ -239,13 +248,13 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getBlockTransactionCountByNumber(
-    _request: any,
+    _request: Request,
     blockNumber: web3.Quantity | web3.Tag
   ): Promise<web3.Quantity | null> {
     const blockNumber_ =
       parseBlockSpec(blockNumber) != 0
         ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
-        : parseBlockSpec(blockNumber);
+        : 0;
     const {
       rows: [{ result }],
     } = await this._query(
@@ -256,7 +265,7 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getCode(
-    _request: any,
+    _request: Request,
     address: web3.Data,
     blockNumber: web3.Quantity | web3.Tag
   ): Promise<web3.Data> {
@@ -272,7 +281,7 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getFilterChanges(
-    _request: any,
+    _request: Request,
     filterID: web3.Quantity
   ): Promise<web3.LogObject[]> {
     const filterID_ = parseFilterID(filterID);
@@ -317,7 +326,7 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getFilterLogs(
-    _request: any,
+    _request: Request,
     filterID: web3.Quantity
   ): Promise<web3.LogObject[]> {
     const filterID_ = parseFilterID(filterID);
@@ -362,7 +371,7 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getLogs(
-    _request: any,
+    _request: Request,
     filter: web3.FilterOptions
   ): Promise<web3.LogObject[]> {
     const where = [];
@@ -439,7 +448,7 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getStorageAt(
-    _request: any,
+    _request: Request,
     address: web3.Data,
     key: web3.Quantity,
     blockNumber: web3.Quantity | web3.Tag
@@ -451,7 +460,7 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getTransactionByBlockHashAndIndex(
-    _request: any,
+    _request: Request,
     blockHash: web3.Data,
     transactionIndex: web3.Quantity
   ): Promise<web3.TransactionResult | null> {
@@ -476,14 +485,14 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getTransactionByBlockNumberAndIndex(
-    _request: any,
+    _request: Request,
     blockNumber: web3.Quantity | web3.Tag,
     transactionIndex: web3.Quantity
   ): Promise<web3.TransactionResult | null> {
     const blockNumber_ =
       parseBlockSpec(blockNumber) != 0
         ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
-        : parseBlockSpec(blockNumber);
+        : 0;
     const transactionIndex_ = parseInt(transactionIndex);
     try {
       const {
@@ -502,7 +511,7 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getTransactionByHash(
-    _request: any,
+    _request: Request,
     transactionHash: web3.Data
   ): Promise<web3.TransactionResult | null> {
     const transactionHash_ = hexToBytes(transactionHash);
@@ -522,7 +531,7 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getTransactionCount(
-    _request: any,
+    _request: Request,
     address: web3.Data,
     blockNumber: web3.Quantity | web3.Tag
   ): Promise<web3.Quantity> {
@@ -540,7 +549,7 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getTransactionReceipt(
-    _request: any,
+    _request: Request,
     transactionHash: string
   ): Promise<web3.TransactionReceipt | null> {
     const transactionHash_ = hexToBytes(transactionHash);
@@ -563,7 +572,7 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getUncleCountByBlockHash(
-    _request: any,
+    _request: Request,
     blockHash: web3.Data
   ): Promise<web3.Quantity | null> {
     const blockHash_ = blockHash.startsWith('0x')
@@ -578,13 +587,13 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_getUncleCountByBlockNumber(
-    _request: any,
+    _request: Request,
     blockNumber: web3.Quantity | web3.Tag
   ): Promise<web3.Quantity | null> {
     const blockNumber_ =
       parseBlockSpec(blockNumber) != 0
         ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
-        : parseBlockSpec(blockNumber);
+        : 0;
     const {
       rows: [{ result }],
     } = await this._query(
@@ -594,7 +603,7 @@ export class DatabaseServer extends SkeletonServer {
     return result !== null ? intToHex(result) : null;
   }
 
-  async eth_newBlockFilter(_request: any): Promise<web3.Quantity> {
+  async eth_newBlockFilter(_request: Request): Promise<web3.Quantity> {
     const {
       rows: [{ id }],
     } = await this._query('SELECT eth_newBlockFilter($1::inet) AS id', [
@@ -604,7 +613,7 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_newFilter(
-    _request: any,
+    _request: Request,
     filter: web3.FilterOptions
   ): Promise<web3.Quantity> {
     const fromBlock = parseBlockSpec(filter.fromBlock);
@@ -641,7 +650,9 @@ export class DatabaseServer extends SkeletonServer {
     return intToHex(id);
   }
 
-  async eth_newPendingTransactionFilter(_request: any): Promise<web3.Quantity> {
+  async eth_newPendingTransactionFilter(
+    _request: Request
+  ): Promise<web3.Quantity> {
     const {
       rows: [{ id }],
     } = await this._query('SELECT eth_newPendingTransactionFilter() AS id');
@@ -656,7 +667,7 @@ export class DatabaseServer extends SkeletonServer {
       throw new UnsupportedMethod('eth_sendRawTransaction');
     }
 
-    const ip = request.headers['cf-connecting-ip'];
+    const ip = request.ip();
     const transactionBytes = Buffer.from(hexToBytes(transaction));
     const transactionHash = keccak256(transactionBytes);
 
@@ -690,7 +701,7 @@ export class DatabaseServer extends SkeletonServer {
       },
       err: (code) => {
         if (this.config.errorLog && !code.includes('<html>')) {
-          const country = request.headers['cf-ipcountry'];
+          const country = request.country();
           fs.appendFileSync(
             this.config.errorLog,
             `${ip}\t${country}\t${code}\n`
@@ -702,9 +713,22 @@ export class DatabaseServer extends SkeletonServer {
           case 'ERR_INCORRECT_NONCE':
           case 'ERR_TX_RLP_DECODE':
           case 'ERR_UNKNOWN_TX_TYPE':
+            if (this.bus) {
+              this.bus.publishError('eth_sendRawTransaction', ip, code);
+            }
             throw new TransactionError(code);
+          case 'ERR_MAX_GAS': // TODO
           case 'Exceeded the maximum amount of gas allowed to burn per contract.':
-            this._banIP(ip, 'ERR_MAX_GAS'); // temporarily heavy ban hammer
+            if (this.bus) {
+              this.bus.publishError(
+                'eth_sendRawTransaction',
+                ip,
+                'ERR_MAX_GAS'
+              );
+            }
+            if (!request.hasAuthorization()) {
+              this._banIP(ip, 'ERR_MAX_GAS'); // temporarily heavy ban hammer
+            }
             throw new TransactionError(code);
           default: {
             if (!code.startsWith('ERR_')) {
@@ -718,7 +742,7 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_subscribe(
-    _request: any,
+    _request: Request,
     _subsciptionType: web3.Data,
     _filter: any
   ): Promise<web3.Data> {
@@ -740,9 +764,9 @@ export class DatabaseServer extends SkeletonServer {
 
     const query = sql.insert('subscription', {
       'id': id,
-      'sec_websocket_key': _request.secWebsocketKey,
+      'sec_websocket_key': _request.websocketKey(),
       'type': _subsciptionType,
-      'ip': _request.ip,
+      'ip': _request.ip(),
       'filter': JSON.stringify(filter) // is jsonb needet?
     });
     await this._query(`${query.toString()} ON CONFLICT (sec_websocket_key, type, filter) DO UPDATE SET id = EXCLUDED.id `);
@@ -750,7 +774,7 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_uninstallFilter(
-    _request: any,
+    _request: Request,
     filterID: web3.Quantity
   ): Promise<boolean> {
     const filterID_ = parseFilterID(filterID);
@@ -767,7 +791,7 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_unsubscribe(
-    _request: any,
+    _request: Request,
     _subsciptionId: web3.Data
   ): Promise<boolean> {
     const query = sql.delete('subscription').where({ 'id': _subsciptionId })

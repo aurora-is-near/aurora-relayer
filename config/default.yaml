@@ -1,6 +1,7 @@
 ---
 port: 8545
 database: postgres://aurora:aurora@database/aurora
+broker: nats://127.0.0.1:4222
 network:
 endpoint:
 engine:

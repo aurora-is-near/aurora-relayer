@@ -3,6 +3,7 @@
 import { Config } from './config.js';
 import { SkeletonServer } from './servers/skeleton.js';
 import { DatabaseServer } from './servers/database.js';
+import { Request } from './request.js';
 import { ExpectedError } from './errors.js';
 
 import { bytesToHex } from '@aurora-is-near/engine';
@@ -42,7 +43,7 @@ export class Method extends jayson.Method {
     const args = (requestParams || []) as any[];
     const result: Promise<any> = (this.handler as any).call(
       this.server,
-      request,
+      new Request(request),
       ...args
     );
     result

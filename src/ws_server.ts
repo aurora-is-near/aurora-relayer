@@ -22,7 +22,7 @@ export function createWsServer(
     ws.on('message', function(msg: string) {
       try {
         const parsedObject = JSON.parse(msg);
-        jaysonWsServer.call(parsedObject, { secWebsocketKey: req.headers['sec-websocket-key'], ip: req.socket.remoteAddress }, function (error: any, success: any) {
+        jaysonWsServer.call(parsedObject, req, function (error: any, success: any) {
           ws.send(JSON.stringify(error || success));
         });
       } catch(e) {
