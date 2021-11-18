@@ -16,6 +16,7 @@ import {
 } from '@aurora-is-near/engine';
 import { program } from 'commander';
 import externalConfig from 'config';
+import FastPriorityQueue from 'fastpriorityqueue';
 import * as readline from 'readline';
 
 declare global {
@@ -85,14 +86,34 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
   const indexer = new Indexer(config, network, engine);
   await indexer.start();
 
+  const queue = new FastPriorityQueue((a: number, b: number) => {
+    return a > b;
+  });
+
+  let inputOpen = true;
   const input = readline.createInterface({
     input: process.stdin,
     terminal: false,
   });
-  for await (const line of input) {
-    const blockID = Number.parseInt(line);
+  input
+    .on('line', (line: string) => {
+      const blockID = Number.parseInt(line);
+      queue.add(blockID);
+    })
+    .on('close', () => {
+      inputOpen = false;
+    });
+
+  while (!queue.isEmpty() || inputOpen) {
+    const blockID = queue.poll() as number;
+    if (blockID === undefined) {
+      // The queue is empty, wait for more input:
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      continue;
+    }
     await indexer.indexBlock(blockID);
   }
+  process.exit(0);
 }
 
 export class Indexer {

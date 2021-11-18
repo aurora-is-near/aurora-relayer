@@ -64,6 +64,7 @@
     "express": "^4.17.1",
     "express-ipfilter": "^1.2.0",
     "express-pino-logger": "^6.0.0",
+    "fastpriorityqueue": "^0.7.1",
     "got": "^11.8.2",
     "helmet": "^4.5.0",
     "jayson": "aurora-is-near/jayson#8f9b2da",
