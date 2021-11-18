@@ -35,7 +35,11 @@ func initConfig() {
 	if configFile != "" {
 		viper.SetConfigFile(configFile)
 	} else {
-		viper.SetConfigName("local") // TODO: NEAR_ENV
+		if env, ok := os.LookupEnv("NEAR_ENV"); ok && env != "" {
+			viper.SetConfigName(env)
+		} else {
+			viper.SetConfigName("local")
+		}
 		viper.SetConfigType("yaml")
 		viper.AddConfigPath("config")
 		viper.AddConfigPath("../../config")
@@ -68,7 +72,7 @@ var rootCmd = &cobra.Command{
 
 		indexedBlockID, err := getIndexedBlockHeight(database)
 		if err != nil {
-			panic(err)
+			indexedBlockID = 0
 		}
 
 		currentBlockID, err := getCurrentBlockHeight(endpoint)
