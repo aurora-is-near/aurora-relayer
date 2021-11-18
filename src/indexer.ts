@@ -1,7 +1,7 @@
 /* This is free and unencumbered software released into the public domain. */
 
 import { Config, parseConfig } from './config.js';
-import sql from './database.js';
+import { pg, sql } from './database.js';
 import { computeBlockHash, EmptyBlock, generateEmptyBlock } from './utils.js';
 
 import {
@@ -16,7 +16,6 @@ import {
 } from '@aurora-is-near/engine';
 import { program } from 'commander';
 import externalConfig from 'config';
-import pg from 'pg';
 import pino, { Logger } from 'pino';
 
 const logger = pino();

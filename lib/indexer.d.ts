@@ -1,6 +1,6 @@
 import { Config } from './config.js';
+import { pg } from './database.js';
 import { BlockHeight, ConnectEnv, Engine, LogEvent, NetworkConfig, Transaction } from '@aurora-is-near/engine';
-import pg from 'pg';
 import { Logger } from 'pino';
 export declare class Indexer {
     readonly config: Config;

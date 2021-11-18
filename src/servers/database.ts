@@ -3,7 +3,7 @@
 import { SkeletonServer } from './skeleton.js';
 
 import { Bus } from '../bus.js';
-import sql from '../database.js';
+import { pg, sql } from '../database.js';
 import {
   InvalidArguments,
   RevertError,
@@ -27,7 +27,6 @@ import {
   intToHex,
 } from '@aurora-is-near/engine';
 import fs from 'fs';
-import pg from 'pg';
 
 import {
   parse as parseRawTransaction,

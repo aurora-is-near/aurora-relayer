@@ -1,8 +1,8 @@
 import { SkeletonServer } from './skeleton.js';
 import { Bus } from '../bus.js';
+import { pg } from '../database.js';
 import { Request } from '../request.js';
 import * as web3 from '../web3.js';
-import pg from 'pg';
 export declare class DatabaseServer extends SkeletonServer {
     protected pgClient?: pg.Client;
     protected bus?: Bus;

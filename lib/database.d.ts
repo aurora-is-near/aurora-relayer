@@ -1,2 +1,3 @@
+import pg from 'pg';
 import sql from 'sql-bricks-postgres';
-export default sql;
+export { pg, sql };

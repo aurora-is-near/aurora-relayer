@@ -1,6 +1,6 @@
 import { Config } from './config.js';
+import { pg } from './database.js';
 import { ConnectEnv, NetworkConfig } from '@aurora-is-near/engine';
-import pg from 'pg';
 import { Logger } from 'pino';
 interface BlockRow {
     chain: number;

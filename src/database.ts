@@ -1,5 +1,7 @@
 /* This is free and unencumbered software released into the public domain. */
 
+import pg from 'pg';
+
 import sql from 'sql-bricks-postgres';
 
 const sqlConvert = (sql as any).convert;
@@ -10,4 +12,4 @@ const sqlConvert = (sql as any).convert;
   return sqlConvert(val);
 };
 
-export default sql;
+export { pg, sql };
