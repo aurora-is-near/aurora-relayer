@@ -34,6 +34,8 @@ func (queue *Queue) Dequeue() int64 {
 }
 
 func (queue *Queue) Len() int {
+	queue.mutex.Lock()
+	defer queue.mutex.Unlock()
 	return len(queue.items)
 }
 

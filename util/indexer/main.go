@@ -126,7 +126,7 @@ func scanForIndexGaps(tipBlockID int64) {
 		panic(err)
 	}
 	defer database.Close()
-	for i := int64(0); i < 10000; i++ {
+	for i := int64(0); i < 100000; i++ {
 		maxBlockID := tipBlockID - i*windowSize
 		minBlockID := maxBlockID - windowSize + 1
 		if minBlockID < 0 {
@@ -145,19 +145,23 @@ func scanForIndexGaps(tipBlockID int64) {
 		if err != nil {
 			panic(err)
 		}
+		blockIDs := make([]int64, 0)
 		for rows.Next() {
 			var blockID int64
 			err := rows.Scan(&blockID)
 			if err != nil {
 				panic(err)
 			}
+			blockIDs = append(blockIDs, blockID)
+		}
+		rows.Close()
+		for _, blockID := range blockIDs {
 			if verbose || debug {
 				fmt.Fprintf(os.Stderr, "Enqueued missing block #%d.\n", blockID)
 			}
 			queue.Enqueue(blockID)
+			time.Sleep(time.Duration(200*queue.Len()) * time.Millisecond)
 		}
-		rows.Close()
-		time.Sleep(100 * time.Millisecond)
 	}
 }
 
