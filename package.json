@@ -32,7 +32,8 @@
     "format": "prettier -w src",
     "lint": "eslint test && eslint **/*.ts",
     "start": "nodemon",
-    "test": "jest"
+    "test": "jest",
+    "build:schema": "cat etc/schema.sql | cut -d' ' -f2 | xargs cat > .docker/docker-entrypoint-initdb.d/init.txt"
   },
   "keywords": [
     "Aurora",
