@@ -45,6 +45,8 @@ export declare abstract class SkeletonServer implements web3.Service {
     eth_getStorageAt(_request: Request, _address: web3.Data, _key: web3.Quantity, _blockNumber: web3.Quantity | web3.Tag): Promise<web3.Data>;
     eth_getTransactionByBlockHashAndIndex(_request: Request, _blockHash: web3.Data, _transactionIndex: web3.Quantity): Promise<web3.TransactionResult | null>;
     eth_getTransactionByBlockNumberAndIndex(_request: Request, _blockNumber: web3.Quantity | web3.Tag, _transactionIndex: web3.Quantity): Promise<web3.TransactionResult | null>;
+    eth_getTransactionsByBlockNumber(_request: any, _blockNumber: web3.Quantity | web3.Tag): Promise<web3.TransactionResult | null>;
+    eth_getTransactionReceiptsByBlockNumber(_request: any, _blockNumber: web3.Quantity | web3.Tag): Promise<web3.TransactionReceipt[] | null>;
     eth_getTransactionByHash(_request: Request, _transactionHash: web3.Data): Promise<web3.TransactionResult | null>;
     eth_getTransactionCount(_request: Request, _address: web3.Data, _blockNumber: web3.Quantity | web3.Tag): Promise<web3.Quantity>;
     eth_getTransactionReceipt(_request: Request, _transactionHash: string): Promise<web3.TransactionReceipt | null>;
