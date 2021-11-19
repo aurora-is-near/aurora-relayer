@@ -628,7 +628,7 @@ export class DatabaseServer extends SkeletonServer {
         [blockNumber_]
       );
       //assert(receipt, 'receipt is not null');
-      for(var i = 0;i<rows.length;i++){
+      for(let i = 0;i<rows.length;i++){
         rows[i].logs = await this._fetchEvents(hexToBytes(rows[i].transactionHash.toString()));
       }
       return exportJSON(rows);
