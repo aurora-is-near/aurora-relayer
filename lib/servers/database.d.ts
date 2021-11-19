@@ -1,14 +1,13 @@
 import { SkeletonServer } from './skeleton.js';
 import { Bus } from '../bus.js';
+import { pg } from '../database.js';
 import { Request } from '../request.js';
 import * as web3 from '../web3.js';
-import pg from 'pg';
-import sql from 'sql-bricks';
 export declare class DatabaseServer extends SkeletonServer {
     protected pgClient?: pg.Client;
     protected bus?: Bus;
     protected _init(): Promise<void>;
-    protected _query(query: string | sql.SelectStatement, args?: unknown[]): Promise<pg.QueryResult<any>>;
+    protected _query(query: string | /*sql.SelectStatement*/ any, args?: unknown[]): Promise<pg.QueryResult<any>>;
     eth_blockNumber(_request: Request): Promise<web3.Quantity>;
     eth_call(_request: Request, transaction: web3.TransactionForCall, blockNumberOrHash?: web3.Quantity | web3.Tag | web3.Data): Promise<web3.Data>;
     eth_chainId(_request: Request): Promise<web3.Quantity>;

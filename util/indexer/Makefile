@@ -5,19 +5,19 @@ UPXFLAGS = --quiet --best --lzma
 
 # The default target:
 
-all: ban
+all: indexer
 
 .PHONY: all
 
 # Output executables:
 
-ban: main.go
+indexer: main.go queue.go
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 $(GO) build $(GOFLAGS) -o $@ $^ && $(UPX) $(UPXFLAGS) $@
 
 # Rules for development:
 
 clean:
-	@rm -Rf ban *~
+	@rm -Rf indexer *~
 
 distclean: clean
 

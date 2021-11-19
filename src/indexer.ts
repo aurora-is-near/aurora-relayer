@@ -1,7 +1,8 @@
 /* This is free and unencumbered software released into the public domain. */
 
 import { Config, parseConfig } from './config.js';
-import { computeBlockHash } from './utils.js';
+import { pg, sql } from './database.js';
+import { computeBlockHash, EmptyBlock, generateEmptyBlock } from './utils.js';
 
 import {
   AccountID,
@@ -15,16 +16,7 @@ import {
 } from '@aurora-is-near/engine';
 import { program } from 'commander';
 import externalConfig from 'config';
-import pg from 'pg';
 import pino, { Logger } from 'pino';
-import sql from 'sql-bricks-postgres';
-const sqlConvert = (sql as any).convert;
-(sql as any).convert = (val: unknown) => {
-  if (val instanceof Uint8Array) {
-    return `'\\x${Buffer.from(val).toString('hex')}'`;
-  }
-  return sqlConvert(val);
-};
 
 const logger = pino();
 
@@ -66,7 +58,6 @@ export class Indexer {
     //console.debug('indexBlock', blockID); // DEBUG
     this.logger.info({ block: { id: blockID } }, `indexing block #${blockID}`);
     const contractID = AccountID.parse(this.config.engine).unwrap();
-
     for (;;) {
       const currentBlockHeight = (await this.engine.getBlockHeight()).unwrap();
 
@@ -78,8 +69,35 @@ export class Indexer {
         const error = proxy.unwrapErr();
         if (error.startsWith('[-32000] Server error: DB Not Found Error')) {
           if (blockID < currentBlockHeight) {
-            this.logger.error(error);
-            return; // a skip block, or an unavailable block on a nonarchival node
+            // Handling empty blocks
+            const emptyBlock: EmptyBlock = generateEmptyBlock(
+              blockID as number,
+              contractID.toString(),
+              this.network.chainID
+            );
+            //if (this.config.debug) console.debug(emptyBlock); // DEBUG
+            const query = sql.insert('block', {
+              chain: emptyBlock.chain,
+              id: emptyBlock.id,
+              hash: emptyBlock.hash,
+              near_hash: emptyBlock.nearHash,
+              timestamp: emptyBlock.timestamp,
+              size: emptyBlock.size,
+              gas_limit: emptyBlock.gasLimit,
+              gas_used: emptyBlock.gasUsed,
+              parent_hash: emptyBlock.parentHash,
+              transactions_root: emptyBlock.transactionsRoot,
+              state_root: emptyBlock.stateRoot,
+              receipts_root: emptyBlock.receiptsRoot,
+            });
+            //if (this.config.debug) console.debug(query.toString()); // DEBUG
+            try {
+              await this.pgClient.query(query.toParams());
+            } catch (error) {
+              console.error('indexBlock', error);
+              if (this.config.debug) this.logger.error(error as Error);
+            }
+            return;
           } else {
             await new Promise((resolve) => setTimeout(resolve, 100));
             continue; // wait for the next block to be produced
@@ -116,7 +134,6 @@ export class Indexer {
         state_root: block.stateRoot,
         receipts_root: block.receiptsRoot,
       });
-
       //if (this.config.debug) console.debug(query.toString()); // DEBUG
       try {
         await this.pgClient.query(query.toParams());

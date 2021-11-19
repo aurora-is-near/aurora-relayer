@@ -3,11 +3,11 @@
 
 import { createApp } from './app.js';
 import { Config, parseConfig } from './config.js';
+import { pg } from './database.js';
 
 import { ConnectEnv, Engine } from '@aurora-is-near/engine';
 import { program } from 'commander';
 import externalConfig from 'config';
-import pg from 'pg';
 import pino from 'pino';
 
 declare global {
