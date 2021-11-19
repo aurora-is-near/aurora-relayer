@@ -160,7 +160,7 @@ func scanForIndexGaps(tipBlockID int64) {
 				fmt.Fprintf(os.Stderr, "Enqueued missing block #%d.\n", blockID)
 			}
 			queue.Enqueue(blockID)
-			time.Sleep(time.Duration(200*queue.Len()) * time.Millisecond)
+			time.Sleep(time.Duration(200*queue.LenSafe()) * time.Millisecond)
 		}
 	}
 }
