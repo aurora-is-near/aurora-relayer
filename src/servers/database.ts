@@ -3,6 +3,7 @@
 import { SkeletonServer } from './skeleton.js';
 
 import { Bus } from '../bus.js';
+import { pg, sql } from '../database.js';
 import {
   InvalidArguments,
   RevertError,
@@ -26,7 +27,6 @@ import {
   intToHex,
 } from '@aurora-is-near/engine';
 import fs from 'fs';
-import pg from 'pg';
 
 import {
   parse as parseRawTransaction,
@@ -34,14 +34,6 @@ import {
 } from '@ethersproject/transactions';
 import { keccak256 } from 'ethereumjs-util';
 //import { assert } from 'node:console';
-import sql from 'sql-bricks';
-const sqlConvert = (sql as any).convert;
-(sql as any).convert = (val: unknown) => {
-  if (val instanceof Uint8Array) {
-    return `'\\x${Buffer.from(val).toString('hex')}'`;
-  }
-  return sqlConvert(val);
-};
 
 export class DatabaseServer extends SkeletonServer {
   protected pgClient?: pg.Client;
@@ -93,7 +85,7 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   protected _query(
-    query: string | sql.SelectStatement,
+    query: string | /*sql.SelectStatement*/ any,
     args?: unknown[]
   ): Promise<pg.QueryResult<any>> {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

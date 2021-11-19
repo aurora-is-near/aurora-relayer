@@ -1,6 +1,7 @@
 /* This is free and unencumbered software released into the public domain. */
 
 import { Config, parseConfig } from './config.js';
+import { pg, sql } from './database.js';
 import { computeBlockHash } from './utils.js';
 
 import {
@@ -11,16 +12,7 @@ import {
 } from '@aurora-is-near/engine';
 import { program } from 'commander';
 import externalConfig from 'config';
-import pg from 'pg';
 import pino, { Logger } from 'pino';
-import sql from 'sql-bricks-postgres';
-const sqlConvert = (sql as any).convert;
-(sql as any).convert = (val: unknown) => {
-  if (val instanceof Uint8Array) {
-    return `'\\x${Buffer.from(val).toString('hex')}'`;
-  }
-  return sqlConvert(val);
-};
 
 interface BlockRow {
   chain: number;

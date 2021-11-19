@@ -92,6 +92,7 @@ cat >config/local.yaml <<EOF
 ---
 port: 8545
 database: postgres://aurora:aurora@${DATABASE_CONTAINER_NAME}/aurora
+broker:
 network: local
 endpoint: http://${NEARCORE_CONTAINER_NAME}:3030
 engine: aurora.test.near
