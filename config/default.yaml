@@ -1,6 +1,7 @@
 ---
 port: 8545
 database: postgres://aurora:aurora@database/aurora
+broker:
 network:
 endpoint:
 engine:

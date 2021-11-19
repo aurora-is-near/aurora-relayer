@@ -3,6 +3,7 @@
 import { Config } from './config.js';
 import { ExpectedError } from './errors.js';
 import middleware from './middleware.js';
+import { Request } from './request.js';
 import { DatabaseServer } from './servers/database.js';
 import { SkeletonServer } from './servers/skeleton.js';
 
@@ -72,7 +73,7 @@ class Method extends jayson.Method {
     const args = (requestParams || []) as any[];
     const result: Promise<any> = (this.handler as any).call(
       this.server,
-      request,
+      new Request(request),
       ...args
     );
     result
