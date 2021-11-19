@@ -33,9 +33,13 @@ func (queue *Queue) Dequeue() int64 {
 	return heap.Pop(queue).(int64)
 }
 
-func (queue *Queue) Len() int {
+func (queue *Queue) LenSafe() int {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
+	return len(queue.items)
+}
+
+func (queue *Queue) Len() int {
 	return len(queue.items)
 }
 
