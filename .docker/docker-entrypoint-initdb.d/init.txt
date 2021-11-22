@@ -219,7 +219,7 @@ BEGIN
       size,                         -- size
       gas_limit,                    -- gasLimit
       gas_used,                     -- gasUsed
-      EXTRACT(EPOCH FROM timestamp) -- timestamp
+      COALESCE(EXTRACT(EPOCH FROM timestamp), 0)::int4 -- timestamp
     FROM block
     WHERE id = block_id
     LIMIT 1

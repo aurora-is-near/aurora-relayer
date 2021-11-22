@@ -116,7 +116,7 @@ docker run -d --init \
     -v $(pwd)/config:/srv/aurora/relayer/config \
     --name $INDEXER_CONTAINER_NAME \
     $ENDPOINT_IMAGE_NAME \
-    node lib/indexer.js
+    node lib/indexer_backend.js
 
 echo "Starting endpoint..."
 docker run -d --init \
