@@ -12,7 +12,6 @@ import {
   Engine,
   hexToBytes,
   LogEvent,
-  LogEventWithAddress,
   NetworkConfig,
   Transaction,
 } from '@aurora-is-near/engine';
@@ -205,9 +204,8 @@ export class Indexer {
     transactionIndex: number,
     transactionID: number,
     eventIndex: number,
-    event: LogEventWithAddress | LogEvent
+    event: LogEvent
   ): Promise<void> {
-    const event_ = event as LogEventWithAddress;
     console.error(
       `Indexing log event at #${blockID}:${transactionIndex}:${eventIndex}...`
     );
@@ -216,10 +214,9 @@ export class Indexer {
       transaction: transactionID,
       index: eventIndex,
       //id: null,
-      data: event_.data?.length ? event_.data : null,
-      from: Buffer.from(event_.address),
-      topics: event_.topics?.length
-        ? event_.topics.map((topic) => topic.toBytes())
+      data: event.data?.length ? event.data : null,
+      topics: event.topics?.length
+        ? event.topics.map((topic) => topic.toBytes())
         : null,
     });
 
