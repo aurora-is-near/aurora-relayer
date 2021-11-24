@@ -71,12 +71,9 @@ export function createWsServer(
 
     // How to determine if transaction is pending? is it by status column
     if (message.channel === 'transaction') {
-      const parsedObject = JSON.parse(message.payload)
-      const body = {"jsonrpc": "2.0", "id": 1, "method": "eth_getTransactionByBlockNumberAndIndex", "params": [parsedObject.blockId, parsedObject.index] }
-      jaysonWsServer.call(body, {}, function (error: any, success: any) {
-        forSubscriptions(pgClient, 'newPendingTransactions', function (row: any){
-          sendPayload(expressWsApp, row.ws_key, row.sub_id, error || success)
-        })
+      const payload = { result: message.payload}
+      forSubscriptions(pgClient, 'newPendingTransactions', function (row: any){
+        sendPayload(expressWsApp, row.ws_key, row.sub_id, payload)
       })
     }
   });
@@ -90,11 +87,11 @@ export function createWsServer(
 function sync(pgClient: any, expressWsApp: any, blockNumber: any) {
   pgClient.query('SELECT MAX(id)::int AS max_id FROM block').then(function (max_idResult: any) {
     const max_id = max_idResult.rows[0].max_id || 0
-    forSubscriptions(pgClient, 'sync', function (row: any){
+    forSubscriptions(pgClient, 'syncing', function (row: any){
       const payload = { "jsonrpc":"2.0", "subscription": row.sub_id, "result": { "syncing": max_id > blockNumber } }
       sendPayload(expressWsApp, row.ws_key, row.sub_id, JSON.stringify(payload))
     })
-    setTimeout(sync, 10000, pgClient, expressWsApp, max_id);
+    setTimeout(sync, 3000, pgClient, expressWsApp, max_id);
   })
 }
 
