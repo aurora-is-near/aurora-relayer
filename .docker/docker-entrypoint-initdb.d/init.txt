@@ -44,6 +44,7 @@ CREATE TYPE block_result AS (
     "size" int4,
     "gasLimit" int8,
     "gasUsed" int8,
+    "mixHash" bytea,           -- 64 bytes
     "timestamp" int4
 );
 DROP TYPE IF EXISTS filter_result CASCADE;

@@ -11,6 +11,7 @@ BEGIN
       repeat('\000', 8)::bytea,     -- nonce
       repeat('\000', 32)::bytea,    -- sha3Uncles
       repeat('\000', 256)::bytea,   -- logsBloom
+      repeat('\000', 64)::bytea,    -- mixHash
       transactions_root,            -- transactionsRoot
       state_root,                   -- stateRoot
       receipts_root,                -- receiptsRoot
