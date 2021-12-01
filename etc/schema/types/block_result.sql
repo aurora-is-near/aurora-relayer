@@ -17,6 +17,6 @@ CREATE TYPE block_result AS (
     "size" int4,
     "gasLimit" int8,
     "gasUsed" int8,
-    "mixHash" bytea,         -- 32 bytes
+    "mixHash" hash,
     "timestamp" int4
 );
