@@ -75,7 +75,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv): Promise<void> {
       const sql = new pg.Client(config.database);
       await sql.connect();
       await sql.query('SELECT 1'); // test connectivity
-    } catch (error) {
+    } catch (error: any) {
       console.error(
         `aurora-relayer: Invalid database configuration: ${(error as Error).message}`
       );
