@@ -1,5 +1,5 @@
 import { Config } from './config.js';
-import nats from 'nats';
+import * as nats from 'nats';
 export declare class Bus {
     readonly config: Config;
     protected broker?: nats.NatsConnection;
