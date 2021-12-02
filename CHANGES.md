@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 2021-12-01
+## 2021-12-02
 A new column `from` was added into the `event` table. Check out this PR [#120](https://github.com/aurora-is-near/aurora-relayer/pull/120) for more info.
 
 To update the `event` table, execute:
@@ -21,6 +21,12 @@ ALTER TABLE event ADD COLUMN "from" address;
 ALTER TABLE event ADD CONSTRAINT not_null_check CHECK ("from" IS NOT NULL) NOT VALID;
 ALTER TABLE event VALIDATE CONSTRAINT not_null_check;
 ```
+
+## 2021-12-01
+
+Stored procedure needs to be reloaded [Issue #133](https://github.com/aurora-is-near/aurora-relayer/issues/133)
+
+- `etc/schema/functions/eth_getTransactionReceipt.sql`
 
 ## 2021-10-19
 
