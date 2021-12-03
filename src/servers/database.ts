@@ -70,19 +70,6 @@ export class DatabaseServer extends SkeletonServer {
         (pgClient as any).setTypeParser(oid, (val: string) => BigInt(val));
       }
     }
-    // Listen to new block notifications:
-    pgClient.on('notification', (message: pg.Notification) => {
-      if (!message.payload) return;
-      if (message.channel === 'block') {
-        const blockID = parseInt(message.payload);
-        if (isNaN(blockID)) return; // ignore UFOs
-
-        this.logger.info({ block: { id: blockID } }, 'block received');
-
-        // TODO: notify subscribers
-      }
-    });
-    pgClient.query('LISTEN block');
   }
 
   protected _query(

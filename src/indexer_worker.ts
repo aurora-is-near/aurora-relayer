@@ -25,6 +25,7 @@ interface WorkerData {
 export class Indexer {
   protected readonly contractID: AccountID;
   protected readonly pgClient: pg.Client;
+  protected pendingHeadBlock: number;
 
   constructor(
     public readonly config: Config,
@@ -33,6 +34,7 @@ export class Indexer {
   ) {
     this.contractID = AccountID.parse(this.config.engine).unwrap();
     this.pgClient = new pg.Client(config.database);
+    this.pendingHeadBlock = 0;
   }
 
   async start(): Promise<void> {
@@ -111,7 +113,6 @@ export class Indexer {
       //if (this.config.debug) console.debug(query.toString()); // DEBUG
       try {
         await this.pgClient.query(query.toParams());
-        await this.pgClient.query(`NOTIFY block, '${block.number}'`);
       } catch (error) {
         console.error('indexBlock', error);
         return; // abort block
@@ -230,6 +231,22 @@ export class Indexer {
       console.error('indexEvent', error);
     }
   }
+
+  async notifyNewHeads(blockID: number): Promise<void> {
+    if (this.pendingHeadBlock == 0) { this.pendingHeadBlock = blockID }
+    for (;;) {
+      if ( await this.isBlockIndexed(this.pendingHeadBlock)) {
+        this.pgClient.query(`NOTIFY block, '${this.pendingHeadBlock}'`);
+        this.pendingHeadBlock +=  1;
+      } else {
+        return
+      }
+    }
+  }
+  async isBlockIndexed(blockID: number): Promise<boolean> {
+    const result = await this.pgClient.query(`SELECT 1 FROM block WHERE id = ${ this.pendingHeadBlock } LIMIT(1)`)
+    return result.rows.length == 1
+  }
 }
 
 async function main(parentPort: MessagePort, workerData: WorkerData) {
@@ -244,11 +261,15 @@ async function main(parentPort: MessagePort, workerData: WorkerData) {
   );
   const indexer = new Indexer(config, network, engine);
   await indexer.start();
+  const blockHeight = (await engine.getBlockHeight()).unwrap() as number;
 
   parentPort
     .on('message', async (blockID: number) => {
       parentPort.postMessage(true); // ack the request
       await indexer.indexBlock(blockID);
+      if (blockID > blockHeight) {
+        await indexer.notifyNewHeads(blockID);
+      }
     })
     .on('close', () => {
       return; // TODO?
