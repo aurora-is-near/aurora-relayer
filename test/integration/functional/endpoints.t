@@ -34,42 +34,45 @@ eth_accounts:
 
 # eth_call:
 
-# eth_chainId:
+eth_chainId:
 
-#   $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_chainId
-#   {"jsonrpc":"2.0","id":"1","result":"0x4e454154"} (no-eol)
+  $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_chainId
+  {"jsonrpc":"2.0","id":"1","result":"0x4e454153"} (no-eol)
 
-# eth_coinbase:
+eth_coinbase:
 
-#   $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_coinbase
-#   {"jsonrpc":"2.0","id":"1","result":"0x0000000000000000000000000000000000000000"} (no-eol)
+  $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_coinbase
+  {"jsonrpc":"2.0","id":"1","result":"0x0000000000000000000000000000000000000000"} (no-eol)
 
-# eth_compileLLL:
+eth_compileLLL:
 
-#   $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_compileLLL params:='[""]'
-#   {"jsonrpc":"2.0","id":"1","error":{"code":-32601,"message":"Unsupported method: eth_compileLLL"}} (no-eol)
+  $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_compileLLL params:='[""]'
+  {"jsonrpc":"2.0","id":"1","error":{"code":-32601,"message":"Unsupported method: eth_compileLLL","data":{"host":"localhost:8545"}}} (no-eol)
 
-# eth_compileSerpent:
+eth_compileSerpent:
 
-#   $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_compileSerpent params:='[""]'
-#   {"jsonrpc":"2.0","id":"1","error":{"code":-32601,"message":"Unsupported method: eth_compileSerpent"}} (no-eol)
+  $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_compileSerpent params:='[""]'
+  {"jsonrpc":"2.0","id":"1","error":{"code":-32601,"message":"Unsupported method: eth_compileSerpent","data":{"host":"localhost:8545"}}} (no-eol)
 
-# eth_compileSolidity:
+eth_compileSolidity:
 
-#   $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_compileSolidity params:='[""]'
-#   {"jsonrpc":"2.0","id":"1","error":{"code":-32601,"message":"Unsupported method: eth_compileSolidity"}} (no-eol)
+  $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_compileSolidity params:='[""]'
+  {"jsonrpc":"2.0","id":"1","error":{"code":-32601,"message":"Unsupported method: eth_compileSolidity","data":{"host":"localhost:8545"}}} (no-eol)
 
-# eth_estimateGas:
+eth_estimateGas:
 
-# eth_gasPrice:
+  $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_estimateGas
+  {"jsonrpc":"2.0","id":"1","result":"0x6691b7"} (no-eol)
 
-#   $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_gasPrice
-#   {"jsonrpc":"2.0","id":"1","result":"0x0"} (no-eol)
+eth_gasPrice:
 
-# eth_getBalance:
+  $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_gasPrice
+  {"jsonrpc":"2.0","id":"1","result":"0x0"} (no-eol)
 
-#   $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_getBalance params:='["0x0000000000000000000000000000000000000000","latest"]'
-#   {"jsonrpc":"2.0","id":"1","result":"0x0"} (no-eol)
+eth_getBalance:
+
+  $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_getBalance params:='["0x0000000000000000000000000000000000000000","latest"]'
+  {"jsonrpc":"2.0","id":"1","result":"0x0"} (no-eol)
 
 # eth_getBlockByHash:
 
@@ -93,27 +96,27 @@ eth_accounts:
 
 # eth_getCode:
 
-# eth_getCompilers:
+eth_getCompilers:
 
-#   $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_getCompilers
-#   {"jsonrpc":"2.0","id":"1","result":[]} (no-eol)
+  $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_getCompilers
+  {"jsonrpc":"2.0","id":"1","result":[]} (no-eol)
 
-# eth_getFilterChanges:
+eth_getFilterChanges:
 
-#   $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_getFilterChanges params:='["0x0"]'
-#   {"jsonrpc":"2.0","id":"1","result":[]} (no-eol)
+  $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_getFilterChanges params:='["0x0"]'
+  {"jsonrpc":"2.0","id":"1","result":[]} (no-eol)
 
-# eth_getFilterLogs:
+eth_getFilterLogs:
 
-#   $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_getFilterLogs params:='["0x0"]'
-#   {"jsonrpc":"2.0","id":"1","result":[]} (no-eol)
+  $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_getFilterLogs params:='["0x0"]'
+  {"jsonrpc":"2.0","id":"1","result":[]} (no-eol)
 
 # eth_getLogs:
 
-# eth_getProof:
+eth_getProof:
 
-#   $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_getProof params:='["",[],""]'
-#   {"jsonrpc":"2.0","id":"1","error":{"code":-32601,"message":"Unsupported method: eth_getProof"}} (no-eol)
+  $ http -Ib post http://localhost:8545 jsonrpc=2.0 id=1 method=eth_getProof params:='["",[],""]'
+  {"jsonrpc":"2.0","id":"1","error":{"code":-32601,"message":"Unsupported method: eth_getProof","data":{"host":"localhost:8545"}}} (no-eol)
 
 # eth_getStorageAt:
 
