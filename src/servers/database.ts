@@ -627,7 +627,6 @@ export class DatabaseServer extends SkeletonServer {
       WHERE b.id = $1`,
         [blockNumber_]
       );
-      //assert(receipt, 'receipt is not null');
       for(let i = 0;i<rows.length;i++){
         rows[i].logs = await this._fetchEvents(hexToBytes(rows[i].transactionHash.toString()));
       }
