@@ -605,26 +605,9 @@ export class DatabaseServer extends SkeletonServer {
             : parseBlockSpec(blockNumber);
     try {
       const {
-        rows,
+        rows
       } = await this._query(
-        `SELECT
-        b.id AS "blockNumber",
-        b.hash AS "blockHash",
-        t.index AS "transactionIndex",
-        t.hash AS "transactionHash",
-        t.from AS "from",
-        t.to AS "to",
-        t.gas_used AS "gasUsed",
-        0::u256 AS "cumulativeGasUsed", -- TODO: tally?
-        CASE WHEN t.to IS NULL OR t.to = '\\x0000000000000000000000000000000000000000' THEN t.output
-             ELSE NULL
-        END AS "contractAddress",
-        NULL AS "logs",                 -- TODO: fetch event.id[]
-        repeat('\\000', 256)::bytea AS "logsBloom",
-        CASE WHEN t.status THEN 1 ELSE 0 END AS "status"
-      FROM transaction t
-        LEFT JOIN block b ON t.block = b.id
-      WHERE b.id = $1`,
+        'SELECT * FROM eth_getTransactionReceiptsByBlockNumber($1)',
         [blockNumber_]
       );
       for(let i = 0;i<rows.length;i++){
