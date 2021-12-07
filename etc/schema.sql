@@ -28,3 +28,5 @@
 \i etc/schema/functions/eth_newFilter.sql
 \i etc/schema/functions/eth_newPendingTransactionFilter.sql
 \i etc/schema/functions/eth_uninstallFilter.sql
+\i etc/schema/functions/eth_getTransactionsByBlockNumber.sql
+\i etc/schema/functions/eth_getTransactionReceiptsByBlockNumber.sql
