@@ -6,9 +6,9 @@ source $SCRIPT_DIR/../common.sh
 
 export NEAR_ENV=local
 
-$NEARCORE_HOST=$NEARCORE_CONTAINER_NAME
+NEARCORE_HOST=$NEARCORE_CONTAINER_NAME
 if [[ ! -z $RUNNER_NAME ]]; then
-    $NEARCORE_HOST=localhost
+    NEARCORE_HOST=localhost
 fi
 
 echo "Creating NEAR account..."

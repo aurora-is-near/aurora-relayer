@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
 CONTROLS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-$WORKDIR=$CONTROLS_DIR/../workdir
-$REPO_ROOT=$CONTROLS_DIR/../..
+WORKDIR=$CONTROLS_DIR/../workdir
+REPO_ROOT=$CONTROLS_DIR/../..
 
 
 if [[ -z $RUNNER_NAME ]]; then
