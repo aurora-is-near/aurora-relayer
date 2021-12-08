@@ -69,7 +69,7 @@ if [[ ! -z $start_relayer ]]; then
     echo "Putting nearcore hostname to .ci/workdir/nearcore.txt"
     echo "Putting relayer database hostname to .ci/workdir/database.txt"
     echo "Putting relayer endpoint hostname to .ci/workdir/endpoint.txt"
-    if [[ -z $RUNNER_NAME ]]; then
+    if [[ ! -z $RUNNER_NAME ]]; then
         echo $NEARCORE_CONTAINER_NAME > $WORKDIR/nearcore.txt
         echo $DATABASE_CONTAINER_NAME > $WORKDIR/database.txt
         echo $ENDPOINT_CONTAINER_NAME > $WORKDIR/endpoint.txt
