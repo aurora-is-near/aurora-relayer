@@ -48,7 +48,7 @@ if [[ ! -z $reinit_near ]] || [[ ! -d $WORKDIR/nearDataBackup ]]; then
     $CI_DIR/controls/contract/install.sh
     echo "Sleeping for 5 seconds..." && sleep 5
     $CI_DIR/controls/nearcore/stop.sh
-    $CI_DIR/controls/network/stop.sh
+    $CI_DIR/controls/network/remove.sh
     mv $WORKDIR/nearData $WORKDIR/nearDataBackup
 fi
 
