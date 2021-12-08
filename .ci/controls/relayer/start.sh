@@ -21,12 +21,14 @@ echo "Starting indexer..."
 docker run -d --init \
     --restart unless-stopped \
     --network $NETWORK_NAME \
+    -e WAIT_HOSTS=${DATABASE_CONTAINER_NAME}:5432
+    -e WAIT_BEFORE=1
     -e NEAR_ENV=localnet \
     -e NODE_ENV=localnet \
     -v $REPO_ROOT/config:/srv/aurora/relayer/config \
     --name $INDEXER_CONTAINER_NAME \
     $ENDPOINT_IMAGE_NAME \
-    node lib/indexer.js
+    sh -c "util/indexer/indexer | node lib/indexer_backend.js"
 
 echo "Starting endpoint..."
 params=()
@@ -37,6 +39,8 @@ fi
 docker run -d --init \
     --restart unless-stopped \
     --network $NETWORK_NAME \
+    -e WAIT_HOSTS=${DATABASE_CONTAINER_NAME}:5432
+    -e WAIT_BEFORE=1
     -e NEAR_ENV=localnet \
     -e NODE_ENV=localnet \
     -v $REPO_ROOT/config:/srv/aurora/relayer/config \
