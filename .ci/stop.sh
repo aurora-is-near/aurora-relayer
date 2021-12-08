@@ -9,7 +9,7 @@ do
     case "$1" in
         --clean) remove_images=true
             ;;
-        *) echo "bad argument $1"
+        *) echo "bad argument $1" && exit 1
             ;;
     esac
     shift

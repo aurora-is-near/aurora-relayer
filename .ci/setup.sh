@@ -17,7 +17,7 @@ do
             ;;
         --reinstall-cli) reinstall_cli=true
             ;;
-        *) echo "bad argument $1"
+        *) echo "bad argument $1" && exit 1
             ;;
     esac
     shift
