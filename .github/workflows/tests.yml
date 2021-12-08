@@ -7,21 +7,43 @@ on:
 
 name: Tests
 jobs:
-  rpc-test:
-    name: Simple RPC test
+  prebuild:
+    name: Prebuild
     runs-on: [self-hosted, heavy]
     steps:
       - name: Clone the repository
         uses: actions/checkout@v2
-      - name: Setup environment
-        run: ./.ci/setup.sh
-      - name: Test RPC
-        run: |
-          ENDPOINT_HOST=$(cat .ci/workdir/endpoint.txt)
-          curl -X POST \
-            -H 'Content-Type: application/json' \
-            -d '{"jsonrpc":"2.0","id":"1","method":"eth_blockNumber","params":[]}' \
-            http://${ENDPOINT_HOST}:8545
+      - name: Prebuild
+        run: ./.ci/runner/prebuild.sh
+  tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Test 1
+            run: |
+              ENDPOINT_HOST=$(cat .ci/workdir/endpoint.txt)
+              curl -X POST \
+                -H 'Content-Type: application/json' \
+                -d '{"jsonrpc":"2.0","id":"1","method":"eth_blockNumber","params":[]}' \
+                http://${ENDPOINT_HOST}:8545
+          - name: Test 2
+            run: |
+              ENDPOINT_HOST=$(cat .ci/workdir/endpoint.txt)
+              curl -X POST \
+                -H 'Content-Type: application/json' \
+                -d '{"jsonrpc":"2.0","id":"1","method":"eth_blockNumber","params":[]}' \
+                http://${ENDPOINT_HOST}:8545
+    name: ${{ matrix.name }}
+    runs-on: [self-hosted, heavy]
+    needs: prebuild
+    steps:
+      - name: Clone the repository
+        uses: actions/checkout@v2
+      - name: Setup
+        run: ./.ci/runner/setup.sh
+      - name: Run Test
+        run: ${{ matrix.run }}
       - name: Print nearcore logs
         if: ${{ always() }}
         run: ./.ci/show_logs.sh nearcore
@@ -34,6 +56,16 @@ jobs:
       - name: Print endpoint logs
         if: ${{ always() }}
         run: ./.ci/show_logs.sh endpoint
-      - name: Cleanup environment
+      - name: Teardown
         if: ${{ always() }}
-        run: ./.ci/cleanup.sh
+        run: ./.ci/runner/teardown.sh
+  cleanup:
+    name: Cleanup
+    runs-on: [self-hosted, heavy]
+    needs: tests
+    if: ${{ always() }}
+    steps:
+      - name: Clone the repository
+        uses: actions/checkout@v2
+      - name: Cleanup
+        run: ./.ci/runner/cleanup.sh
