@@ -39,7 +39,7 @@ fi
 # Specific versions of each dependency are used
 # in order to provide consistent CI.
 
-NEAR_CLI_HEAD=e7a2c8fcd428b6ae006dcf5340b1469d9ec815b0
+NEAR_CLI_HEAD=69319062495bc23fceb9a2276f7e6f209fa28887
 # Commit hash from: https://github.com/near/near-cli/commits/master
 
 AURORA_CLI_HEAD=7f7c2d29c5114db2b6530a6c0fa09b2068f217df
