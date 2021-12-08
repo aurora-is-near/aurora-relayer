@@ -17,8 +17,6 @@ docker run -d \
     "${params[@]}" \
     $DATABASE_IMAGE_NAME
 
-sleep 10
-
 echo "Starting indexer..."
 docker run -d --init \
     --restart unless-stopped \
