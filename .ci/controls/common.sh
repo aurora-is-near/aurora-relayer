@@ -45,7 +45,7 @@ NEAR_CLI_HEAD=69319062495bc23fceb9a2276f7e6f209fa28887
 AURORA_CLI_HEAD=7f7c2d29c5114db2b6530a6c0fa09b2068f217df
 # Commit hash from: https://github.com/aurora-is-near/aurora-cli/commits/master
 
-NEARCORE_TAG=master-8a2be9ce7768fc4b58558ad73dacfc794b5bef4f
+NEARCORE_TAG=master-6a4cffa70383c1d91b2abeedad553da7e25f067b
 # Docker image tag from: https://hub.docker.com/r/nearprotocol/nearcore/tags
 
 CONTRACT_URL=https://github.com/aurora-is-near/aurora-engine/releases/download/1.6.4/mainnet-release.wasm
