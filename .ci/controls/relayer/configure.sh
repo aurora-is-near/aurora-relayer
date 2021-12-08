@@ -18,4 +18,8 @@ endpoint: http://${NEARCORE_CONTAINER_NAME}:3030
 engine: aurora.test.near
 signer: aurora.test.near
 signerKey: config/aurora.test.near.json
+writable: true
+debug: false
+verbose: false
+force: false
 EOF
