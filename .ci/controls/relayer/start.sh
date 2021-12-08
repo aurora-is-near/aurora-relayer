@@ -28,7 +28,7 @@ docker run -d --init \
     -v $REPO_ROOT/config:/srv/aurora/relayer/config \
     --name $INDEXER_CONTAINER_NAME \
     $ENDPOINT_IMAGE_NAME \
-    sh -c "util/indexer/indexer | node lib/indexer_backend.js"
+    sh -c "util/indexer/indexer --config config/local.yaml | node lib/indexer_backend.js"
 
 echo "Starting endpoint..."
 params=()
