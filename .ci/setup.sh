@@ -30,13 +30,13 @@ fi
 
 database_img=$(docker images -q ${DATABASE_IMAGE_NAME} 2> /dev/null)
 endpoint_img=$(docker images -q ${ENDPOINT_IMAGE_NAME} 2> /dev/null)
-if [[ -z $rebuild_relayer ]] || [[ ! -z $database_img ]] || [[ ! -z $endpoint_img ]]; then
+if [[ ! -z $rebuild_relayer ]] || [[ -z $database_img ]] || [[ -z $endpoint_img ]]; then
     $CI_DIR/controls/relayer/build.sh
 fi
 
-if [[ -z $reinit_near ]] || [[ ! -d $WORKDIR/nearDataBackup ]]; then
+if [[ ! -z $reinit_near ]] || [[ ! -d $WORKDIR/nearDataBackup ]]; then
 
-    if [[ -z $reinstall_cli ]] || [[ ! -d $WORKDIR/near-cli ]] || [[ ! -d $WORKDIR/aurora-cli ]]; then
+    if [[ ! -z $reinstall_cli ]] || [[ ! -d $WORKDIR/near-cli ]] || [[ ! -d $WORKDIR/aurora-cli ]]; then
         $CI_DIR/controls/cli/install.sh    
     fi
 
@@ -52,12 +52,12 @@ if [[ -z $reinit_near ]] || [[ ! -d $WORKDIR/nearDataBackup ]]; then
     mv $WORKDIR/nearData $WORKDIR/nearDataBackup
 fi
 
-if [[ -z $reset_near ]] || [[ ! -d $WORKDIR/nearData ]]; then
+if [[ ! -z $reset_near ]] || [[ ! -d $WORKDIR/nearData ]]; then
     rm -rf $WORKDIR/nearData || true
     cp -r $WORKDIR/nearDataBackup $WORKDIR/nearData
 fi
 
-if [[ -z $start_relayer ]]; then
+if [[ ! -z $start_relayer ]]; then
     $CI_DIR/controls/network/create.sh
     $CI_DIR/controls/nearcore/start.sh
     echo "Sleeping for 5 seconds..." && sleep 5

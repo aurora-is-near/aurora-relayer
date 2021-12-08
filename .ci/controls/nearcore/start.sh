@@ -6,7 +6,7 @@ source $SCRIPT_DIR/../common.sh
 
 echo "Starting nearcore..."
 params=()
-if [[ ! -z $RUNNER_NAME ]]; then
+if [[ -z $RUNNER_NAME ]]; then
     params+=(-p)
     params+=(3030:3030)
 fi

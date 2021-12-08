@@ -5,7 +5,7 @@ WORKDIR=$CONTROLS_DIR/../workdir
 REPO_ROOT=$CONTROLS_DIR/../..
 
 
-if [[ -z $RUNNER_NAME ]]; then
+if [[ ! -z $RUNNER_NAME ]]; then
     # All CI-runners are docker containers, and creating new
     # Docker objects (images, containers, etc) from some runner
     # will make them appear on host-level Docker, since

@@ -6,7 +6,7 @@ source $SCRIPT_DIR/../common.sh
 
 echo "Starting database..."
 params=()
-if [[ ! -z $RUNNER_NAME ]]; then
+if [[ -z $RUNNER_NAME ]]; then
     params+=(-p)
     params+=(5432:5432)
 fi
@@ -30,7 +30,7 @@ docker run -d --init \
 
 echo "Starting endpoint..."
 params=()
-if [[ ! -z $RUNNER_NAME ]]; then
+if [[ -z $RUNNER_NAME ]]; then
     params+=(-p)
     params+=(8545:8545)
 fi
