@@ -21,8 +21,8 @@ echo "Starting indexer..."
 docker run -d --init \
     --restart unless-stopped \
     --network $NETWORK_NAME \
-    -e WAIT_HOSTS=${DATABASE_CONTAINER_NAME}:5432
-    -e WAIT_BEFORE=1
+    -e WAIT_HOSTS=${DATABASE_CONTAINER_NAME}:5432 \
+    -e WAIT_BEFORE=1 \
     -e NEAR_ENV=localnet \
     -e NODE_ENV=localnet \
     -v $REPO_ROOT/config:/srv/aurora/relayer/config \
@@ -39,8 +39,8 @@ fi
 docker run -d --init \
     --restart unless-stopped \
     --network $NETWORK_NAME \
-    -e WAIT_HOSTS=${DATABASE_CONTAINER_NAME}:5432
-    -e WAIT_BEFORE=1
+    -e WAIT_HOSTS=${DATABASE_CONTAINER_NAME}:5432 \
+    -e WAIT_BEFORE=1 \
     -e NEAR_ENV=localnet \
     -e NODE_ENV=localnet \
     -v $REPO_ROOT/config:/srv/aurora/relayer/config \
