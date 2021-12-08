@@ -48,5 +48,5 @@ AURORA_CLI_HEAD=7f7c2d29c5114db2b6530a6c0fa09b2068f217df
 NEARCORE_TAG=master-6a4cffa70383c1d91b2abeedad553da7e25f067b
 # Docker image tag from: https://hub.docker.com/r/nearprotocol/nearcore/tags
 
-CONTRACT_URL=https://github.com/aurora-is-near/aurora-engine/releases/download/1.6.4/mainnet-release.wasm
+CONTRACT_URL=https://github.com/aurora-is-near/aurora-engine/releases/download/2.1.0/mainnet-release.wasm
 # Download url from: https://github.com/aurora-is-near/aurora-engine/releases
