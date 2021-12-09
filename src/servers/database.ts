@@ -393,7 +393,7 @@ export class DatabaseServer extends SkeletonServer {
         't.index AS "transactionIndex"',
         't.hash AS "transactionHash"',
         'e.index AS "logIndex"',
-        'coalesce(e.from, \'\\x0000000000000000000000000000000000000000\')::address AS "address"',
+        'e.from AS "address"',
         "string_to_array(concat('0x',encode(e.topics[1], 'hex'), ',', '0x', encode(e.topics[2], 'hex'), ',', '0x', encode(e.topics[3], 'hex'), ',', '0x', encode(e.topics[4], 'hex')), ',') AS \"topics\"",
         'coalesce(e.data, repeat(\'\\000\', 32)::bytea) AS "data"',
         '0::boolean AS "removed"'
@@ -793,7 +793,7 @@ export class DatabaseServer extends SkeletonServer {
           t.index AS "transactionIndex",
           t.hash AS "transactionHash",
           e.index AS "logIndex",
-          coalesce(e.from, '\\x0000000000000000000000000000000000000000')::address AS "address",
+          e.from AS "address",
           ARRAY_TO_STRING(e.topics, ';') AS "topics",
           coalesce(e.data, repeat('\\000', 32)::bytea) AS "data",
           false AS "removed"

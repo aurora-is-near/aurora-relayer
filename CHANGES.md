@@ -30,12 +30,7 @@ To update the `event` table, execute:
 ```sql
 ALTER TABLE event ADD COLUMN "from" address;
 ```
-- Run `prehistory` to reindex all historical transactions.
-
-- Apply `not_null_check` constraint on `from` column:
-```sql
-ALTER TABLE event ADD CONSTRAINT not_null_check CHECK ("from" IS NOT NULL) NOT VALID;
-ALTER TABLE event VALIDATE CONSTRAINT not_null_check;
+- Run `node lib/data_migrations/2021-12-02-event.js` to reindex all historical events.
 
 ## 2021-12-01
 
