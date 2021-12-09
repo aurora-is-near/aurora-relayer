@@ -62,3 +62,6 @@ Most usually, you will want to use this scripts like this:
 - Run test #2
 - `./stop.sh`
 - ...
+
+**Note:** In case if some tests do not conflict and do not require clean relayer/near data, you can group
+them and run at once without restart.
