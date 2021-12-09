@@ -44,6 +44,7 @@ CREATE TYPE block_result AS (
     "size" int4,
     "gasLimit" int8,
     "gasUsed" int8,
+    "mixHash" hash,         
     "timestamp" int4
 );
 DROP TYPE IF EXISTS filter_result CASCADE;
@@ -219,6 +220,7 @@ BEGIN
       size,                         -- size
       gas_limit,                    -- gasLimit
       gas_used,                     -- gasUsed
+      repeat('\000', 32)::hash,     -- mixHash
       EXTRACT(EPOCH FROM timestamp) -- timestamp
     FROM block
     WHERE id = block_id
@@ -474,7 +476,7 @@ BEGIN
       t.to AS "to",
       t.gas_used AS "gasUsed",
       0::u256 AS "cumulativeGasUsed", -- TODO: tally?
-      CASE WHEN t.to IS NULL OR t.to = '\x0000000000000000000000000000000000000000' THEN t.output
+      CASE WHEN (t.to IS NULL OR t.to = '\x0000000000000000000000000000000000000000') AND length(t.output) = 20 THEN t.output
            ELSE NULL
       END AS "contractAddress",
       NULL AS "logs",                 -- TODO: fetch event.id[]
