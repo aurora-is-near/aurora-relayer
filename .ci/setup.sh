@@ -44,9 +44,9 @@ if [[ ! -z $reinit_near ]] || [[ ! -d $WORKDIR/nearDataBackup ]]; then
     $CI_DIR/controls/network/create.sh
     $CI_DIR/controls/nearcore/init.sh
     $CI_DIR/controls/nearcore/start.sh
-    echo "Sleeping for 5 seconds..." && sleep 5
+    echo "Sleeping for 2 seconds..." && sleep 2
     $CI_DIR/controls/contract/install.sh
-    echo "Sleeping for 5 seconds..." && sleep 5
+    echo "Sleeping for 2 seconds..." && sleep 2
     $CI_DIR/controls/nearcore/stop.sh
     $CI_DIR/controls/network/remove.sh
     mv $WORKDIR/nearData $WORKDIR/nearDataBackup
@@ -60,10 +60,10 @@ fi
 if [[ ! -z $start_relayer ]]; then
     $CI_DIR/controls/network/create.sh
     $CI_DIR/controls/nearcore/start.sh
-    echo "Sleeping for 5 seconds..." && sleep 5
+    echo "Sleeping for 2 seconds..." && sleep 2
     $CI_DIR/controls/relayer/configure.sh
     $CI_DIR/controls/relayer/start.sh
-    echo "Sleeping for 5 seconds..." && sleep 5
+    echo "Sleeping for 2 seconds..." && sleep 2
 
     echo "Setup finished!"
     echo "Putting nearcore hostname to .ci/workdir/nearcore.txt"
