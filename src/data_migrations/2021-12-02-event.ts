@@ -66,7 +66,7 @@ export class ReindexWorker {
         );
       const result = await this.pgClient.query(query.toParams());
 
-      for (const row of result.rows) {
+      await Promise.all(result.rows.map(async (row: any) => {
         const blockId = parseInt(row.block_id)
         const blockProxy = await this.engine.getBlock(blockId, {
           transactions: 'full',
@@ -90,7 +90,7 @@ export class ReindexWorker {
           })
 
         }
-      }
+      }))
     }
     process.exit(0); // EX_OK
   }
