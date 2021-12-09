@@ -27,6 +27,9 @@ export declare class TooManyArguments extends ExpectedError {
 export declare class InvalidArguments extends ExpectedError {
     constructor(message?: string);
 }
+export declare class InvalidAddress extends ExpectedError {
+    constructor(message?: string);
+}
 export declare class UnknownFilter extends ExpectedError {
     constructor(_id: string);
 }
