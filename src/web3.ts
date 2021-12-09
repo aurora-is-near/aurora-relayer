@@ -148,7 +148,7 @@ export interface Service {
     blockHash: Data,
     transactionIndex: Quantity
   ): Promise<TransactionResult | null>;
-  
+
   eth_getTransactionByBlockNumberAndIndex(
     _request: Request,
     blockNumber: Quantity | Tag,
@@ -169,11 +169,11 @@ export interface Service {
   ): Promise<TransactionReceipt | null>;
   eth_getTransactionReceiptsByBlockNumber(
     _request: any,
-    blockNumber:  Quantity | Tag,
+    blockNumber: Quantity | Tag
   ): Promise<TransactionReceipt[] | null>;
   eth_getTransactionsByBlockNumber(
     _request: any,
-    blockNumber:  Quantity | Tag,
+    blockNumber: Quantity | Tag
   ): Promise<TransactionResult | null>;
   eth_getUncleByBlockHashAndIndex(
     _request: Request,
