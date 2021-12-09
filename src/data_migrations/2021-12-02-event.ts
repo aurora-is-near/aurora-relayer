@@ -9,7 +9,7 @@ import {
   LogEventWithAddress,
   ConnectEnv,
   NetworkConfig,
-  Transaction
+  Transaction,
 } from '@aurora-is-near/engine';
 import { program } from 'commander';
 import externalConfig from 'config';
@@ -42,55 +42,71 @@ export class ReindexWorker {
   async run(startBlockId: number, mode?: string): Promise<void> {
     await this.pgClient.connect();
     const step = Number(this.config.batchSize || 1000);
-    let startEventQuery = sql.
-      select('event.id').
-      from('transaction').
-      join('event').on({'transaction.id': 'event.transaction'}).
-      order('event.id DESC').
-      limit(1);
-    if (startBlockId > 0){
-      startEventQuery = startEventQuery.where(sql(`transaction.block <= ${startBlockId}`))
+    let startEventQuery = sql
+      .select('event.id')
+      .from('transaction')
+      .join('event')
+      .on({ 'transaction.id': 'event.transaction' })
+      .order('event.id DESC')
+      .limit(1);
+    if (startBlockId > 0) {
+      startEventQuery = startEventQuery.where(
+        sql(`transaction.block <= ${startBlockId}`)
+      );
     }
-    const eventQueryResult = await this.pgClient.query(startEventQuery.toParams());
+    const eventQueryResult = await this.pgClient.query(
+      startEventQuery.toParams()
+    );
 
     const startEventId = eventQueryResult.rows[0].id;
-    for ( let eventId = startEventId; eventId > 0; eventId -= step ) {
+    for (let eventId = startEventId; eventId > 0; eventId -= step) {
       logger.info(`Fetching events ${eventId - step}..${eventId}`);
-      const query = sql.
-        select('DISTINCT transaction.block AS block_id, transaction.id AS transaction_id').
-        from('transaction').
-        join('event').on({'transaction.id': 'event.transaction'}).
-        where({'event.from': null}).
-        where(
-          sql(`event.id >= ${eventId - step} AND event.id < ${eventId}`)
-        );
+      const query = sql
+        .select(
+          'DISTINCT transaction.block AS block_id, transaction.id AS transaction_id'
+        )
+        .from('transaction')
+        .join('event')
+        .on({ 'transaction.id': 'event.transaction' })
+        .where({ 'event.from': null })
+        .where(sql(`event.id >= ${eventId - step} AND event.id < ${eventId}`));
       const result = await this.pgClient.query(query.toParams());
 
-      await Promise.all(result.rows.map(async (row: any) => {
-        const blockId = parseInt(row.block_id)
-        const blockProxy = await this.engine.getBlock(blockId, {
-          transactions: 'full',
-          contractID: this.contractID,
-        });
-        if (blockProxy.isErr()) {
-          const error = blockProxy.unwrapErr();
-          logger.error(error);
-        } else {
-          const block_ = blockProxy.unwrap()
-          const block = block_.getMetadata();
+      await Promise.all(
+        result.rows.map(async (row: any) => {
+          const blockId = parseInt(row.block_id);
+          const blockProxy = await this.engine.getBlock(blockId, {
+            transactions: 'full',
+            contractID: this.contractID,
+          });
+          if (blockProxy.isErr()) {
+            const error = blockProxy.unwrapErr();
+            logger.error(error);
+          } else {
+            const block_ = blockProxy.unwrap();
+            const block = block_.getMetadata();
 
-          (block.transactions as Transaction[]).forEach( (transaction) => {
-            (transaction.result?.result?.logs || []).forEach( (event, eventIndex) => {
-              const event_ = event as LogEventWithAddress;
-              const updateQuery = sql.
-                update('event', {'from': Buffer.from(event_.address?.length == 20 ? event_.address : '00000000000000000000') }).
-                where({ 'index': eventIndex, 'transaction': row.transaction_id })
-              this.pgClient.query(updateQuery.toParams());
-            })
-          })
-
-        }
-      }))
+            (block.transactions as Transaction[]).forEach((transaction) => {
+              (transaction.result?.result?.logs || []).forEach(
+                (event, eventIndex) => {
+                  const event_ = event as LogEventWithAddress;
+                  const updateQuery = sql
+                    .update('event', {
+                      from: event_.address
+                        ? Buffer.from(event_.address)
+                        : Buffer.alloc(20),
+                    })
+                    .where({
+                      index: eventIndex,
+                      transaction: row.transaction_id,
+                    });
+                  this.pgClient.query(updateQuery.toParams());
+                }
+              );
+            });
+          }
+        })
+      );
     }
     process.exit(0); // EX_OK
   }
