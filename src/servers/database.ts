@@ -610,7 +610,7 @@ export class DatabaseServer extends SkeletonServer {
       return null;
     }
   }
-  
+
   async eth_getUncleCountByBlockHash(
     _request: Request,
     blockHash: web3.Data

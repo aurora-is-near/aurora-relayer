@@ -315,7 +315,7 @@ export abstract class SkeletonServer implements web3.Service {
     unimplemented('eth_getTransactionReceipt');
     return null;
   }
-  
+
   async eth_getTransactionReceiptsByBlockNumber(
     _request: any,
     _blockNumber: web3.Quantity | web3.Tag
@@ -323,7 +323,7 @@ export abstract class SkeletonServer implements web3.Service {
     unimplemented('eth_getTransactionReceiptsByBlockNumber');
     return null;
   }
-  
+
   async eth_getTransactionsByBlockNumber(
     _request: any,
     _blockNumber: web3.Quantity | web3.Tag
