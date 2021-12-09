@@ -16,12 +16,6 @@ ALTER TABLE event ADD COLUMN "from" address;
 ```
 - Run `node lib/data_migrations/2021-12-02-event.js` to reindex all historical events.
 
-- Apply `not_null_check` constraint on `from` column:
-```sql
-ALTER TABLE event ADD CONSTRAINT not_null_check CHECK ("from" IS NOT NULL) NOT VALID;
-ALTER TABLE event VALIDATE CONSTRAINT not_null_check;
-```
-
 ## 2021-12-01
 
 Stored procedure needs to be reloaded [Issue #133](https://github.com/aurora-is-near/aurora-relayer/issues/133)
