@@ -290,20 +290,7 @@ export abstract class SkeletonServer implements web3.Service {
     unimplemented('eth_getTransactionByBlockNumberAndIndex');
     return null;
   }
-  async eth_getTransactionsByBlockNumber(
-    _request: any,
-    _blockNumber: web3.Quantity | web3.Tag
-  ): Promise<web3.TransactionResult | null> {
-    unimplemented('eth_getTransactionsByBlockNumber');
-    return null;
-  }
-  async eth_getTransactionReceiptsByBlockNumber(
-    _request: any,
-    _blockNumber: web3.Quantity | web3.Tag
-  ): Promise<web3.TransactionReceipt[] | null> {
-    unimplemented('eth_getTransactionReceiptsByBlockNumber');
-    return null;
-  }
+
   async eth_getTransactionByHash(
     _request: Request,
     _transactionHash: web3.Data
@@ -326,6 +313,22 @@ export abstract class SkeletonServer implements web3.Service {
     _transactionHash: string
   ): Promise<web3.TransactionReceipt | null> {
     unimplemented('eth_getTransactionReceipt');
+    return null;
+  }
+  
+  async eth_getTransactionReceiptsByBlockNumber(
+    _request: any,
+    _blockNumber: web3.Quantity | web3.Tag
+  ): Promise<web3.TransactionReceipt[] | null> {
+    unimplemented('eth_getTransactionReceiptsByBlockNumber');
+    return null;
+  }
+  
+  async eth_getTransactionsByBlockNumber(
+    _request: any,
+    _blockNumber: web3.Quantity | web3.Tag
+  ): Promise<web3.TransactionResult | null> {
+    unimplemented('eth_getTransactionsByBlockNumber');
     return null;
   }
 

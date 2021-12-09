@@ -20,6 +20,8 @@
 \i etc/schema/functions/eth_getTransactionByHash.sql
 \i etc/schema/functions/eth_getTransactionCount.sql
 \i etc/schema/functions/eth_getTransactionReceipt.sql
+\i etc/schema/functions/eth_getTransactionReceiptsByBlockNumber.sql
+\i etc/schema/functions/eth_getTransactionsByBlockNumber.sql
 \i etc/schema/functions/eth_getUncleByBlockHashAndIndex.sql
 \i etc/schema/functions/eth_getUncleByBlockNumberAndIndex.sql
 \i etc/schema/functions/eth_getUncleCountByBlockHash.sql
@@ -28,5 +30,4 @@
 \i etc/schema/functions/eth_newFilter.sql
 \i etc/schema/functions/eth_newPendingTransactionFilter.sql
 \i etc/schema/functions/eth_uninstallFilter.sql
-\i etc/schema/functions/eth_getTransactionsByBlockNumber.sql
-\i etc/schema/functions/eth_getTransactionReceiptsByBlockNumber.sql
+

@@ -1,10 +1,11 @@
 DROP FUNCTION IF EXISTS eth_getTransactionsByBlockNumber(blockno) RESTRICT;
 
-CREATE FUNCTION eth_getTransactionsByBlockNumber(block_id blockno) RETURNS transaction_result AS $$
+CREATE FUNCTION eth_getTransactionsByBlockNumber(block_id blockno) RETURNS setof transaction_result AS $$
 DECLARE
   result transaction_result;
 BEGIN
-  SELECT
+	FOR result IN
+	  SELECT
         b.id AS "blockNumber",
         b.hash AS "blockHash",
         t.index AS "transactionIndex",
@@ -22,7 +23,10 @@ BEGIN
       FROM transaction t
       LEFT JOIN block b ON t.block = b.id
       WHERE b.id = block_id
-    INTO STRICT result;
-  RETURN result;
+	LOOP 
+	  RETURN NEXT result;
+	END LOOP;
 END;
+
+
 $$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;

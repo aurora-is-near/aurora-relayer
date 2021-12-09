@@ -470,28 +470,7 @@ export class DatabaseServer extends SkeletonServer {
       return null;
     }
   }
-  async eth_getTransactionsByBlockNumber(
-    _request: any,
-    blockNumber: web3.Quantity | web3.Tag
-  ): Promise<web3.TransactionResult | null> {
-    const blockNumber_ = parseBlockSpec(blockNumber) != 0
-            ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
-            : parseBlockSpec(blockNumber);
-      
-    try {
-      const {
-        rows,
-      } = await this._query('SELECT * FROM eth_getTransactionsByBlockNumber($1)', [
-        blockNumber_,
-      ]);
-      return !rows || !rows.length ? null : exportJSON(rows);
-    } catch (error) {
-      if (this.config.debug) {
-        console.debug('eth_getTransactionsByBlockNumber', error);
-      }
-      return null;
-    }
-  }
+
   async eth_getTransactionByBlockNumberAndIndex(
     _request: Request,
     blockNumber: web3.Quantity | web3.Tag,
@@ -582,18 +561,21 @@ export class DatabaseServer extends SkeletonServer {
     _request: any,
     blockNumber: web3.Quantity | web3.Tag
   ): Promise<web3.TransactionReceipt[] | null> {
-    const blockNumber_ = parseBlockSpec(blockNumber) != 0
-            ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
-            : parseBlockSpec(blockNumber);
+    const blockNumber_ =
+      parseBlockSpec(blockNumber) != 0
+        ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
+        : parseBlockSpec(blockNumber);
     try {
       const {
-        rows
+        rows,
       } = await this._query(
         'SELECT * FROM eth_getTransactionReceiptsByBlockNumber($1)',
         [blockNumber_]
       );
-      for(let i = 0;i<rows.length;i++){
-        rows[i].logs = await this._fetchEvents(hexToBytes(rows[i].transactionHash.toString()));
+      for (let i = 0; i < rows.length; i++) {
+        rows[i].logs = await this._fetchEvents(
+          hexToBytes(rows[i].transactionHash.toString())
+        );
       }
       return exportJSON(rows);
     } catch (error) {
@@ -603,6 +585,32 @@ export class DatabaseServer extends SkeletonServer {
       return null;
     }
   }
+
+  async eth_getTransactionsByBlockNumber(
+    _request: any,
+    blockNumber: web3.Quantity | web3.Tag
+  ): Promise<web3.TransactionResult | null> {
+    const blockNumber_ =
+      parseBlockSpec(blockNumber) != 0
+        ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
+        : parseBlockSpec(blockNumber);
+
+    try {
+      const {
+        rows,
+      } = await this._query(
+        'SELECT * FROM eth_getTransactionsByBlockNumber($1)',
+        [blockNumber_]
+      );
+      return !rows || !rows.length ? null : exportJSON(rows);
+    } catch (error) {
+      if (this.config.debug) {
+        console.debug('eth_getTransactionsByBlockNumber', error);
+      }
+      return null;
+    }
+  }
+  
   async eth_getUncleCountByBlockHash(
     _request: Request,
     blockHash: web3.Data
