@@ -9,9 +9,8 @@ Scripts in this directory allow to setup relayer-testing environment:
 
 All containers are connected to Docker bridge-network, so Docker's dynamic service-discovery is used to allow containers access each other (`hostname` = `container name`).
 
-In case of local run, containers publish their ports to `localhost`. When CI is launched on runners,
-hostnames are written into `.ci/workers/nearcore.txt`, `.ci/workers/database.txt` and `.ci/workers/endpoint.txt`
-accordingly.
+Hostnames are written into `.ci/workers/nearcore.txt`, `.ci/workers/database.txt` and `.ci/workers/endpoint.txt`
+accordingly. In case of local run it's always `localhost`.
 
 Ports:
 - Nearcore: `3030`
