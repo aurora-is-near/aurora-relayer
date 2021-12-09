@@ -22,12 +22,26 @@ CREATE TABLE subscription (
 CREATE UNIQUE INDEX subscription_sec_websocket_key_type_filter_index_idx ON subscription (sec_websocket_key, type, filter);
 ```
 
+A new column `from` was added into the `event` table. Check out this PR [#120](https://github.com/aurora-is-near/aurora-relayer/pull/120) for more info.
+
+To update the `event` table, execute:
+
+- Create `from` column:
+```sql
+ALTER TABLE event ADD COLUMN "from" address;
+```
+- Run `prehistory` to reindex all historical transactions.
+
+- Apply `not_null_check` constraint on `from` column:
+```sql
+ALTER TABLE event ADD CONSTRAINT not_null_check CHECK ("from" IS NOT NULL) NOT VALID;
+ALTER TABLE event VALIDATE CONSTRAINT not_null_check;
+
 ## 2021-12-01
 
 Stored procedure needs to be reloaded [Issue #133](https://github.com/aurora-is-near/aurora-relayer/issues/133)
 
 - `etc/schema/functions/eth_getTransactionReceipt.sql`
-
 
 ## 2021-10-19
 
