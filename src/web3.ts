@@ -61,6 +61,7 @@ export interface FilterOptions {
   address: Data | Data[];
   topics?: FilterTopic[];
   blockHash?: Data; // EIP-234
+  index?: Quantity | null;
 }
 
 export type ProofResult = Record<string, unknown>;

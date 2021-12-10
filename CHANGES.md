@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2021-12-02
+
+New table to handle subscriptions.
+To update your existing schema, execute:
+
+```sql
+CREATE TABLE subscription (
+	sec_websocket_key varchar COLLATE "default",
+	id                varchar COLLATE "default",
+	type              varchar COLLATE "default",
+	ip                varchar COLLATE "default",
+	filter            jsonb NULL
+);
+
+CREATE UNIQUE INDEX subscription_sec_websocket_key_type_filter_index_idx ON subscription (sec_websocket_key, type, filter);
+```
 
 ## 2021-12-01
 
