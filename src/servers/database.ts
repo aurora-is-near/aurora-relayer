@@ -384,7 +384,7 @@ export class DatabaseServer extends SkeletonServer {
         Buffer.from(address.toBytes())
       ); // TODO: handle 0x0 => NULL
       if (addresses.length > 0) {
-        where.push(sql.in('t.to', addresses));
+        where.push(sql.in('e.from', addresses));
       }
     }
     if (filter.topics) {
