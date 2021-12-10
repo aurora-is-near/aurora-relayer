@@ -82,6 +82,13 @@ export class InvalidArguments extends ExpectedError {
   }
 }
 
+export class InvalidAddress extends ExpectedError {
+  constructor(message?: string) {
+    super(-32602, message || `Invalid address.`);
+    Object.setPrototypeOf(this, InvalidAddress.prototype);
+  }
+}
+
 export class UnknownFilter extends ExpectedError {
   constructor(_id: string) {
     super(-32000, `filter not found`);

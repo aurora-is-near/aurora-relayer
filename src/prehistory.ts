@@ -1,6 +1,7 @@
 /* This is free and unencumbered software released into the public domain. */
 
 import { Config, parseConfig } from './config.js';
+import { pg, sql } from './database.js';
 import { computeBlockHash } from './utils.js';
 
 import {
@@ -11,16 +12,22 @@ import {
 } from '@aurora-is-near/engine';
 import { program } from 'commander';
 import externalConfig from 'config';
-import pg from 'pg';
 import pino, { Logger } from 'pino';
-import sql from 'sql-bricks-postgres';
-const sqlConvert = (sql as any).convert;
-(sql as any).convert = (val: unknown) => {
-  if (val instanceof Uint8Array) {
-    return `'\\x${Buffer.from(val).toString('hex')}'`;
-  }
-  return sqlConvert(val);
-};
+
+interface BlockRow {
+  chain: number;
+  id: number;
+  hash: Uint8Array;
+  near_hash: Uint8Array | null;
+  timestamp: Date | null;
+  size: number;
+  gas_limit: number;
+  gas_used: number;
+  parent_hash: Uint8Array;
+  transactions_root: Uint8Array;
+  state_root: Uint8Array;
+  receipts_root: Uint8Array;
+}
 
 const logger = pino(pino.destination(2));
 
@@ -47,7 +54,7 @@ export class PrehistoryIndexer {
     this.archive = new pg.Client(network.archiveURL);
   }
 
-  async start(startBlockID: number, mode?: string): Promise<void> {
+  async run(startBlockID: number, mode?: string): Promise<void> {
     const contractID = AccountID.parse(this.config.engine).unwrap();
     await this.archive.connect();
 
@@ -89,18 +96,16 @@ export class PrehistoryIndexer {
               );
 
         const row = rows[blockID_];
-        const query = sql.insert('block', {
+        const columns: BlockRow = {
           chain: this.network.chainID,
           id: blockID_,
           hash: blockHash,
           near_hash: row ? base58ToBytes(row.block_hash) : null,
           timestamp:
             blockID_ == 0
-              ? new Date(this.network.genesisDate!).toISOString()
+              ? new Date(this.network.genesisDate!)
               : row
-              ? new Date(
-                  Number(row.block_timestamp) / 1_000_000.0
-                ).toISOString()
+              ? new Date(Number(row.block_timestamp) / 1_000_000.0)
               : null,
           size: 0,
           gas_limit: 0,
@@ -109,18 +114,28 @@ export class PrehistoryIndexer {
           transactions_root: Buffer.alloc(32),
           state_root: Buffer.alloc(32),
           receipts_root: Buffer.alloc(32),
-        });
-        console.log(this.serialize(query.toParams()) + ';');
+        };
+        console.log(this.serialize(columns));
       }
     } // for
     process.exit(0); // EX_OK
   }
 
-  serialize(query: any) {
-    return query.text.replaceAll(/\$(\d+)/g, (match: string, p1: string) => {
-      const index = Number(p1) - 1;
-      return sql.convert(query.values[index]);
+  serialize(query: BlockRow) {
+    const items = Object.keys(query).map((key) => {
+      const value = (query as any)[key];
+      if (value === null) {
+        return '\\N';
+      }
+      if (value instanceof Date) {
+        return value.toISOString();
+      }
+      if (value instanceof Uint8Array) {
+        return `\\\\x${Buffer.from(value).toString('hex')}`;
+      }
+      return value;
     });
+    return items.join('\t');
   }
 }
 
@@ -165,7 +180,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
 
   logger.info('starting prehistory indexer');
   const indexer = new PrehistoryIndexer(config, network, logger);
-  await indexer.start(blockID, 'follow');
+  await indexer.run(blockID, 'follow');
 }
 
 main(process.argv, process.env).catch((error: Error) => {

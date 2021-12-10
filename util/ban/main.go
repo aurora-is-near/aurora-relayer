@@ -6,11 +6,18 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/cloudflare/cloudflare-go"
+	"inet.af/netaddr"
 )
 
 func main() {
+	if len(os.Args) < 2 {
+		fmt.Fprintf(os.Stderr, "usage: ban IPADDR [LABEL]\n")
+		os.Exit(64) // EX_USAGE
+	}
+
 	cfAPIToken := os.Getenv("CF_API_TOKEN")
 	if cfAPIToken == "" {
 		fmt.Fprintf(os.Stderr, "missing %s environment variable\n", "CF_API_TOKEN")
@@ -29,11 +36,11 @@ func main() {
 		os.Exit(78) // EX_CONFIG
 	}
 
-	if len(os.Args) < 2 {
-		fmt.Fprintf(os.Stderr, "usage: ban IPADDR [LABEL]\n")
-		os.Exit(64) // EX_USAGE
+	ipAddress, err := netaddr.ParseIP(os.Args[1])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s", err)
+		os.Exit(65) // EX_DATAERR
 	}
-	ipAddress := os.Args[1]
 
 	ipLabel := ""
 	if len(os.Args) > 2 {
@@ -47,9 +54,16 @@ func main() {
 	}
 
 	ctx := context.Background()
-	_, err = api.CreateIPListItem(ctx, cfListID, ipAddress, ipLabel)
+	_, err = api.CreateIPListItem(ctx, cfListID, ipToString(ipAddress), ipLabel)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s", err)
 		os.Exit(69) // EX_UNAVAILABLE
 	}
+}
+
+func ipToString(ip netaddr.IP) string {
+	if ip.Is4() {
+		return ip.String()
+	}
+	return strings.Join(strings.Split(ip.StringExpanded(), ":")[0:4], ":") + "::/64"
 }

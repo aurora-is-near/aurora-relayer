@@ -7,6 +7,7 @@ export interface Config {
   verbose: boolean;
   force: boolean;
   database?: string;
+  broker?: string;
   port: number | string;
   network: string;
   endpoint?: string;
@@ -14,7 +15,9 @@ export interface Config {
   signer: string;
   signerKey?: string;
   signerKeys?: string[];
-  blacklist: Set<string>;
+  blacklistIPs: Set<string>;
+  blacklistEOAs: Set<string>;
+  blacklistCAs: Set<string>;
   block?: number | string;
   batchSize?: number | string;
   writable?: boolean;
@@ -26,6 +29,7 @@ export const localConfig: Config = {
   verbose: false,
   force: false,
   database: undefined,
+  broker: undefined,
   port: 8545,
   network: 'local',
   endpoint: 'http://127.0.0.1:3030',
@@ -33,7 +37,9 @@ export const localConfig: Config = {
   signer: 'test.near',
   signerKey: undefined,
   signerKeys: [],
-  blacklist: new Set(),
+  blacklistIPs: new Set(),
+  blacklistEOAs: new Set(),
+  blacklistCAs: new Set(),
   writable: true,
   errorLog: undefined,
 };
@@ -59,6 +65,7 @@ export function parseConfig(
       verbose: debug || options.verbose || config.verbose,
       force: options.force || config.force,
       database: options.database || config.database,
+      broker: options.broker || config.broker,
       port: parseInt((options.port as string) || (config.port as string)),
       network: networkID,
       endpoint:
@@ -74,7 +81,9 @@ export function parseConfig(
       signer: options.signer || env.NEAR_MASTER_ACCOUNT || config.signer,
       signerKey: options.signerKey || config.signerKey,
       signerKeys: config.signerKeys || [],
-      blacklist: new Set(config.blacklist || []),
+      blacklistIPs: new Set(config.blacklistIPs || []),
+      blacklistEOAs: new Set(config.blacklistEOAs || []),
+      blacklistCAs: new Set(config.blacklistCAs || []),
       batchSize: parseInt(
         (options.batchSize as string) || (config.batchSize as string) || '1000'
       ),

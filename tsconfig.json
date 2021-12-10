@@ -1,5 +1,5 @@
 {
-  "files": ["src/index.ts", "src/indexer.ts", "src/decs.d.ts", "src/prehistory.ts"],
+  "files": ["src/index.ts", "src/indexer_backend.ts", "src/indexer_worker.ts", "src/prehistory.ts", "src/decs.d.ts"],
   "extends": "@tsconfig/node14/tsconfig.json",
   "compilerOptions": {
     "outDir": "./lib",

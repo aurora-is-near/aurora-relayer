@@ -4,6 +4,7 @@ export interface Config {
     verbose: boolean;
     force: boolean;
     database?: string;
+    broker?: string;
     port: number | string;
     network: string;
     endpoint?: string;
@@ -11,7 +12,9 @@ export interface Config {
     signer: string;
     signerKey?: string;
     signerKeys?: string[];
-    blacklist: Set<string>;
+    blacklistIPs: Set<string>;
+    blacklistEOAs: Set<string>;
+    blacklistCAs: Set<string>;
     block?: number | string;
     batchSize?: number | string;
     writable?: boolean;

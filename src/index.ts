@@ -3,18 +3,22 @@
 
 import { createApp } from './app.js';
 import { Config, parseConfig } from './config.js';
+import { pg } from './database.js';
 
 import { ConnectEnv, Engine } from '@aurora-is-near/engine';
 import { program } from 'commander';
 import externalConfig from 'config';
-import pg from 'pg';
 import pino from 'pino';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace NodeJS {
     // eslint-disable-next-line @typescript-eslint/no-empty-interface
-    interface ProcessEnv extends ConnectEnv {}
+    interface ProcessEnv extends ConnectEnv {
+      CF_API_TOKEN?: string; // Cloudflare API token
+      CF_ACCOUNT_ID?: string; // Cloudflare account ID
+      CF_LIST_ID?: string; // Cloudflare IP blacklist ID
+    }
   }
 }
 
@@ -71,9 +75,9 @@ async function main(argv: string[], env: NodeJS.ProcessEnv): Promise<void> {
       const sql = new pg.Client(config.database);
       await sql.connect();
       await sql.query('SELECT 1'); // test connectivity
-    } catch (error) {
+    } catch (error: any) {
       console.error(
-        `aurora-relayer: Invalid database configuration: ${error.message}`
+        `aurora-relayer: Invalid database configuration: ${(error as Error).message}`
       );
       if (config.debug) console.error(error);
       process.exit(78); // EX_CONFIG

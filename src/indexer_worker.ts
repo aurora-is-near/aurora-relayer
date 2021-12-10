@@ -1,8 +1,10 @@
 /* This is free and unencumbered software released into the public domain. */
 
-import { Config, parseConfig } from './config.js';
-import { computeBlockHash } from './utils.js';
+import { MessagePort, parentPort, workerData } from 'worker_threads';
 
+import { Config } from './config.js';
+import { pg, sql } from './database.js';
+import { computeBlockHash, EmptyBlock, generateEmptyBlock } from './utils.js';
 import {
   AccountID,
   BlockHeight,
@@ -13,80 +15,72 @@ import {
   NetworkConfig,
   Transaction,
 } from '@aurora-is-near/engine';
-import { program } from 'commander';
-import externalConfig from 'config';
-import pg from 'pg';
-import pino, { Logger } from 'pino';
-import sql from 'sql-bricks-postgres';
-const sqlConvert = (sql as any).convert;
-(sql as any).convert = (val: unknown) => {
-  if (val instanceof Uint8Array) {
-    return `'\\x${Buffer.from(val).toString('hex')}'`;
-  }
-  return sqlConvert(val);
-};
 
-const logger = pino();
+interface WorkerData {
+  config: Config;
+  network: NetworkConfig;
+  env: ConnectEnv;
+}
 
 export class Indexer {
+  protected readonly contractID: AccountID;
   protected readonly pgClient: pg.Client;
-  protected blockID = 0;
+  protected pendingHeadBlock: number;
 
   constructor(
     public readonly config: Config,
     public readonly network: NetworkConfig,
-    public readonly logger: Logger,
     public readonly engine: Engine
   ) {
+    this.contractID = AccountID.parse(this.config.engine).unwrap();
     this.pgClient = new pg.Client(config.database);
+    this.pendingHeadBlock = 0;
   }
 
-  async start(blockID?: number, mode?: string): Promise<void> {
+  async start(): Promise<void> {
     await this.pgClient.connect();
-    if (blockID !== undefined) {
-      this.blockID = blockID;
-    } else if (mode == 'follow') {
-      this.blockID = (await this.engine.getBlockHeight()).unwrap() as number;
-    } else if (mode == 'resume') {
-      const {
-        rows: [{ maxID }],
-      } = await this.pgClient.query(
-        'SELECT MAX(id)::int AS "maxID" FROM block'
-      );
-      this.blockID = maxID !== null ? maxID + 1 : 0;
-    }
-    this.logger.info(`resuming from block #${this.blockID}`);
-    for (;;) {
-      await this.indexBlock(this.blockID);
-      this.blockID += 1;
-    }
   }
 
   async indexBlock(blockID: BlockHeight): Promise<void> {
-    //console.debug('indexBlock', blockID); // DEBUG
-    this.logger.info({ block: { id: blockID } }, `indexing block #${blockID}`);
-    const contractID = AccountID.parse(this.config.engine).unwrap();
-
+    console.error(`Indexing block #${blockID}...`);
     for (;;) {
-      const currentBlockHeight = (await this.engine.getBlockHeight()).unwrap();
-
       const proxy = await this.engine.getBlock(blockID, {
         transactions: 'full',
-        contractID: contractID,
+        contractID: this.contractID,
       });
       if (proxy.isErr()) {
         const error = proxy.unwrapErr();
         if (error.startsWith('[-32000] Server error: DB Not Found Error')) {
-          if (blockID < currentBlockHeight) {
-            this.logger.error(error);
-            return; // a skip block, or an unavailable block on a nonarchival node
-          } else {
-            await new Promise((resolve) => setTimeout(resolve, 100));
-            continue; // wait for the next block to be produced
+          // Handling empty blocks
+          const emptyBlock: EmptyBlock = generateEmptyBlock(
+            blockID as number,
+            this.contractID.toString(),
+            this.network.chainID
+          );
+          //if (this.config.debug) console.debug(emptyBlock); // DEBUG
+          const query = sql.insert('block', {
+            chain: emptyBlock.chain,
+            id: emptyBlock.id,
+            hash: emptyBlock.hash,
+            near_hash: emptyBlock.nearHash,
+            timestamp: emptyBlock.timestamp,
+            size: emptyBlock.size,
+            gas_limit: emptyBlock.gasLimit,
+            gas_used: emptyBlock.gasUsed,
+            parent_hash: emptyBlock.parentHash,
+            transactions_root: emptyBlock.transactionsRoot,
+            state_root: emptyBlock.stateRoot,
+            receipts_root: emptyBlock.receiptsRoot,
+          });
+          //if (this.config.debug) console.debug(query.toString()); // DEBUG
+          try {
+            await this.pgClient.query(query.toParams());
+          } catch (error) {
+            console.error('indexBlock', error);
           }
+          return;
         }
         if (this.config.debug) console.error(error); // DEBUG
-        this.logger.error(error);
         await new Promise((resolve) => setTimeout(resolve, 100));
         continue; // retry block
       }
@@ -94,12 +88,12 @@ export class Indexer {
       const block = block_.getMetadata();
       const blockHash = computeBlockHash(
         block.number as number,
-        contractID.toString(),
+        this.contractID.toString(),
         this.network.chainID
       );
       const parentHash = computeBlockHash(
         (block.number as number) - 1,
-        contractID.toString(),
+        this.contractID.toString(),
         this.network.chainID
       );
       const query = sql.insert('block', {
@@ -116,13 +110,11 @@ export class Indexer {
         state_root: block.stateRoot,
         receipts_root: block.receiptsRoot,
       });
-
       //if (this.config.debug) console.debug(query.toString()); // DEBUG
       try {
         await this.pgClient.query(query.toParams());
       } catch (error) {
         console.error('indexBlock', error);
-        if (this.config.debug) this.logger.error(error);
         return; // abort block
       }
       // Index all transactions contained in this block:
@@ -133,7 +125,7 @@ export class Indexer {
       );
 
       return; // finish block
-    }
+    } // for (;;)
   }
 
   async indexTransaction(
@@ -141,13 +133,8 @@ export class Indexer {
     transactionIndex: number,
     transaction: Transaction
   ): Promise<void> {
-    //console.debug('indexTransaction', blockID, transactionIndex, transaction); // DEBUG
-    this.logger.info(
-      {
-        block: { id: blockID },
-        transaction: { index: transactionIndex, hash: transaction.hash },
-      },
-      `indexing transaction ${transaction.hash} at #${blockID}:${transactionIndex}`
+    console.error(
+      `Indexing transaction ${transaction.hash} at #${blockID}:${transactionIndex}...`
     );
 
     const to = transaction.to;
@@ -195,9 +182,9 @@ export class Indexer {
         rows: [{ id }],
       } = await this.pgClient.query(query.toParams());
       transactionID = parseInt(id as string);
+      await this.pgClient.query(`NOTIFY transaction, '${transaction.hash}'`);
     } catch (error) {
       console.error('indexTransaction', error);
-      if (this.config.debug) this.logger.error(error);
       return;
     }
 
@@ -222,14 +209,8 @@ export class Indexer {
     eventIndex: number,
     event: LogEvent
   ): Promise<void> {
-    //console.debug('indexEvent', blockID, transactionIndex, transactionID, eventIndex, event); // DEBUG
-    this.logger.info(
-      {
-        block: { id: blockID },
-        transaction: { index: transactionIndex, id: transactionID },
-        event: { index: eventIndex },
-      },
-      `indexing log event at #${blockID}:${transactionIndex}:${eventIndex}`
+    console.error(
+      `Indexing log event at #${blockID}:${transactionIndex}:${eventIndex}...`
     );
 
     const query = sql.insert('event', {
@@ -245,68 +226,31 @@ export class Indexer {
     //if (this.config.debug) console.debug(query.toParams()); // DEBUG
     try {
       await this.pgClient.query(query.toParams());
+      await this.pgClient.query(`NOTIFY log, '${JSON.stringify({blockId: blockID, index: transactionIndex})}'`);
     } catch (error) {
       console.error('indexEvent', error);
-      if (this.config.debug) this.logger.error(error);
-      return;
     }
+  }
+
+  async notifyNewHeads(blockID: number): Promise<void> {
+    if (this.pendingHeadBlock == 0) { this.pendingHeadBlock = blockID }
+    for (;;) {
+      if ( await this.isBlockIndexed(this.pendingHeadBlock)) {
+        this.pgClient.query(`NOTIFY block, '${this.pendingHeadBlock}'`);
+        this.pendingHeadBlock +=  1;
+      } else {
+        return
+      }
+    }
+  }
+  async isBlockIndexed(blockID: number): Promise<boolean> {
+    const result = await this.pgClient.query(`SELECT 1 FROM block WHERE id = ${ this.pendingHeadBlock } LIMIT(1)`)
+    return result.rows.length == 1
   }
 }
 
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace NodeJS {
-    // eslint-disable-next-line @typescript-eslint/no-empty-interface
-    interface ProcessEnv extends ConnectEnv {}
-  }
-}
-
-async function main(argv: string[], env: NodeJS.ProcessEnv) {
-  program
-    .option('-d, --debug', 'enable debug output')
-    .option('-v, --verbose', 'enable verbose output')
-    .option('-f, --force', 'reindex already indexed data')
-    .option(
-      '--database <url>',
-      `specify PostgreSQL database URL (default: none)`
-    )
-    .option(
-      '--network <network>',
-      `specify NEAR network ID (default: "${env.NEAR_ENV || 'local'}")`
-    )
-    .option(
-      '--endpoint <url>',
-      `specify NEAR RPC endpoint URL (default: "${env.NEAR_URL || ''}")`
-    )
-    .option(
-      '--engine <account>',
-      `specify Aurora Engine account ID (default: "${
-        env.AURORA_ENGINE || 'aurora.test.near'
-      }")`
-    )
-    .option(
-      '-B, --block <block>',
-      `specify block height to begin indexing from (default: current)`
-    )
-    .parse(argv);
-
-  const opts = program.opts() as Config;
-  const [network, config] = parseConfig(
-    opts,
-    (externalConfig as unknown) as Config,
-    env
-  );
-  const blockID =
-    opts.block !== undefined ? parseInt(opts.block as string) : undefined;
-
-  if (config.debug) {
-    for (const source of externalConfig.util.getConfigSources()) {
-      console.error(`Loaded configuration file ${source.name}.`);
-    }
-    console.error('Configuration:', config);
-  }
-
-  logger.info(`connecting to ${config.endpoint}...`);
+async function main(parentPort: MessagePort, workerData: WorkerData) {
+  const { config, network, env } = workerData;
   const engine = await Engine.connect(
     {
       network: network.id,
@@ -315,16 +259,21 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
     },
     env
   );
+  const indexer = new Indexer(config, network, engine);
+  await indexer.start();
+  const blockHeight = (await engine.getBlockHeight()).unwrap() as number;
 
-  logger.info('starting indexer');
-  const indexer = new Indexer(config, network, logger, engine);
-  await indexer.start(blockID, 'follow');
+  parentPort
+    .on('message', async (blockID: number) => {
+      parentPort.postMessage(true); // ack the request
+      await indexer.indexBlock(blockID);
+      if (blockID > blockHeight) {
+        await indexer.notifyNewHeads(blockID);
+      }
+    })
+    .on('close', () => {
+      return; // TODO?
+    });
 }
 
-main(process.argv, process.env).catch((error: Error) => {
-  const errorMessage = error.message.startsWith('<')
-    ? error.name
-    : error.message;
-  logger.error(errorMessage);
-  process.exit(70); // EX_SOFTWARE
-});
+main(parentPort!, workerData as WorkerData);
