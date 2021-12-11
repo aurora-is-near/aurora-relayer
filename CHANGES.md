@@ -12,16 +12,23 @@ A new column `from` was added into the `event` table. Check out this PR [#120](h
 To update the `event` table, execute:
 
 - Create `from` column:
-```sql
-ALTER TABLE event ADD COLUMN "from" address;
+
+```bash
+$ cd migrations
+$ goose postgres "user=<USERNAME> password=<PASSWORD> dbname=aurora sslmode=disable" up-to 20211208103001
 ```
+
 - Run `node lib/data_migrations/2021-12-02-event.js` to reindex all historical events.
 - Set `from` column to `NOT NULL`:
 
-```sql
-ALTER TABLE event ALTER COLUMN "from" SET NOT NULL;
+```bash
+$ cd migrations
+$ goose postgres "user=<USERNAME> password=<PASSWORD> dbname=aurora sslmode=disable" up-to 20211208110338
 ```
-
+- Finally check the status of the migration:
+```bash
+goose postgres "user=<USERNAME> password=<PASSWORD> dbname=aurora sslmode=disable" status
+```
 ## 2021-12-02
 
 New table to handle subscriptions.
