@@ -219,7 +219,7 @@ export class Indexer {
       index: eventIndex,
       //id: null,
       data: event_.data?.length ? event_.data : null,
-      from: Buffer.from(event_.address),
+      from: event_.address ? Buffer.from(event_.address) : Buffer.alloc(20),
       topics: event_.topics?.length
         ? event_.topics.map((topic) => topic.toBytes())
         : null,

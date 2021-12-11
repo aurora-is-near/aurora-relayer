@@ -15,9 +15,9 @@ To update the `event` table, execute:
 ```sql
 ALTER TABLE event ADD COLUMN "from" address;
 ```
-- Run `prehistory` to reindex all historical transactions.
+- Run `node lib/data_migrations/2021-12-02-event.js` to reindex all historical events.
+- Set `from` column to `NOT NULL`:
 
-- Apply `not_null_check` constraint on `from` column:
 ```sql
 ALTER TABLE event ALTER COLUMN "from" SET NOT NULL;
 ```
@@ -38,7 +38,6 @@ CREATE TABLE subscription (
 
 CREATE UNIQUE INDEX subscription_sec_websocket_key_type_filter_index_idx ON subscription (sec_websocket_key, type, filter);
 ```
-
 ## 2021-12-01
 
 Stored procedure needs to be reloaded [Issue #133](https://github.com/aurora-is-near/aurora-relayer/issues/133)
