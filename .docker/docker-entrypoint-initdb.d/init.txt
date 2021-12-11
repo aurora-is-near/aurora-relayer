@@ -44,6 +44,7 @@ CREATE TYPE block_result AS (
     "size" int4,
     "gasLimit" int8,
     "gasUsed" int8,
+    "mixHash" hash,         
     "timestamp" int4
 );
 DROP TYPE IF EXISTS filter_result CASCADE;
@@ -177,6 +178,18 @@ CREATE TABLE event (
 CREATE UNIQUE INDEX event_transaction_index_idx ON event (transaction, index);
 DROP FUNCTION IF EXISTS eth_blockNumber() RESTRICT;
 
+DROP TABLE IF EXISTS subscription CASCADE;
+
+CREATE TABLE subscription (
+	sec_websocket_key varchar COLLATE "default",
+	id                varchar COLLATE "default",
+	type              varchar COLLATE "default",
+	ip                varchar COLLATE "default",
+	filter            jsonb NULL
+);
+
+CREATE UNIQUE INDEX subscription_sec_websocket_key_type_filter_index_idx ON subscription (sec_websocket_key, type, filter);
+
 CREATE FUNCTION eth_blockNumber() RETURNS blockno AS $$
 DECLARE
   block_id blockno;
@@ -220,7 +233,8 @@ BEGIN
       size,                         -- size
       gas_limit,                    -- gasLimit
       gas_used,                     -- gasUsed
-      COALESCE(EXTRACT(EPOCH FROM timestamp), 0)::int4 -- timestamp
+      repeat('\000', 32)::hash,     -- mixHash
+      EXTRACT(EPOCH FROM timestamp) -- timestamp
     FROM block
     WHERE id = block_id
     LIMIT 1

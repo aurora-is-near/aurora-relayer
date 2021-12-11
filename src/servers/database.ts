@@ -5,6 +5,7 @@ import { SkeletonServer } from './skeleton.js';
 import { Bus } from '../bus.js';
 import { pg, sql } from '../database.js';
 import {
+  InvalidAddress,
   InvalidArguments,
   RevertError,
   TransactionError,
@@ -27,6 +28,7 @@ import {
   intToHex,
 } from '@aurora-is-near/engine';
 import fs from 'fs';
+import { getRandomBytesSync } from 'ethereum-cryptography/random.js';
 
 import {
   parse as parseRawTransaction,
@@ -68,20 +70,6 @@ export class DatabaseServer extends SkeletonServer {
         (pgClient as any).setTypeParser(oid, (val: string) => BigInt(val));
       }
     }
-
-    // Listen to new block notifications:
-    pgClient.on('notification', (message: pg.Notification) => {
-      if (!message.payload) return;
-      if (message.channel === 'block') {
-        const blockID = parseInt(message.payload);
-        if (isNaN(blockID)) return; // ignore UFOs
-
-        this.logger.info({ block: { id: blockID } }, 'block received');
-
-        // TODO: notify subscribers
-      }
-    });
-    pgClient.query('LISTEN block');
   }
 
   protected _query(
@@ -392,6 +380,10 @@ export class DatabaseServer extends SkeletonServer {
       if (clauses) {
         where.push(clauses);
       }
+    }
+
+    if (typeof filter.index === 'number') {
+      where.push({ 't.index': parseInt(filter.index) });
     }
 
     const query = sql
@@ -728,6 +720,38 @@ export class DatabaseServer extends SkeletonServer {
     });
   }
 
+  async eth_subscribe(
+    _request: Request,
+    _subsciptionType: web3.Data,
+    _filter: any
+  ): Promise<web3.Data> {
+    // Skip unsupported subs
+    const id = bytesToHex(getRandomBytesSync(16));
+    const filter: any = {  };
+    if (_filter !== null && _filter !== undefined) {
+      if(_filter.address !== undefined && _filter.address !== null) {
+        try {
+          filter.address = parseAddress(_filter.address);
+        } catch (error) {
+          throw new InvalidAddress();
+        }
+      }
+      if (_filter.topics !== undefined && _filter.topics !== null) {
+        filter.topics = _filter.topics;
+      }
+    }
+
+    const query = sql.insert('subscription', {
+      'id': id,
+      'sec_websocket_key': _request.websocketKey(),
+      'type': _subsciptionType,
+      'ip': _request.ip(),
+      'filter': JSON.stringify(filter) // is jsonb needet?
+    });
+    await this._query(`${query.toString()} ON CONFLICT (sec_websocket_key, type, filter) DO UPDATE SET id = EXCLUDED.id `);
+    return id;
+  }
+
   async eth_uninstallFilter(
     _request: Request,
     filterID: web3.Quantity
@@ -743,6 +767,15 @@ export class DatabaseServer extends SkeletonServer {
       ['0.0.0.0', filterID_] // TODO: IPv4
     );
     return found;
+  }
+
+  async eth_unsubscribe(
+    _request: Request,
+    _subsciptionId: web3.Data
+  ): Promise<boolean> {
+    const query = sql.delete('subscription').where({ 'id': _subsciptionId })
+    await this._query(query.toString());
+    return true;
   }
 
   protected async _fetchCurrentBlockID(): Promise<number> {
