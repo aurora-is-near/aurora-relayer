@@ -5,4 +5,5 @@ export declare class Request {
     hasAuthorization(): boolean;
     ip(): string;
     country(): string;
+    websocketKey(): string;
 }
