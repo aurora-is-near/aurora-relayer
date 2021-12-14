@@ -4,7 +4,12 @@ import { MessagePort, parentPort, workerData } from 'worker_threads';
 
 import { Config } from './config.js';
 import { pg, sql } from './database.js';
-import { computeBlockHash, EmptyBlock, generateEmptyBlock } from './utils.js';
+import {
+  computeBlockHash,
+  EmptyBlock,
+  generateEmptyBlock,
+  emptyTransactionsRoot,
+} from './utils.js';
 import {
   AccountID,
   BlockHeight,
@@ -97,6 +102,11 @@ export class Indexer {
         this.contractID.toString(),
         this.network.chainID
       );
+
+      const transactionsRoot =
+        block.transactions.length == 0
+          ? emptyTransactionsRoot()
+          : block.transactionsRoot;
       const query = sql.insert('block', {
         chain: this.network.chainID,
         id: block.number,
@@ -107,7 +117,7 @@ export class Indexer {
         gas_limit: 0, // FIXME: block.gasLimit,
         gas_used: 0, // FIXME: block.gasUsed,
         parent_hash: parentHash,
-        transactions_root: block.transactionsRoot,
+        transactions_root: transactionsRoot,
         state_root: block.stateRoot,
         receipts_root: block.receiptsRoot,
       });
@@ -228,26 +238,35 @@ export class Indexer {
     //if (this.config.debug) console.debug(query.toParams()); // DEBUG
     try {
       await this.pgClient.query(query.toParams());
-      await this.pgClient.query(`NOTIFY log, '${JSON.stringify({blockId: blockID, index: transactionIndex})}'`);
+      await this.pgClient.query(
+        `NOTIFY log, '${JSON.stringify({
+          blockId: blockID,
+          index: transactionIndex,
+        })}'`
+      );
     } catch (error) {
       console.error('indexEvent', error);
     }
   }
 
   async notifyNewHeads(blockID: number): Promise<void> {
-    if (this.pendingHeadBlock == 0) { this.pendingHeadBlock = blockID }
+    if (this.pendingHeadBlock == 0) {
+      this.pendingHeadBlock = blockID;
+    }
     for (;;) {
-      if ( await this.isBlockIndexed(this.pendingHeadBlock)) {
+      if (await this.isBlockIndexed(this.pendingHeadBlock)) {
         this.pgClient.query(`NOTIFY block, '${this.pendingHeadBlock}'`);
-        this.pendingHeadBlock +=  1;
+        this.pendingHeadBlock += 1;
       } else {
-        return
+        return;
       }
     }
   }
   async isBlockIndexed(blockID: number): Promise<boolean> {
-    const result = await this.pgClient.query(`SELECT 1 FROM block WHERE id = ${ this.pendingHeadBlock } LIMIT(1)`)
-    return result.rows.length == 1
+    const result = await this.pgClient.query(
+      `SELECT 1 FROM block WHERE id = ${this.pendingHeadBlock} LIMIT(1)`
+    );
+    return result.rows.length == 1;
   }
 }
 

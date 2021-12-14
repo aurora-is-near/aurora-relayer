@@ -6,6 +6,7 @@
     "src/prehistory.ts",
     "src/decs.d.ts",
     "src/data_migrations/2021-12-02-event.ts",
+    "src/data_migrations/2021-12-14-empty-blocks.ts",
   ],
   "extends": "@tsconfig/node14/tsconfig.json",
   "compilerOptions": {
