@@ -171,6 +171,7 @@ CREATE TABLE event (
   index             int NOT NULL CHECK (index >= 0),
   id                bigserial NOT NULL PRIMARY KEY,
   data              bytea NULL CHECK (length(data) > 0),
+  "from"            address NULL,
   topics            hash[] NULL CHECK (array_length(topics, 1) > 0 AND array_length(topics, 1) <= 4)
 );
 
@@ -302,7 +303,7 @@ BEGIN
         t.index AS "transactionIndex",
         t.hash AS "transactionHash",
         e.index AS "logIndex",
-        coalesce(t.to, \'\\x0000000000000000000000000000000000000000\')::address AS "address",
+        e.from AS "address",
         e.topics AS "topics",
         coalesce(e.data, repeat(\'\\000\', 32)::bytea) AS "data",
         false AS "removed"
@@ -354,7 +355,7 @@ BEGIN
         t.index AS "transactionIndex",
         t.hash AS "transactionHash",
         e.index AS "logIndex",
-        coalesce(t.to, \'\\x0000000000000000000000000000000000000000\')::address AS "address",
+        e.from AS "address",
         e.topics AS "topics",
         coalesce(e.data, repeat(\'\\000\', 32)::bytea) AS "data",
         false AS "removed"

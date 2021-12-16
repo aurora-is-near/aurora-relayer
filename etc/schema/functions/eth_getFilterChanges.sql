@@ -30,7 +30,7 @@ BEGIN
         t.index AS "transactionIndex",
         t.hash AS "transactionHash",
         e.index AS "logIndex",
-        coalesce(t.to, \'\\x0000000000000000000000000000000000000000\')::address AS "address",
+        e.from AS "address",
         e.topics AS "topics",
         coalesce(e.data, repeat(\'\\000\', 32)::bytea) AS "data",
         false AS "removed"

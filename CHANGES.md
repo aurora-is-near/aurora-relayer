@@ -5,6 +5,30 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 2021-12-08
+
+A new column `from` was added into the `event` table. Check out this PR [#120](https://github.com/aurora-is-near/aurora-relayer/pull/120) for more info.
+
+To update the `event` table, execute:
+
+- Create `from` column:
+
+```bash
+$ cd migrations
+$ goose postgres "user=<USERNAME> password=<PASSWORD> dbname=aurora sslmode=disable" up-to 20211208103001
+```
+
+- Run `node lib/data_migrations/2021-12-02-event.js` to reindex all historical events.
+- Set `from` column to `NOT NULL`:
+
+```bash
+$ cd migrations
+$ goose postgres "user=<USERNAME> password=<PASSWORD> dbname=aurora sslmode=disable" up-to 20211208110338
+```
+- Finally check the status of the migration:
+```bash
+goose postgres "user=<USERNAME> password=<PASSWORD> dbname=aurora sslmode=disable" status
+```
 ## 2021-12-02
 
 New table to handle subscriptions.
@@ -21,13 +45,11 @@ CREATE TABLE subscription (
 
 CREATE UNIQUE INDEX subscription_sec_websocket_key_type_filter_index_idx ON subscription (sec_websocket_key, type, filter);
 ```
-
 ## 2021-12-01
 
 Stored procedure needs to be reloaded [Issue #133](https://github.com/aurora-is-near/aurora-relayer/issues/133)
 
 - `etc/schema/functions/eth_getTransactionReceipt.sql`
-
 
 ## 2021-10-19
 
