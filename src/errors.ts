@@ -104,8 +104,14 @@ export class TransactionError extends ExpectedError {
 }
 
 export class RevertError extends ExpectedError {
-  constructor(reason: string) {
-    super(3, `execution reverted: ${reason}`);
+  constructor(reason: Uint8Array) {
+    const reason_str = Buffer.from(reason).toString()
+    if (/[\x00-\x1F]/.test(reason_str)) {
+      // Detect non-printable characters https://stackoverflow.com/a/1677660
+      super(3, `execution reverted: ${reason}`);
+    } else {
+      super(3, `execution reverted: ${reason_str}`);
+    }
     Object.setPrototypeOf(this, RevertError.prototype);
   }
 }

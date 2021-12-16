@@ -677,14 +677,11 @@ export class DatabaseServer extends SkeletonServer {
         if (result.output().isErr()) {
           if (result.result.kind === 'LegacyExecutionResult') {
             // legacy SubmitResult just put any error message in the output bytes
-            throw new RevertError(Buffer.from(result.result.output).toString());
+            throw new RevertError(result.result.output);
           } else {
             // new versions of SubmitResult carry error information in the status
             if (result.result.status.revert) {
-              const message = Buffer.from(result.result.status.revert.output)
-                .toString()
-                .replace(/\00/g, '');
-              throw new RevertError(message);
+              throw new RevertError(result.result.status.revert.output as Uint8Array);
             } else if (result.result.status.outOfFund) {
               throw new TransactionError('Out Of Fund');
             } else if (result.result.status.outOfGas) {
