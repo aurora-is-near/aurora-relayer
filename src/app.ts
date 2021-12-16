@@ -36,7 +36,7 @@ export async function createApp(
   });
   app.use(rpcMiddleware(createServer(config, logger, engine)));
   app.use(middleware.handleErrors());
-  createWsServer(config, logger, engine, app);
+  await createWsServer(config, logger, engine, app);
 
   return app;
 }
@@ -45,7 +45,9 @@ function rpcMiddleware(server: jayson.Server): any {
   return function (req: any, res: any): any {
     const options: any = server.options;
 
-    if (req.headers['sec-websocket-key']) { res.next() }
+    if (req.headers['sec-websocket-key']) {
+      res.next();
+    }
 
     if ((req.method || '') != 'POST') {
       return error(405, { Allow: 'POST' });

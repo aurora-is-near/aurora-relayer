@@ -4,6 +4,7 @@ import { MessagePort, parentPort, workerData } from 'worker_threads';
 
 import { Config } from './config.js';
 import { pg, sql } from './database.js';
+import format from 'pg-format';
 import { computeBlockHash, EmptyBlock, generateEmptyBlock } from './utils.js';
 import {
   AccountID,
@@ -183,7 +184,9 @@ export class Indexer {
         rows: [{ id }],
       } = await this.pgClient.query(query.toParams());
       transactionID = parseInt(id as string);
-      await this.pgClient.query(`NOTIFY transaction, '${transaction.hash}'`);
+      await this.pgClient.query(
+        `NOTIFY transaction, ${format.literal(transaction.hash)}`
+      );
     } catch (error) {
       console.error('indexTransaction', error);
       return;
@@ -228,26 +231,37 @@ export class Indexer {
     //if (this.config.debug) console.debug(query.toParams()); // DEBUG
     try {
       await this.pgClient.query(query.toParams());
-      await this.pgClient.query(`NOTIFY log, '${JSON.stringify({blockId: blockID, index: transactionIndex})}'`);
+      const logDetails = JSON.stringify({
+        blockId: blockID,
+        index: transactionIndex,
+      });
+      this.pgClient.query(`NOTIFY log, ${format.literal(logDetails)}`);
     } catch (error) {
       console.error('indexEvent', error);
     }
   }
 
   async notifyNewHeads(blockID: number): Promise<void> {
-    if (this.pendingHeadBlock == 0) { this.pendingHeadBlock = blockID }
+    if (this.pendingHeadBlock == 0) {
+      this.pendingHeadBlock = blockID;
+    }
     for (;;) {
-      if ( await this.isBlockIndexed(this.pendingHeadBlock)) {
-        this.pgClient.query(`NOTIFY block, '${this.pendingHeadBlock}'`);
-        this.pendingHeadBlock +=  1;
+      if (await this.isBlockIndexed(this.pendingHeadBlock)) {
+        this.pgClient.query(
+          `NOTIFY block, ${format.literal(this.pendingHeadBlock.toString())}`
+        );
+        this.pendingHeadBlock += 1;
       } else {
-        return
+        return;
       }
     }
   }
   async isBlockIndexed(blockID: number): Promise<boolean> {
-    const result = await this.pgClient.query(`SELECT 1 FROM block WHERE id = ${ this.pendingHeadBlock } LIMIT(1)`)
-    return result.rows.length == 1
+    const result = await this.pgClient.query(
+      `SELECT 1 FROM block WHERE id = $1 LIMIT(1)`,
+      [this.pendingHeadBlock]
+    );
+    return result.rows.length == 1;
   }
 }
 
