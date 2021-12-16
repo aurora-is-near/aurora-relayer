@@ -681,7 +681,9 @@ export class DatabaseServer extends SkeletonServer {
           } else {
             // new versions of SubmitResult carry error information in the status
             if (result.result.status.revert) {
-              throw new RevertError(result.result.status.revert.output as Uint8Array);
+              throw new RevertError(
+                result.result.status.revert.output as Uint8Array
+              );
             } else if (result.result.status.outOfFund) {
               throw new TransactionError('Out Of Fund');
             } else if (result.result.status.outOfGas) {
