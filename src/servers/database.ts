@@ -383,7 +383,7 @@ export class DatabaseServer extends SkeletonServer {
     }
 
     if (typeof filter.index === 'number') {
-      where.push({ 't.index': parseInt(filter.index) });
+      where.push({ 't.index': filter.index });
     }
 
     const query = sql
@@ -727,9 +727,9 @@ export class DatabaseServer extends SkeletonServer {
   ): Promise<web3.Data> {
     // Skip unsupported subs
     const id = bytesToHex(getRandomBytesSync(16));
-    const filter: any = {  };
+    const filter: any = {};
     if (_filter !== null && _filter !== undefined) {
-      if(_filter.address !== undefined && _filter.address !== null) {
+      if (_filter.address !== undefined && _filter.address !== null) {
         try {
           filter.address = parseAddress(_filter.address);
         } catch (error) {
@@ -742,13 +742,15 @@ export class DatabaseServer extends SkeletonServer {
     }
 
     const query = sql.insert('subscription', {
-      'id': id,
-      'sec_websocket_key': _request.websocketKey(),
-      'type': _subsciptionType,
-      'ip': _request.ip(),
-      'filter': JSON.stringify(filter) // is jsonb needet?
+      id: id,
+      sec_websocket_key: _request.websocketKey(),
+      type: _subsciptionType,
+      ip: _request.ip(),
+      filter: JSON.stringify(filter),
     });
-    await this._query(`${query.toString()} ON CONFLICT (sec_websocket_key, type, filter) DO UPDATE SET id = EXCLUDED.id `);
+    await this._query(
+      `${query.toString()} ON CONFLICT (sec_websocket_key, type, filter) DO UPDATE SET id = EXCLUDED.id `
+    );
     return id;
   }
 
@@ -773,8 +775,8 @@ export class DatabaseServer extends SkeletonServer {
     _request: Request,
     _subsciptionId: web3.Data
   ): Promise<boolean> {
-    const query = sql.delete('subscription').where({ 'id': _subsciptionId })
-    await this._query(query.toString());
+    const query = sql.delete('subscription').where({ id: _subsciptionId });
+    await this._query(query.toParams());
     return true;
   }
 
