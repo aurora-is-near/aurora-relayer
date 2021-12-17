@@ -1,5 +1,7 @@
 /* This is free and unencumbered software released into the public domain. */
 
+import { parseEVMRevertReason } from './utils.js';
+
 export function unsupported(method: string): void {
   throw new UnsupportedMethod(method);
 }
@@ -105,12 +107,11 @@ export class TransactionError extends ExpectedError {
 
 export class RevertError extends ExpectedError {
   constructor(reason: Uint8Array) {
-    const reason_str = Buffer.from(reason).toString();
-    if (/[\x00-\x1F]/.test(reason_str)) {
-      // Detect non-printable characters https://stackoverflow.com/a/1677660
-      super(3, `execution reverted: ${reason}`);
+    const revertReason = parseEVMRevertReason(reason);
+    if (typeof revertReason === 'string') {
+      super(3, revertReason as string);
     } else {
-      super(3, `execution reverted: ${reason_str}`);
+      super(3, `execution reverted`, revertReason);
     }
     Object.setPrototypeOf(this, RevertError.prototype);
   }

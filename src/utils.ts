@@ -1,6 +1,7 @@
 /* This is free and unencumbered software released into the public domain. */
 
 import { sha256 } from 'ethereum-cryptography/sha256.js';
+import * as ethers from 'ethers';
 
 export type EmptyBlock = {
   chain: number;
@@ -66,4 +67,16 @@ export function generateEmptyBlock(
     stateRoot: Buffer.alloc(32),
     receiptsRoot: Buffer.alloc(32),
   };
+}
+
+export function parseEVMRevertReason(reason: Uint8Array): string | Uint8Array {
+  const reason_str: string = Buffer.from(reason).toString('hex');
+  // 08c379a0 is the first 4 bytes of keccack('Error(string)')
+  // https://ethereum.stackexchange.com/a/66173
+  if (reason_str.startsWith('08c379a0')) {
+    return ethers.utils
+      .toUtf8String('0x' + reason_str.substring(136))
+      .replace(/\0/g, '');
+  }
+  return reason;
 }
