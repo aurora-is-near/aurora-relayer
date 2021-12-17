@@ -48,9 +48,7 @@ class ReindexWorker {
       .order('block.id DESC')
       .limit(1);
     if (blockId > 0) {
-      startBlockQuery = startBlockQuery.where(
-        sql(`block.id <= $1`, blockId)
-      );
+      startBlockQuery = startBlockQuery.where(sql(`block.id <= $1`, blockId));
     }
     const transactionQueryResult = await this.pgClient.query(
       startBlockQuery.toParams()
@@ -60,26 +58,17 @@ class ReindexWorker {
     for (let blockId = startBlockId; blockId > 0; blockId -= step) {
       const endBlockId = blockId - step > 0 ? blockId - step : 0;
       logger.info(`Fetching blocks ${endBlockId}..${blockId}`);
-      const query = sql
-        .select('DISTINCT block.id AS block_id')
-        .from('block')
-        .leftJoin('transaction')
-        .on({ 'transaction.block': 'block.id' })
+      const updateQuery = sql
+        .update('block', { transactions_root: emptyTransactionsRoot() })
         .where(
           sql(
-            `transaction.block IS NULL AND block.id >= $1 AND block.id < $2`,
-            blockId - step,
-            blockId
+            '(SELECT COUNT(id) FROM transaction t WHERE t.block = block.id) = 0'
           )
+        )
+        .where(
+          sql(`block.id >= $1 AND block.id < $2`, blockId - step, blockId)
         );
-      const result = await this.pgClient.query(query.toParams());
-      if (result.rows.length > 0) {
-        const blockIds = result.rows.map((row: any) => parseInt(row.block_id));
-        const updateQuery = sql
-          .update('block', { transactions_root: emptyTransactionsRoot() })
-          .where(sql.in('id', blockIds));
-        await this.pgClient.query(updateQuery.toParams());
-      }
+      await this.pgClient.query(updateQuery.toParams());
     }
     process.exit(0); // EX_OK
   }
@@ -112,7 +101,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
   const opts = program.opts() as Config;
   const [network, config] = parseConfig(
     opts,
-    (externalConfig as unknown) as Config,
+    externalConfig as unknown as Config,
     env
   );
   const blockID = opts.block !== undefined ? parseInt(opts.block as string) : 0;
