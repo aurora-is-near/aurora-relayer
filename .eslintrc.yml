@@ -10,6 +10,4 @@ parserOptions:
   sourceType: module
 plugins:
   - '@typescript-eslint'
-rules: {
-  no-control-regex: 0
-}
+rules: {}
