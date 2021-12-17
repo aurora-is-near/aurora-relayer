@@ -50,10 +50,9 @@ export class Method extends jayson.Method {
       .then((value: any) => (callback as any)(undefined, value))
       .catch((error: Error) => {
         const metadata = {
-          host: (request && request.headers && request.headers.host) || undefined,
-          'cf-ray': (request && request.headers && request.headers['cf-ray']) || undefined,
-          'cf-request-id':
-            (request && request.headers && request.headers['cf-request-id']) || undefined,
+          host: request?.headers?.host || undefined,
+          'cf-ray': request?.headers['cf-ray'] || undefined,
+          'cf-request-id': request?.headers['cf-request-id'] || undefined,
         };
         if (error instanceof ExpectedError) {
           return (callback as any)(
