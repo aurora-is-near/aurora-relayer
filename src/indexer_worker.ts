@@ -4,6 +4,7 @@ import { MessagePort, parentPort, workerData } from 'worker_threads';
 
 import { Config } from './config.js';
 import { pg, sql } from './database.js';
+import format from 'pg-format';
 import { computeBlockHash, EmptyBlock, generateEmptyBlock } from './utils.js';
 import {
   AccountID,
@@ -12,6 +13,7 @@ import {
   Engine,
   hexToBytes,
   LogEvent,
+  LogEventWithAddress,
   NetworkConfig,
   Transaction,
 } from '@aurora-is-near/engine';
@@ -25,6 +27,7 @@ interface WorkerData {
 export class Indexer {
   protected readonly contractID: AccountID;
   protected readonly pgClient: pg.Client;
+  protected pendingHeadBlock: number;
 
   constructor(
     public readonly config: Config,
@@ -33,6 +36,7 @@ export class Indexer {
   ) {
     this.contractID = AccountID.parse(this.config.engine).unwrap();
     this.pgClient = new pg.Client(config.database);
+    this.pendingHeadBlock = 0;
   }
 
   async start(): Promise<void> {
@@ -180,6 +184,9 @@ export class Indexer {
         rows: [{ id }],
       } = await this.pgClient.query(query.toParams());
       transactionID = parseInt(id as string);
+      await this.pgClient.query(
+        `NOTIFY transaction, ${format.literal(transaction.hash)}`
+      );
     } catch (error) {
       console.error('indexTransaction', error);
       return;
@@ -204,28 +211,57 @@ export class Indexer {
     transactionIndex: number,
     transactionID: number,
     eventIndex: number,
-    event: LogEvent
+    event: LogEventWithAddress | LogEvent
   ): Promise<void> {
     console.error(
       `Indexing log event at #${blockID}:${transactionIndex}:${eventIndex}...`
     );
-
+    const event_ = event as LogEventWithAddress;
     const query = sql.insert('event', {
       transaction: transactionID,
       index: eventIndex,
       //id: null,
-      data: event.data?.length ? event.data : null,
-      topics: event.topics?.length
-        ? event.topics.map((topic) => topic.toBytes())
+      data: event_.data?.length ? event_.data : null,
+      from: event_.address ? Buffer.from(event_.address) : Buffer.alloc(20),
+      topics: event_.topics?.length
+        ? event_.topics.map((topic) => topic.toBytes())
         : null,
     });
 
     //if (this.config.debug) console.debug(query.toParams()); // DEBUG
     try {
       await this.pgClient.query(query.toParams());
+      const logDetails = JSON.stringify({
+        blockId: blockID,
+        index: transactionIndex,
+      });
+      this.pgClient.query(`NOTIFY log, ${format.literal(logDetails)}`);
     } catch (error) {
       console.error('indexEvent', error);
     }
+  }
+
+  async notifyNewHeads(blockID: number): Promise<void> {
+    if (this.pendingHeadBlock == 0) {
+      this.pendingHeadBlock = blockID;
+    }
+    for (;;) {
+      if (await this.isBlockIndexed(this.pendingHeadBlock)) {
+        this.pgClient.query(
+          `NOTIFY block, ${format.literal(this.pendingHeadBlock.toString())}`
+        );
+        this.pendingHeadBlock += 1;
+      } else {
+        return;
+      }
+    }
+  }
+  async isBlockIndexed(blockID: number): Promise<boolean> {
+    const result = await this.pgClient.query(
+      `SELECT 1 FROM block WHERE id = $1 LIMIT(1)`,
+      [this.pendingHeadBlock]
+    );
+    return result.rows.length == 1;
   }
 }
 
@@ -241,11 +277,15 @@ async function main(parentPort: MessagePort, workerData: WorkerData) {
   );
   const indexer = new Indexer(config, network, engine);
   await indexer.start();
+  const blockHeight = (await engine.getBlockHeight()).unwrap() as number;
 
   parentPort
     .on('message', async (blockID: number) => {
       parentPort.postMessage(true); // ack the request
       await indexer.indexBlock(blockID);
+      if (blockID > blockHeight) {
+        await indexer.notifyNewHeads(blockID);
+      }
     })
     .on('close', () => {
       return; // TODO?

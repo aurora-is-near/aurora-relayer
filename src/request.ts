@@ -15,4 +15,8 @@ export class Request {
   country(): string {
     return this.req.headers['cf-ipcountry'];
   }
+
+  websocketKey(): string {
+    return this.req.headers['sec-websocket-key'];
+  }
 }

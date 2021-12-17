@@ -5,6 +5,7 @@ import { SkeletonServer } from './skeleton.js';
 import { Bus } from '../bus.js';
 import { pg, sql } from '../database.js';
 import {
+  InvalidAddress,
   InvalidArguments,
   RevertError,
   TransactionError,
@@ -27,6 +28,7 @@ import {
   intToHex,
 } from '@aurora-is-near/engine';
 import fs from 'fs';
+import { getRandomBytesSync } from 'ethereum-cryptography/random.js';
 
 import {
   parse as parseRawTransaction,
@@ -68,20 +70,6 @@ export class DatabaseServer extends SkeletonServer {
         (pgClient as any).setTypeParser(oid, (val: string) => BigInt(val));
       }
     }
-
-    // Listen to new block notifications:
-    pgClient.on('notification', (message: pg.Notification) => {
-      if (!message.payload) return;
-      if (message.channel === 'block') {
-        const blockID = parseInt(message.payload);
-        if (isNaN(blockID)) return; // ignore UFOs
-
-        this.logger.info({ block: { id: blockID } }, 'block received');
-
-        // TODO: notify subscribers
-      }
-    });
-    pgClient.query('LISTEN block');
   }
 
   protected _query(
@@ -384,7 +372,7 @@ export class DatabaseServer extends SkeletonServer {
         Buffer.from(address.toBytes())
       ); // TODO: handle 0x0 => NULL
       if (addresses.length > 0) {
-        where.push(sql.in('t.to', addresses));
+        where.push(sql.in('e.from', addresses));
       }
     }
     if (filter.topics) {
@@ -394,6 +382,10 @@ export class DatabaseServer extends SkeletonServer {
       }
     }
 
+    if (typeof filter.index === 'number') {
+      where.push({ 't.index': filter.index });
+    }
+
     const query = sql
       .select(
         'b.id AS "blockNumber"',
@@ -401,7 +393,7 @@ export class DatabaseServer extends SkeletonServer {
         't.index AS "transactionIndex"',
         't.hash AS "transactionHash"',
         'e.index AS "logIndex"',
-        't.to AS "address"',
+        'e.from AS "address"',
         "string_to_array(concat('0x',encode(e.topics[1], 'hex'), ',', '0x', encode(e.topics[2], 'hex'), ',', '0x', encode(e.topics[3], 'hex'), ',', '0x', encode(e.topics[4], 'hex')), ',') AS \"topics\"",
         'coalesce(e.data, repeat(\'\\000\', 32)::bytea) AS "data"',
         '0::boolean AS "removed"'
@@ -728,6 +720,40 @@ export class DatabaseServer extends SkeletonServer {
     });
   }
 
+  async eth_subscribe(
+    _request: Request,
+    _subsciptionType: web3.Data,
+    _filter: any
+  ): Promise<web3.Data> {
+    // Skip unsupported subs
+    const id = bytesToHex(getRandomBytesSync(16));
+    const filter: any = {};
+    if (_filter !== null && _filter !== undefined) {
+      if (_filter.address !== undefined && _filter.address !== null) {
+        try {
+          filter.address = parseAddress(_filter.address);
+        } catch (error) {
+          throw new InvalidAddress();
+        }
+      }
+      if (_filter.topics !== undefined && _filter.topics !== null) {
+        filter.topics = _filter.topics;
+      }
+    }
+
+    const query = sql.insert('subscription', {
+      id: id,
+      sec_websocket_key: _request.websocketKey(),
+      type: _subsciptionType,
+      ip: _request.ip(),
+      filter: JSON.stringify(filter),
+    });
+    await this._query(
+      `${query.toString()} ON CONFLICT (sec_websocket_key, type, filter) DO UPDATE SET id = EXCLUDED.id `
+    );
+    return id;
+  }
+
   async eth_uninstallFilter(
     _request: Request,
     filterID: web3.Quantity
@@ -745,6 +771,15 @@ export class DatabaseServer extends SkeletonServer {
     return found;
   }
 
+  async eth_unsubscribe(
+    _request: Request,
+    _subsciptionId: web3.Data
+  ): Promise<boolean> {
+    const query = sql.delete('subscription').where({ id: _subsciptionId });
+    await this._query(query.toParams());
+    return true;
+  }
+
   protected async _fetchCurrentBlockID(): Promise<number> {
     const {
       rows: [{ result }],
@@ -760,7 +795,7 @@ export class DatabaseServer extends SkeletonServer {
           t.index AS "transactionIndex",
           t.hash AS "transactionHash",
           e.index AS "logIndex",
-          COALESCE(t.to, '\\x0000000000000000000000000000000000000000')::address AS "address",
+          e.from AS "address",
           ARRAY_TO_STRING(e.topics, ';') AS "topics",
           coalesce(e.data, repeat('\\000', 32)::bytea) AS "data",
           false AS "removed"

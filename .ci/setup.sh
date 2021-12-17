@@ -1,136 +1,81 @@
 #!/bin/bash -e
 
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-source $SCRIPT_DIR/common.sh
+CI_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+source $CI_DIR/controls/common.sh
 
 
-echo "Environment will be cleaned to avoid dirty start"
-./.ci/cleanup.sh
-cd $SCRIPT_DIR/..
+while test $# -gt 0
+do
+    case "$1" in
+        --start) start_relayer=true
+            ;;
+        --rebuild) rebuild_relayer=true
+            ;;
+        --reset) reset_near=true
+            ;;
+        --reinit) reinit_near=true
+            ;;
+        --reinstall-cli) reinstall_cli=true
+            ;;
+        *) echo "bad argument $1" && exit 1
+            ;;
+    esac
+    shift
+done
 
 
-echo "Establishing inner network..."
-docker network create -d bridge $NETWORK_NAME
-docker network connect $NETWORK_NAME $RUNNER_NAME
+if [[ ! -d $WORKDIR ]]; then
+    mkdir $WORKDIR
+fi
 
+database_img=$(docker images -q ${DATABASE_IMAGE_NAME} 2> /dev/null)
+endpoint_img=$(docker images -q ${ENDPOINT_IMAGE_NAME} 2> /dev/null)
+if [[ ! -z $rebuild_relayer ]] || [[ -z $database_img ]] || [[ -z $endpoint_img ]]; then
+    $CI_DIR/controls/relayer/build.sh
+fi
 
-echo "Building database image..."
-time docker build -t $DATABASE_IMAGE_NAME -f .docker/Dockerfile.database .
+if [[ ! -z $reinit_near ]] || [[ ! -d $WORKDIR/nearDataBackup ]]; then
 
+    if [[ ! -z $reinstall_cli ]] || [[ ! -d $WORKDIR/near-cli ]] || [[ ! -d $WORKDIR/aurora-cli ]]; then
+        $CI_DIR/controls/cli/install.sh    
+    fi
 
-echo "Building endpoint image..."
-time docker build -t $ENDPOINT_IMAGE_NAME -f .docker/Dockerfile.endpoint .
+    rm -rf $WORKDIR/nearData $WORKDIR/nearDataBackup || true
+    $CI_DIR/controls/network/create.sh
+    $CI_DIR/controls/nearcore/init.sh
+    $CI_DIR/controls/nearcore/start.sh
+    echo "Sleeping for 2 seconds..." && sleep 2
+    $CI_DIR/controls/contract/install.sh
+    echo "Sleeping for 2 seconds..." && sleep 2
+    $CI_DIR/controls/nearcore/stop.sh
+    $CI_DIR/controls/network/remove.sh
+    mv $WORKDIR/nearData $WORKDIR/nearDataBackup
+fi
 
+if [[ ! -z $reset_near ]] || [[ ! -d $WORKDIR/nearData ]]; then
+    rm -rf $WORKDIR/nearData || true
+    cp -r $WORKDIR/nearDataBackup $WORKDIR/nearData
+fi
 
-mkdir .ci/workdir
-cd .ci/workdir
+if [[ ! -z $start_relayer ]]; then
+    $CI_DIR/controls/network/create.sh
+    $CI_DIR/controls/nearcore/start.sh
+    echo "Sleeping for 2 seconds..." && sleep 2
+    $CI_DIR/controls/relayer/configure.sh
+    $CI_DIR/controls/relayer/start.sh
+    echo "Sleeping for 2 seconds..." && sleep 2
 
-echo "Installing near-cli..."
-git clone https://github.com/near/near-cli.git
-cd near-cli
-git checkout -q $NEAR_CLI_HEAD
-time npm install
-cd ..
-
-echo "Installing aurora-cli..."
-git clone https://github.com/aurora-is-near/aurora-cli.git
-cd aurora-cli
-git checkout -q $AURORA_CLI_HEAD
-time npm install
-cd ..
-
-mkdir nearData
-cd ../..
-
-
-echo "Starting nearcore..."
-docker run --rm \
-    -v $(pwd)/.ci/workdir/nearData:/srv/near \
-    --name $NEARCORE_CONTAINER_NAME \
-    nearprotocol/nearcore:$NEARCORE_TAG \
-    neard --home=/srv/near init
-docker run -d \
-    --restart unless-stopped \
-    -v $(pwd)/.ci/workdir/nearData:/srv/near \
-    --network $NETWORK_NAME \
-    --name $NEARCORE_CONTAINER_NAME \
-    nearprotocol/nearcore:$NEARCORE_TAG \
-    neard --home=/srv/near run
-
-echo "Sleeping for 5 seconds..."
-sleep 5
-
-
-export NEAR_ENV=local
-
-echo "Creating NEAR account..."
-.ci/workdir/near-cli/bin/near create-account aurora.test.near \
-    --master-account=test.near \
-    --initial-balance 1000000 \
-    --key-path .ci/workdir/nearData/validator_key.json \
-    --node-url http://${NEARCORE_CONTAINER_NAME}:3030
-
-echo "Downloading contract..."
-curl -L $CONTRACT_URL -o .ci/workdir/contract.wasm
-
-echo "Installing contract..."
-.ci/workdir/aurora-cli/lib/aurora.js install \
-    --chain 1313161556 \
-    --owner aurora.test.near \
-    --signer aurora.test.near \
-    --engine aurora.test.near \
-    --endpoint http://${NEARCORE_CONTAINER_NAME}:3030 \
-    .ci/workdir/contract.wasm
-
-echo "Sleeping for 5 seconds..."
-sleep 5
-
-
-echo "Creating relayer configuration..."
-cp ~/.near-credentials/local/aurora.test.near.json config/aurora.test.near.json
-cat >config/local.yaml <<EOF
----
-port: 8545
-database: postgres://aurora:aurora@${DATABASE_CONTAINER_NAME}/aurora
-broker:
-network: local
-endpoint: http://${NEARCORE_CONTAINER_NAME}:3030
-engine: aurora.test.near
-signer: aurora.test.near
-signerKey: config/aurora.test.near.json
-EOF
-
-echo "Starting database..."
-docker run -d \
-    --restart unless-stopped \
-    --network $NETWORK_NAME \
-    --name $DATABASE_CONTAINER_NAME \
-    $DATABASE_IMAGE_NAME
-
-echo "Starting indexer..."
-docker run -d --init \
-    --restart unless-stopped \
-    --network $NETWORK_NAME \
-    -e NEAR_ENV=localnet \
-    -e NODE_ENV=localnet \
-    -v $(pwd)/config:/srv/aurora/relayer/config \
-    --name $INDEXER_CONTAINER_NAME \
-    $ENDPOINT_IMAGE_NAME \
-    node lib/indexer.js
-
-echo "Starting endpoint..."
-docker run -d --init \
-    --restart unless-stopped \
-    --network $NETWORK_NAME \
-    -e NEAR_ENV=localnet \
-    -e NODE_ENV=localnet \
-    -v $(pwd)/config:/srv/aurora/relayer/config \
-    --name $ENDPOINT_CONTAINER_NAME \
-    $ENDPOINT_IMAGE_NAME \
-    node lib/index.js
-
-echo "Sleeping for 5 seconds..."
-sleep 5
-
-echo "Setup finished! Putting relayer endpoint hostname to .ci/workdir/endpoint.txt"
-echo $ENDPOINT_CONTAINER_NAME > .ci/workdir/endpoint.txt
+    echo "Setup finished!"
+    echo "Putting nearcore hostname to .ci/workdir/nearcore.txt"
+    echo "Putting relayer database hostname to .ci/workdir/database.txt"
+    echo "Putting relayer endpoint hostname to .ci/workdir/endpoint.txt"
+    if [[ ! -z $RUNNER_NAME ]]; then
+        echo $NEARCORE_CONTAINER_NAME > $WORKDIR/nearcore.txt
+        echo $DATABASE_CONTAINER_NAME > $WORKDIR/database.txt
+        echo $ENDPOINT_CONTAINER_NAME > $WORKDIR/endpoint.txt
+    else
+        echo localhost > $WORKDIR/nearcore.txt
+        echo localhost > $WORKDIR/database.txt
+        echo localhost > $WORKDIR/endpoint.txt
+    fi
+fi

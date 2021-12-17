@@ -77,7 +77,9 @@ async function main(argv: string[], env: NodeJS.ProcessEnv): Promise<void> {
       await sql.query('SELECT 1'); // test connectivity
     } catch (error: any) {
       console.error(
-        `aurora-relayer: Invalid database configuration: ${error.message}`
+        `aurora-relayer: Invalid database configuration: ${
+          (error as Error).message
+        }`
       );
       if (config.debug) console.error(error);
       process.exit(78); // EX_CONFIG
