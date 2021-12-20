@@ -469,6 +469,15 @@ export abstract class SkeletonServer implements web3.Service {
     return false;
   }
 
+  async eth_subscribe(
+    _request: Request,
+    _subsciptionType: web3.Data,
+    _filter: any
+  ): Promise<web3.Data> {
+    unimplemented('eth_subscribe');
+    return '0x';
+  }
+
   async eth_syncing(_request: Request): Promise<false> {
     return false;
   }
@@ -478,6 +487,14 @@ export abstract class SkeletonServer implements web3.Service {
     _filterID: web3.Quantity
   ): Promise<boolean> {
     unimplemented('eth_uninstallFilter');
+    return false;
+  }
+
+  async eth_unsubscribe(
+    _request: Request,
+    _subsciptionId: web3.Data
+  ): Promise<boolean> {
+    unimplemented('eth_unsubscribe');
     return false;
   }
 
