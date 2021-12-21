@@ -2,6 +2,8 @@
 
 import { sha256 } from 'ethereum-cryptography/sha256.js';
 import * as ethers from 'ethers';
+import { keccak256 } from 'ethereumjs-util';
+import * as rlp from 'rlp';
 
 export type EmptyBlock = {
   chain: number;
@@ -63,10 +65,14 @@ export function generateEmptyBlock(
     gasLimit: 0,
     gasUsed: 0,
     parentHash: parentHash,
-    transactionsRoot: Buffer.alloc(32),
+    transactionsRoot: emptyTransactionsRoot(),
     stateRoot: Buffer.alloc(32),
     receiptsRoot: Buffer.alloc(32),
   };
+}
+
+export function emptyTransactionsRoot(): Buffer {
+  return keccak256(rlp.encode(''));
 }
 
 export function parseEVMRevertReason(reason: Uint8Array): string | Uint8Array {
