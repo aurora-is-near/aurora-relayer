@@ -5,7 +5,12 @@ import { MessagePort, parentPort, workerData } from 'worker_threads';
 import { Config } from './config.js';
 import { pg, sql } from './database.js';
 import format from 'pg-format';
-import { computeBlockHash, EmptyBlock, generateEmptyBlock } from './utils.js';
+import {
+  computeBlockHash,
+  EmptyBlock,
+  generateEmptyBlock,
+  emptyTransactionsRoot,
+} from './utils.js';
 import {
   AccountID,
   BlockHeight,
@@ -98,6 +103,11 @@ export class Indexer {
         this.contractID.toString(),
         this.network.chainID
       );
+
+      const transactionsRoot =
+        block.transactions.length == 0
+          ? emptyTransactionsRoot()
+          : block.transactionsRoot;
       const query = sql.insert('block', {
         chain: this.network.chainID,
         id: block.number,
@@ -108,7 +118,7 @@ export class Indexer {
         gas_limit: 0, // FIXME: block.gasLimit,
         gas_used: 0, // FIXME: block.gasUsed,
         parent_hash: parentHash,
-        transactions_root: block.transactionsRoot,
+        transactions_root: transactionsRoot,
         state_root: block.stateRoot,
         receipts_root: block.receiptsRoot,
       });
@@ -235,7 +245,7 @@ export class Indexer {
         blockId: blockID,
         index: transactionIndex,
       });
-      this.pgClient.query(`NOTIFY log, ${format.literal(logDetails)}`);
+      await this.pgClient.query(`NOTIFY log, ${format.literal(logDetails)}`);
     } catch (error) {
       console.error('indexEvent', error);
     }
@@ -247,7 +257,7 @@ export class Indexer {
     }
     for (;;) {
       if (await this.isBlockIndexed(this.pendingHeadBlock)) {
-        this.pgClient.query(
+        await this.pgClient.query(
           `NOTIFY block, ${format.literal(this.pendingHeadBlock.toString())}`
         );
         this.pendingHeadBlock += 1;
