@@ -48,8 +48,8 @@ export declare abstract class SkeletonServer implements web3.Service {
     eth_getTransactionByHash(_request: Request, _transactionHash: web3.Data): Promise<web3.TransactionResult | null>;
     eth_getTransactionCount(_request: Request, _address: web3.Data, _blockNumber: web3.Quantity | web3.Tag): Promise<web3.Quantity>;
     eth_getTransactionReceipt(_request: Request, _transactionHash: string): Promise<web3.TransactionReceipt | null>;
-    eth_getTransactionReceiptsByBlockNumber(_request: any, _blockNumber: web3.Quantity | web3.Tag): Promise<web3.TransactionReceipt[] | null>;
-    eth_getTransactionsByBlockNumber(_request: any, _blockNumber: web3.Quantity | web3.Tag): Promise<web3.TransactionResult | null>;
+    eth_getTransactionReceiptsByBlockNumber(_request: any, _blockNumber: web3.Quantity | web3.Tag): Promise<web3.TransactionReceipt[]>;
+    eth_getTransactionsByBlockNumber(_request: any, _blockNumber: web3.Quantity | web3.Tag): Promise<web3.TransactionResult[]>;
     eth_getUncleByBlockHashAndIndex(_request: Request, _blockHash: web3.Data, _uncleIndex: web3.Quantity): Promise<web3.BlockResult | null>;
     eth_getUncleByBlockNumberAndIndex(_request: Request, _blockNumber: web3.Quantity | web3.Tag, _uncleIndex: web3.Quantity): Promise<web3.BlockResult | null>;
     eth_getUncleCountByBlockHash(_request: Request, _blockHash: web3.Data): Promise<web3.Quantity | null>;

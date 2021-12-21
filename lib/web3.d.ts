@@ -83,8 +83,8 @@ export interface Service {
     eth_getTransactionByHash(_request: Request, transactionHash: Data): Promise<TransactionResult | null>;
     eth_getTransactionCount(_request: Request, address: Data, blockNumber: Quantity | Tag): Promise<Quantity>;
     eth_getTransactionReceipt(_request: Request, transactionHash: string): Promise<TransactionReceipt | null>;
-    eth_getTransactionReceiptsByBlockNumber(_request: any, blockNumber: Quantity | Tag): Promise<TransactionReceipt[] | null>;
-    eth_getTransactionsByBlockNumber(_request: any, blockNumber: Quantity | Tag): Promise<TransactionResult | null>;
+    eth_getTransactionReceiptsByBlockNumber(_request: any, blockNumber: Quantity | Tag): Promise<TransactionReceipt[]>;
+    eth_getTransactionsByBlockNumber(_request: any, blockNumber: Quantity | Tag): Promise<TransactionResult[]>;
     eth_getUncleByBlockHashAndIndex(_request: Request, blockHash: Data, uncleIndex: Quantity): Promise<BlockResult | null>;
     eth_getUncleByBlockNumberAndIndex(_request: Request, blockNumber: Quantity | Tag, uncleIndex: Quantity): Promise<BlockResult | null>;
     eth_getUncleCountByBlockHash(_request: Request, blockHash: Data): Promise<Quantity | null>;

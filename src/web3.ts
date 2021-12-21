@@ -170,11 +170,11 @@ export interface Service {
   eth_getTransactionReceiptsByBlockNumber(
     _request: any,
     blockNumber: Quantity | Tag
-  ): Promise<TransactionReceipt[] | null>;
+  ): Promise<TransactionReceipt[]>;
   eth_getTransactionsByBlockNumber(
     _request: any,
     blockNumber: Quantity | Tag
-  ): Promise<TransactionResult | null>;
+  ): Promise<TransactionResult[]>;
   eth_getUncleByBlockHashAndIndex(
     _request: Request,
     blockHash: Data,

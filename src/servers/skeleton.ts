@@ -319,17 +319,17 @@ export abstract class SkeletonServer implements web3.Service {
   async eth_getTransactionReceiptsByBlockNumber(
     _request: any,
     _blockNumber: web3.Quantity | web3.Tag
-  ): Promise<web3.TransactionReceipt[] | null> {
+  ): Promise<web3.TransactionReceipt[]> {
     unimplemented('eth_getTransactionReceiptsByBlockNumber');
-    return null;
+    return [];
   }
 
   async eth_getTransactionsByBlockNumber(
     _request: any,
     _blockNumber: web3.Quantity | web3.Tag
-  ): Promise<web3.TransactionResult | null> {
+  ): Promise<web3.TransactionResult[]> {
     unimplemented('eth_getTransactionsByBlockNumber');
-    return null;
+    return [];
   }
 
   async eth_getUncleByBlockHashAndIndex(
