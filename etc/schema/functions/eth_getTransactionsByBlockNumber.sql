@@ -1,6 +1,6 @@
 DROP FUNCTION IF EXISTS eth_getTransactionsByBlockNumber(blockno) RESTRICT;
 
-CREATE FUNCTION eth_getTransactionsByBlockNumber(block_id blockno) RETURNS setof transaction_result AS $$
+CREATE FUNCTION eth_getTransactionsByBlockNumber(block_id blockno) RETURNS SETOF transaction_result AS $$
 DECLARE
   result transaction_result;
 BEGIN
@@ -27,6 +27,4 @@ BEGIN
 	  RETURN NEXT result;
 	END LOOP;
 END;
-
-
 $$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;

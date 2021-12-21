@@ -149,7 +149,6 @@ export interface Service {
     blockHash: Data,
     transactionIndex: Quantity
   ): Promise<TransactionResult | null>;
-
   eth_getTransactionByBlockNumberAndIndex(
     _request: Request,
     blockNumber: Quantity | Tag,

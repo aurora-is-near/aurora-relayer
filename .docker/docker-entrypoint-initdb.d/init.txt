@@ -44,7 +44,7 @@ CREATE TYPE block_result AS (
     "size" int4,
     "gasLimit" int8,
     "gasUsed" int8,
-    "mixHash" hash,         
+    "mixHash" hash,
     "timestamp" int4
 );
 DROP TYPE IF EXISTS filter_result CASCADE;
@@ -133,6 +133,17 @@ CREATE TABLE filter (
   addresses         address[] NULL CHECK (array_length(addresses, 1) > 0),
   topics            jsonb NULL
 );
+DROP TABLE IF EXISTS subscription CASCADE;
+
+CREATE TABLE subscription (
+	sec_websocket_key varchar COLLATE "default",
+	id                varchar COLLATE "default",
+	type              varchar COLLATE "default",
+	ip                varchar COLLATE "default",
+	filter            jsonb NULL
+);
+
+CREATE UNIQUE INDEX subscription_sec_websocket_key_type_filter_index_idx ON subscription (sec_websocket_key, type, filter);
 DROP TABLE IF EXISTS transaction CASCADE;
 
 CREATE TABLE transaction (
@@ -178,18 +189,6 @@ CREATE TABLE event (
 CREATE UNIQUE INDEX event_transaction_index_idx ON event (transaction, index);
 DROP FUNCTION IF EXISTS eth_blockNumber() RESTRICT;
 
-DROP TABLE IF EXISTS subscription CASCADE;
-
-CREATE TABLE subscription (
-	sec_websocket_key varchar COLLATE "default",
-	id                varchar COLLATE "default",
-	type              varchar COLLATE "default",
-	ip                varchar COLLATE "default",
-	filter            jsonb NULL
-);
-
-CREATE UNIQUE INDEX subscription_sec_websocket_key_type_filter_index_idx ON subscription (sec_websocket_key, type, filter);
-
 CREATE FUNCTION eth_blockNumber() RETURNS blockno AS $$
 DECLARE
   block_id blockno;
@@ -234,7 +233,7 @@ BEGIN
       gas_limit,                    -- gasLimit
       gas_used,                     -- gasUsed
       repeat('\000', 32)::hash,     -- mixHash
-      EXTRACT(EPOCH FROM timestamp) -- timestamp
+      COALESCE(EXTRACT(EPOCH FROM timestamp), 0)::int4 -- timestamp
     FROM block
     WHERE id = block_id
     LIMIT 1
@@ -507,11 +506,11 @@ END;
 $$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
 DROP FUNCTION IF EXISTS eth_getTransactionReceiptsByBlockNumber(blockno) RESTRICT;
 
-CREATE FUNCTION eth_getTransactionReceiptsByBlockNumber(block_id blockno) RETURNS setof transaction_receipt AS $$
+CREATE FUNCTION eth_getTransactionReceiptsByBlockNumber(block_id blockno) RETURNS SETOF transaction_receipt AS $$
 DECLARE
   result transaction_receipt;
 BEGIN
-	FOR result IN
+  FOR result IN
     SELECT
         b.id AS "blockNumber",
         b.hash AS "blockHash",
@@ -530,14 +529,14 @@ BEGIN
       FROM transaction t
         LEFT JOIN block b ON t.block = b.id
       WHERE b.id = block_id
-  LOOP 
-	  RETURN NEXT result;
-	END LOOP; 
+    LOOP 
+	    RETURN NEXT result;
+    END LOOP;
 END;
 $$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
 DROP FUNCTION IF EXISTS eth_getTransactionsByBlockNumber(blockno) RESTRICT;
 
-CREATE FUNCTION eth_getTransactionsByBlockNumber(block_id blockno) RETURNS setof transaction_result AS $$
+CREATE FUNCTION eth_getTransactionsByBlockNumber(block_id blockno) RETURNS SETOF transaction_result AS $$
 DECLARE
   result transaction_result;
 BEGIN
@@ -565,7 +564,6 @@ BEGIN
 	END LOOP;
 END;
 $$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
-
 DROP FUNCTION IF EXISTS eth_getUncleByBlockHashAndIndex(hash, int) RESTRICT;
 
 CREATE FUNCTION eth_getUncleByBlockHashAndIndex(block_hash hash, uncle_index int) RETURNS block_result AS $$

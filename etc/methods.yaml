@@ -237,16 +237,18 @@ eth_getTransactionReceipt:
 
 eth_getTransactionReceiptsByBlockNumber:
   status: ok
-  comment: Non Standard Methods
+  comment: Non Standard Method
   link: 
   implementations:
+    - etc/schema/functions/eth_getTransactionReceiptsByBlockNumber.sql
     - src/servers/skeleton.ts
 
 eth_getTransactionsByBlockNumber:
   status: ok
-  comment: Non Standard Methods
+  comment: Non Standard Method
   link: 
   implementations:
+    - etc/schema/functions/eth_getTransactionsByBlockNumber.sql
     - src/servers/skeleton.ts
 
 eth_getUncleByBlockHashAndIndex:
