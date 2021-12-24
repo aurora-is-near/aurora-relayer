@@ -15,3 +15,4 @@ export declare type EmptyBlock = {
 };
 export declare function computeBlockHash(blockHeight: number, accountId: string, chainId: number): Buffer;
 export declare function generateEmptyBlock(blockHeight: number, accountId: string, chainId: number): EmptyBlock;
+export declare function emptyTransactionsRoot(): Buffer;
