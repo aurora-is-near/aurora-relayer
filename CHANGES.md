@@ -9,11 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## 2021-12-14
 
 - Run `node lib/data_migrations/2021-12-14-empty-blocks.js` to reindex all historical empty blocks.
-In addition, reload the following stored procedures:
-
-- `etc/schema/functions/eth_getBlockByNumber.sql`
-
-or
 
 ```bash
 $ cd migrations
