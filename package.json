@@ -32,7 +32,7 @@
     "format": "prettier -w src test",
     "lint": "eslint test && eslint **/*.ts",
     "start": "nodemon",
-    "test": "jest && cram test/integration/functional/endpoints.t",
+    "test": "jest -i --forceExit && cram test/integration/functional/endpoints.t",
     "build:schema": "cat etc/schema.sql | cut -d' ' -f2 | xargs cat > .docker/docker-entrypoint-initdb.d/init.txt"
   },
   "keywords": [
@@ -89,7 +89,7 @@
     "@types/express": "^4.17.11",
     "@types/express-pino-logger": "^4.0.2",
     "@types/express-ws": "^3.0.1",
-    "@types/jest": "^26.0.23",
+    "@types/jest": "^27.0.3",
     "@types/js-yaml": "^4.0.0",
     "@types/pg": "^7.14.11",
     "@types/pg-format": "^1.0.2",

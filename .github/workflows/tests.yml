@@ -37,6 +37,8 @@ jobs:
                 -H 'Content-Type: application/json' \
                 -d '{"jsonrpc":"2.0","id":"1","method":"eth_blockNumber","params":[]}' \
                 http://${ENDPOINT_HOST}:8545
+          - name: Integration Tests
+            run: jest -i --forceExit
     name: ${{ matrix.name }}
     runs-on: [self-hosted, heavy]
     needs: prebuild

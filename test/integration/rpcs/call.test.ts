@@ -13,7 +13,7 @@ describe('eth_call', () => {
 
   test('call', async () => {
     // requires sleep for a couple of second till blockchain picks up the deployed contract.
-    sleep(5, async () => {
+    sleep(20, async () => {
       const response = await request(app)
         .post('/')
         .send({

@@ -1,6 +1,6 @@
 /* This is free and unencumbered software released into the public domain. */
 
-import { ContractInterface } from 'ethers';
+import { ContractInterface, ethers } from 'ethers';
 
 export type Contract = {
   abi: ContractInterface;
@@ -10,9 +10,12 @@ export type Contract = {
 };
 
 export type DeploymentResult = {
+  hash: string;
   from: string;
   address: string | null;
   gas: string;
   gasPrice: string;
   contract: Partial<Contract> | null | undefined;
+  instance: ethers.Contract;
+  output: string | undefined;
 };
