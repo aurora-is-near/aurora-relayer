@@ -38,7 +38,7 @@ jobs:
                 -d '{"jsonrpc":"2.0","id":"1","method":"eth_blockNumber","params":[]}' \
                 http://${ENDPOINT_HOST}:8545
           - name: Integration Tests
-            run: jest -i --forceExit
+            run: npm install && npm run ci
     name: ${{ matrix.name }}
     runs-on: [self-hosted, heavy]
     needs: prebuild

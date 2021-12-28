@@ -33,7 +33,8 @@
     "lint": "eslint test && eslint **/*.ts",
     "start": "nodemon",
     "test": "jest -i --forceExit && cram test/integration/functional/endpoints.t",
-    "build:schema": "cat etc/schema.sql | cut -d' ' -f2 | xargs cat > .docker/docker-entrypoint-initdb.d/init.txt"
+    "build:schema": "cat etc/schema.sql | cut -d' ' -f2 | xargs cat > .docker/docker-entrypoint-initdb.d/init.txt",
+    "ci": "jest -i --forceExit"
   },
   "keywords": [
     "Aurora",

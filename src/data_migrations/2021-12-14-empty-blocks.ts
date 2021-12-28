@@ -101,7 +101,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
   const opts = program.opts() as Config;
   const [network, config] = parseConfig(
     opts,
-    externalConfig as unknown as Config,
+    (externalConfig as unknown) as Config,
     env
   );
   const blockID = opts.block !== undefined ? parseInt(opts.block as string) : 0;
