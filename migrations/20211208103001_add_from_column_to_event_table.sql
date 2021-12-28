@@ -1,5 +1,5 @@
 -- +goose Up
-ALTER TABLE event ADD COLUMN "from" address;
+ALTER TABLE event ADD COLUMN IF NOT EXISTS "from" address;
 -- +goose StatementBegin
 SELECT 'up SQL query';
 -- +goose StatementEnd
