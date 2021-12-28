@@ -21,8 +21,8 @@ BEGIN
       size,                         -- size
       gas_limit,                    -- gasLimit
       gas_used,                     -- gasUsed
-      repeat('\000', 32)::hash,     -- mixHash
-      COALESCE(EXTRACT(EPOCH FROM timestamp), 0)::int4 -- timestamp
+      COALESCE(EXTRACT(EPOCH FROM timestamp), 0)::int4, -- timestamp
+      repeat('\000', 32)::hash      -- mixHash
     FROM block
     WHERE id = block_id
     LIMIT 1
