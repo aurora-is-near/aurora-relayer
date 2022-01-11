@@ -1,6 +1,6 @@
 FROM node:16-alpine
 ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.9.0/wait /wait
-RUN apk add --no-cache postgresql13-client
+RUN apk add --no-cache $(apk search --no-cache --no-progress -q "postgresql[[:digit:]]*-client" | sort | tail -n1)
 RUN chmod +x /wait
 RUN mkdir -p /srv/aurora
 RUN mkdir -p /srv/aurora/.near-credentials/mainnet
