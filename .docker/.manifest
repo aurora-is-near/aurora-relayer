@@ -1,1 +1,3 @@
-20211221121213 node lib/data_migrations/2021-12-14-empty-blocks.js
+20211222141955 sql 20211222141955.fixnull.sql
+20211222141956 goose 20211222141956
+20211222141957 node lib/data_migrations/2021-12-14-empty-blocks.js
