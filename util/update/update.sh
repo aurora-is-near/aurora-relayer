@@ -41,8 +41,12 @@ cat "${basedir}/.docker/.manifest" | while read entry command; do
 		else
 			echo "FAILED: ${entry} ${command}"		
 			echo "INSERT INTO db_upgrades (Version, Success) VALUES('${entry}',false);" | psql "${DBURL}" -tA
+			echo "===== FAILED ====="
+			exit 1
 		fi
 	else		
 		echo "SKIPPED: ${entry} ${command}"		
 	fi
 done
+echo "===== SUCCESS ====="
+exit 0
