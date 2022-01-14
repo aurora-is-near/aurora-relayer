@@ -1,5 +1,15 @@
 #!/bin/sh
-basedir="/srv/aurora/relayer"
+
+basedir=""
+defDir="/srv/aurora/relayer"
+if [ "$(pwd)" != "${defDir}" ]; then
+	basedir=${1:-$(pwd)}
+	echo "Execute in ${basedir}? CTRL-C or Enter"
+	read nothing
+else
+	basedir="${defDir}"
+fi
+
 
 
 if [ -f "${basedir}/config/testnet.yaml" ]; then
