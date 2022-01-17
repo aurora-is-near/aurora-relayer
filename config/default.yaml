@@ -7,6 +7,3 @@ endpoint:
 engine:
 signer:
 signerKey:
-blacklistIPs:
-blacklistEOAs:
-blacklistCAs:

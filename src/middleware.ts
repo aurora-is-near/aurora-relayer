@@ -1,6 +1,6 @@
 /* This is free and unencumbered software released into the public domain. */
 
-import { Config } from './config.js';
+import { blacklist } from './blacklist.js';
 
 import expressIpFilter from 'express-ipfilter';
 const { IpDeniedError, IpFilter } = expressIpFilter;
@@ -41,9 +41,9 @@ export function logger(logger: Logger): any {
   });
 }
 
-export function blacklistIPs(config: Config): any {
+export function blacklistIPs(): any {
   const ipLookup = () => {
-    return [...(config?.blacklistIPs || [])];
+    return [...(blacklist('IPs') || [])];
   };
   return IpFilter(ipLookup, {
     mode: 'deny',

@@ -67,6 +67,10 @@ async function main(argv: string[], env: NodeJS.ProcessEnv): Promise<void> {
     console.error('Configuration:', config);
   }
 
+  process.on('SIGHUP', () => {
+    (global as any).blacklistLoaded = null;
+  });
+
   const logger = pino();
   logger.info('starting server');
 
