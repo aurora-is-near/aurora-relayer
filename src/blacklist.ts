@@ -10,20 +10,24 @@ export interface BlacklistConfig {
 }
 
 export function blacklist(method: string) {
-  const globalAny = (global as any);
-  if( globalAny.blacklistLoaded == null ) {
+  const globalAny = global as any;
+  if (
+    globalAny.blacklistConfig === undefined ||
+    globalAny.blacklistConfig === null
+  ) {
     try {
-      const blacklistConfig = yaml.load(fs.readFileSync('config/blacklist.yaml', 'utf8')) as BlacklistConfig;
+      const blacklistConfig = yaml.load(
+        fs.readFileSync('config/blacklist.yaml', 'utf8')
+      ) as BlacklistConfig;
       globalAny.blacklistConfig = {
         IPs: new Set(blacklistConfig.IPs || []),
         EOAs: new Set(blacklistConfig.EOAs || []),
         CAs: new Set(blacklistConfig.CAs || []),
-      }
-      globalAny.blacklistLoaded = true
+      };
     } catch (e) {
       console.error(`Blacklist configuration file can not be loaded (${e}).`);
-      return []
+      return [];
     }
   }
-  return globalAny.blacklistConfig[method]
+  return globalAny.blacklistConfig[method];
 }
