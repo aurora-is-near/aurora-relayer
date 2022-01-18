@@ -15,6 +15,12 @@ import { Logger } from 'pino';
 
 //import { assert } from 'node:console';
 
+interface Headers {
+  'Content-Length': number;
+  'Content-Type': string;
+  'X-AURORA-ERROR-CODE'?: string;
+}
+
 export async function createApp(
   config: Config,
   logger: Logger,
@@ -68,10 +74,17 @@ function rpcMiddleware(server: jayson.Server): any {
       if (!body) {
         res.writeHead(204);
       } else {
-        const headers = {
+        let headers: Headers = {
           'Content-Length': Buffer.byteLength(body, options.encoding),
           'Content-Type': 'application/json; charset=utf-8',
         };
+        if (
+          typeof error === 'object' &&
+          typeof error.error === 'object' &&
+          typeof error.error.message === 'string'
+        ) {
+          headers['X-AURORA-ERROR-CODE'] = error.error.message;
+        }
         res.writeHead(200, headers);
         res.write(body);
       }
