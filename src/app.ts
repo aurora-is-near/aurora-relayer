@@ -18,7 +18,7 @@ import { Logger } from 'pino';
 interface Headers {
   'Content-Length': number;
   'Content-Type': string;
-  'X-AURORA-ERROR-CODE'?: string;
+  'X-Aurora-Error-Code'?: string;
 }
 
 export async function createApp(
@@ -83,7 +83,7 @@ function rpcMiddleware(server: jayson.Server): any {
           typeof error.error === 'object' &&
           typeof error.error.message === 'string'
         ) {
-          headers['X-AURORA-ERROR-CODE'] = error.error.message;
+          headers['X-Aurora-Error-Code'] = error.error.message;
         }
         res.writeHead(200, headers);
         res.write(body);
