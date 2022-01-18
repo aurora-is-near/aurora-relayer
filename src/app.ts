@@ -74,7 +74,7 @@ function rpcMiddleware(server: jayson.Server): any {
       if (!body) {
         res.writeHead(204);
       } else {
-        let headers: Headers = {
+        const headers: Headers = {
           'Content-Length': Buffer.byteLength(body, options.encoding),
           'Content-Type': 'application/json; charset=utf-8',
         };
