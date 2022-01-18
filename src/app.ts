@@ -24,7 +24,7 @@ export async function createApp(
   app.disable('x-powered-by');
 
   app.use(middleware.setRequestID());
-  app.use(middleware.blacklistIPs(config));
+  app.use(middleware.blacklistIPs());
   app.use(bodyParser.json({ type: 'application/json' }));
   app.use(middleware.logger(logger));
   app.use(cors()); // Access-Control-Allow-Origin: *

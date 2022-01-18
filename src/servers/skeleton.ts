@@ -4,6 +4,7 @@ import * as web3 from '../web3.js';
 import { Config } from '../config.js';
 import { unimplemented, unsupported } from '../errors.js';
 import { Request } from '../request.js';
+import { blacklist } from '../blacklist.js';
 
 import { Address, bytesToHex, Engine, intToHex } from '@aurora-is-near/engine';
 import { keccakFromHexString } from 'ethereumjs-util';
@@ -24,12 +25,12 @@ export abstract class SkeletonServer implements web3.Service {
 
   protected _isBannedEOA(address: Address): boolean {
     const key = address.toString().toLowerCase();
-    return this.config.blacklistEOAs.has(key);
+    return blacklist('EOAs').has(key);
   }
 
   protected _isBannedCA(address: Address): boolean {
     const key = address.toString().toLowerCase();
-    return this.config.blacklistCAs.has(key);
+    return blacklist('CAs').has(key);
   }
 
   protected _enforceBans(address: Address, method: string): void {
@@ -50,7 +51,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   protected _scanForCABans(bytes: string): string | null {
-    for (const [address, _] of this.config.blacklistCAs.entries()) {
+    for (const [address, _] of blacklist('CAs').entries()) {
       const match = address.substring(2); // strip '0x' prefix
       if (bytes.includes(match)) {
         return address;
@@ -61,7 +62,7 @@ export abstract class SkeletonServer implements web3.Service {
 
   protected async _banIP(ip: string, reason?: string): Promise<void> {
     if (!ip) return;
-    this.config.blacklistIPs.add(ip);
+    blacklist('IPs').add(ip);
     if (
       process.env.CF_API_TOKEN &&
       process.env.CF_ACCOUNT_ID &&
