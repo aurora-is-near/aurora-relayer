@@ -80,11 +80,8 @@ function rpcMiddleware(server: jayson.Server): any {
         };
 
         if (
-          error !== undefined &&
-          error !== null &&
-          typeof error === 'object' &&
-          typeof error.error === 'object' &&
-          typeof error.error.message === 'string'
+          req?.body?.method == 'eth_sendRawTransaction' &&
+          typeof error?.error?.message === 'string'
         ) {
           headers['X-Aurora-Error-Code'] = error.error.message;
         }
