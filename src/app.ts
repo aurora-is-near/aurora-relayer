@@ -78,7 +78,10 @@ function rpcMiddleware(server: jayson.Server): any {
           'Content-Length': Buffer.byteLength(body, options.encoding),
           'Content-Type': 'application/json; charset=utf-8',
         };
+
         if (
+          error !== undefined &&
+          error !== null &&
           typeof error === 'object' &&
           typeof error.error === 'object' &&
           typeof error.error.message === 'string'
