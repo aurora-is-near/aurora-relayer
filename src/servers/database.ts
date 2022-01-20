@@ -278,7 +278,9 @@ export class DatabaseServer extends SkeletonServer {
 
     switch (row.type) {
       case 'block': {
-        const { rows } = await this._query(
+        const {
+          rows,
+        } = await this._query(
           'SELECT * FROM eth_getFilterChanges_block($1::bytea)',
           [filterID_]
         );
@@ -288,7 +290,9 @@ export class DatabaseServer extends SkeletonServer {
         return buffers.map(bytesToHex);
       }
       case 'event': {
-        const { rows } = await this._query(
+        const {
+          rows,
+        } = await this._query(
           'SELECT * FROM eth_getFilterChanges_event($1::bytea)',
           [filterID_]
         );
@@ -319,7 +323,9 @@ export class DatabaseServer extends SkeletonServer {
 
     switch (row.type) {
       case 'block': {
-        const { rows } = await this._query(
+        const {
+          rows,
+        } = await this._query(
           'SELECT * FROM eth_getFilterLogs_block($1::bytea)',
           [filterID_]
         );
@@ -329,7 +335,9 @@ export class DatabaseServer extends SkeletonServer {
         return buffers.map(bytesToHex);
       }
       case 'event': {
-        const { rows } = await this._query(
+        const {
+          rows,
+        } = await this._query(
           'SELECT * FROM eth_getFilterLogs_event($1::bytea)',
           [filterID_]
         );
@@ -440,7 +448,9 @@ export class DatabaseServer extends SkeletonServer {
       parseInt(transactionIndex),
     ];
     try {
-      const { rows } = await this._query(
+      const {
+        rows,
+      } = await this._query(
         'SELECT * FROM eth_getTransactionByBlockHashAndIndex($1::hash, $2::int)',
         [blockHash_, transactionIndex_]
       );
@@ -464,7 +474,9 @@ export class DatabaseServer extends SkeletonServer {
         : 0;
     const transactionIndex_ = parseInt(transactionIndex);
     try {
-      const { rows } = await this._query(
+      const {
+        rows,
+      } = await this._query(
         'SELECT * FROM eth_getTransactionByBlockNumberAndIndex($1::blockno, $2::int)',
         [blockNumber_, transactionIndex_]
       );
@@ -483,10 +495,11 @@ export class DatabaseServer extends SkeletonServer {
   ): Promise<web3.TransactionResult | null> {
     const transactionHash_ = hexToBytes(transactionHash);
     try {
-      const { rows } = await this._query(
-        'SELECT * FROM eth_getTransactionByHash($1)',
-        [transactionHash_]
-      );
+      const {
+        rows,
+      } = await this._query('SELECT * FROM eth_getTransactionByHash($1)', [
+        transactionHash_,
+      ]);
       return !rows || !rows.length ? null : exportJSON(rows[0]);
     } catch (error) {
       if (this.config.debug) {
