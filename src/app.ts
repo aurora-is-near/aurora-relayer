@@ -5,7 +5,7 @@ import middleware from './middleware.js';
 import { createServer } from './server.js';
 import { createWsServer } from './ws_server.js';
 
-import { Engine } from '@aurora-is-near/engine';
+import { Engine, TransactionErrorDetails } from '@aurora-is-near/engine';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import express from 'express';
@@ -19,7 +19,9 @@ interface Headers {
   'Content-Length': number;
   'Content-Type': string;
   'X-Aurora-Error-Code'?: string;
-  'X-Aurora-Error-Gas-Burned'?: string;
+  'X-NEAR-Gas-Burned'?: string;
+  'X-Aurora-Result'?: string;
+  'X-NEAR-TX'?: string;
 }
 
 export async function createApp(
@@ -80,17 +82,35 @@ function rpcMiddleware(server: jayson.Server): any {
           'Content-Type': 'application/json; charset=utf-8',
         };
 
-        if (
-          req?.body?.method == 'eth_sendRawTransaction' &&
-          typeof error?.error?.message === 'string'
-        ) {
-          const [code, gasBurned]: string[] = error.error.message.split('|', 2);
-          headers['X-Aurora-Error-Code'] = code;
-          response.error.message = code;
-          body = JSON.stringify(response);
-          headers['Content-Length'] = Buffer.byteLength(body, options.encoding);
-          if (gasBurned) {
-            headers['X-Aurora-Error-Gas-Burned'] = gasBurned;
+        if (req?.body?.method == 'eth_sendRawTransaction') {
+          if (typeof response?.error?.message === 'string') {
+            const message = error.error.message;
+            let code = message;
+            const sepIndex = code.lastIndexOf('|');
+            if (sepIndex > -1) {
+              code = message.substring(0, sepIndex);
+              const details = parseErrorDetails(
+                message.substring(sepIndex + 1)
+              );
+              if (details.gasBurned) {
+                headers['X-NEAR-Gas-Burned'] = details.gasBurned;
+              }
+              if (details.tx) {
+                headers['X-NEAR-TX'] = details.tx;
+              }
+            }
+            headers['X-Aurora-Error-Code'] = code.replace(
+              /[^a-zA-Z0-9!#$%&'*+\-.^_`|~]/g,
+              ''
+            );
+            response.error.message = code;
+            body = JSON.stringify(response);
+            headers['Content-Length'] = Buffer.byteLength(
+              body,
+              options.encoding
+            );
+          } else if (response?.result) {
+            headers['X-Aurora-Result'] = response.result;
           }
         }
         res.writeHead(200, headers);
@@ -102,6 +122,14 @@ function rpcMiddleware(server: jayson.Server): any {
     function error(code: any, headers?: any) {
       res.writeHead(code, headers || {});
       res.end();
+    }
+
+    function parseErrorDetails(details: string): TransactionErrorDetails {
+      try {
+        return JSON.parse(details);
+      } catch (e) {
+        return {};
+      }
     }
   };
 }

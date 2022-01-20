@@ -698,8 +698,8 @@ export class DatabaseServer extends SkeletonServer {
         return bytesToHex(transactionHash);
       },
       err: (message) => {
-        const sepIndex = message.indexOf('|')
-        const code = sepIndex > -1 ? message.substring(0,19) : message
+        const sepIndex = message.lastIndexOf('|');
+        const code = sepIndex > -1 ? message.substring(0, sepIndex) : message;
         if (this.config.errorLog && !code.includes('<html>')) {
           const country = request.country();
           fs.appendFileSync(
