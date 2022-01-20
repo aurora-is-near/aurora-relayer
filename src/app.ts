@@ -19,7 +19,7 @@ interface Headers {
   'Content-Length': number;
   'Content-Type': string;
   'X-Aurora-Error-Code'?: string;
-  'X-Aurora-Error-Gas-Burned'?: string;
+  'X-NEAR-Gas-Burned'?: number;
 }
 
 export async function createApp(
@@ -84,13 +84,23 @@ function rpcMiddleware(server: jayson.Server): any {
           req?.body?.method == 'eth_sendRawTransaction' &&
           typeof error?.error?.message === 'string'
         ) {
-          const [code, gasBurned]: string[] = error.error.message.split('|', 2);
-          headers['X-Aurora-Error-Code'] = code;
+          const message = error.error.message;
+          let code = message;
+          let gasBurned = 0;
+          const sepIndex = code.lastIndexOf('|');
+          if (sepIndex > -1) {
+            code = message.substring(0, sepIndex);
+            gasBurned = parseInt(message.substring(sepIndex + 1)) || 0;
+          }
+          headers['X-Aurora-Error-Code'] = code.replace(
+            /[^a-zA-Z0-9!#$%&'*+\-.^_`|~]/g,
+            ''
+          );
           response.error.message = code;
           body = JSON.stringify(response);
           headers['Content-Length'] = Buffer.byteLength(body, options.encoding);
           if (gasBurned) {
-            headers['X-Aurora-Error-Gas-Burned'] = gasBurned;
+            headers['X-NEAR-Gas-Burned'] = gasBurned;
           }
         }
         res.writeHead(200, headers);
