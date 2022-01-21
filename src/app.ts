@@ -21,7 +21,7 @@ interface Headers {
   'X-Aurora-Error-Code'?: string;
   'X-NEAR-Gas-Burned'?: string;
   'X-Aurora-Result'?: string;
-  'X-NEAR-TX'?: string;
+  'X-NEAR-Transaction-ID'?: string;
 }
 
 export async function createApp(
@@ -96,7 +96,7 @@ function rpcMiddleware(server: jayson.Server): any {
                 headers['X-NEAR-Gas-Burned'] = details.gasBurned;
               }
               if (details.tx) {
-                headers['X-NEAR-TX'] = details.tx;
+                headers['X-NEAR-Transaction-ID'] = details.tx;
               }
             }
             headers['X-Aurora-Error-Code'] = code.replace(
