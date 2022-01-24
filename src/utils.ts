@@ -79,8 +79,11 @@ export function parseEVMRevertReason(reason: Uint8Array): string | Uint8Array {
   if (reason.length > 0) {
     // only for valid decoded revert reason
     const coder = new ethers.utils.AbiCoder();
-    const result = coder.decode(['string'], reason.slice(4));
-    return result.toString();
+    try {
+      return coder.decode(['string'], reason.slice(4)).toString();
+    } catch {
+      return reason;
+    }
   }
   return reason;
 }
