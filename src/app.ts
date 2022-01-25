@@ -100,7 +100,7 @@ function rpcMiddleware(server: jayson.Server): any {
               }
             }
             headers['X-Aurora-Error-Code'] = code.replace(
-              /[^a-zA-Z0-9!#$%&'*+\-.^_`|~]/g,
+              /[^a-zA-Z0-9!#$%&'*+\-.^_`|~ ]/g,
               ''
             );
             response.error.message = code;
