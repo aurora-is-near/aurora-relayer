@@ -42,7 +42,6 @@ export async function createWsServer(
       ]);
     });
     ws.on('error', ws.send);
-    ws.send('Connection established');
   });
 
   // Listen to new block notifications:
