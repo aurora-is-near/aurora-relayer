@@ -26,7 +26,11 @@ export function blacklist(method: string) {
       };
     } catch (e) {
       console.error(`Blacklist configuration file can not be loaded (${e}).`);
-      return [];
+      globalAny.blacklistConfig = {
+        IPs: new Set([]),
+        EOAs: new Set([]),
+        CAs: new Set([]),
+      }
     }
   }
   return globalAny.blacklistConfig[method];
