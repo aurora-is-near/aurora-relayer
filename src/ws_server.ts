@@ -80,17 +80,26 @@ export async function createWsServer(
         forSubscriptions(pgClient, 'logs', function (row: any) {
           const address = row.filter?.address?.id?.toLowerCase() || null;
           const topics = row.filter?.topics || null;
-          if (address && address != success.result[0].address) {
-            // Skip delivery
-          } else if (
-            topics &&
-            topics.filter((x: any) => {
-              return success.result[0].topics.includes(x);
-            }).length == 0
-          ) {
-            // Skip delivery
-          } else {
-            sendPayload(expressWsApp, row.ws_key, row.sub_id, error || success);
+          let result = success.result;
+          if (address) {
+            result = result.filter((result: any) => {
+              return result.address == address;
+            });
+          }
+          if (topics) {
+            result = result.filter((result: any) => {
+              return (
+                result.topics.filter((topic: any) => {
+                  return topics.includes(topic);
+                }).length > 0
+              );
+            });
+          }
+          if (result.length > 0) {
+            sendPayload(expressWsApp, row.ws_key, row.sub_id, {
+              ...success,
+              ...{ result: result },
+            });
           }
         });
       });
