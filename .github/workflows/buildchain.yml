@@ -46,11 +46,9 @@ jobs:
           ./buildchain/client/run.sh \
             buildchain.builder \
             build_relayer \
-            "$BRANCH $COMMIT_HASH"
+            "$GITHUB_REF_NAME $GITHUB_SHA"
         env:
           BUILDCHAIN_CLIENT_REMAPHORE_CONFIG: /etc/buildchain-client/remaphore.conf
-          BRANCH: ${{env.GITHUB_REF_NAME}}
-          COMMIT_HASH: ${{env.GITHUB_SHA}}
 
       - name: Cleanup
         if: ${{ always() }}
