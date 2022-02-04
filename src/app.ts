@@ -16,7 +16,7 @@ import { Logger } from 'pino';
 //import { assert } from 'node:console';
 
 interface Headers {
-  'Content-Length': number;
+  'Content-Length'?: number;
   'Content-Type': string;
   'X-Aurora-Error-Code'?: string;
   'X-NEAR-Gas-Burned'?: string;
@@ -78,41 +78,35 @@ function rpcMiddleware(server: jayson.Server): any {
         res.writeHead(204);
       } else {
         const headers: Headers = {
-          'Content-Length': Buffer.byteLength(body, options.encoding),
           'Content-Type': 'application/json; charset=utf-8',
         };
 
         if (req?.body?.method == 'eth_sendRawTransaction') {
+          let { code, details } = parseTransactionDetails(
+            response?.error?.message || success?.result
+          );
+          if (details.gasBurned) {
+            headers['X-NEAR-Gas-Burned'] = details.gasBurned;
+          }
+          if (details.tx) {
+            headers['X-NEAR-Transaction-ID'] = details.tx;
+          }
           if (typeof response?.error?.message === 'string') {
-            const message = error.error.message;
-            let code = message;
-            const sepIndex = code.lastIndexOf('|');
-            if (sepIndex > -1) {
-              code = message.substring(0, sepIndex);
-              const details = parseErrorDetails(
-                message.substring(sepIndex + 1)
+            if (code) {
+              headers['X-Aurora-Error-Code'] = code.replace(
+                /[^a-zA-Z0-9!#$%&'*+\-.^_`|~ ]/g,
+                ''
               );
-              if (details.gasBurned) {
-                headers['X-NEAR-Gas-Burned'] = details.gasBurned;
-              }
-              if (details.tx) {
-                headers['X-NEAR-Transaction-ID'] = details.tx;
-              }
             }
-            headers['X-Aurora-Error-Code'] = code.replace(
-              /[^a-zA-Z0-9!#$%&'*+\-.^_`|~ ]/g,
-              ''
-            );
             response.error.message = code;
             body = JSON.stringify(response);
-            headers['Content-Length'] = Buffer.byteLength(
-              body,
-              options.encoding
-            );
           } else if (response?.result) {
             headers['X-Aurora-Result'] = response.result;
+            response.result = code;
+            body = JSON.stringify(response);
           }
         }
+        headers['Content-Length'] = Buffer.byteLength(body, options.encoding);
         res.writeHead(200, headers);
         res.write(body);
       }
@@ -129,6 +123,23 @@ function rpcMiddleware(server: jayson.Server): any {
         return JSON.parse(details);
       } catch (e) {
         return {};
+      }
+    }
+
+    function parseTransactionDetails(
+      message: string | undefined
+    ): { code: string | undefined; details: any } {
+      if (message === undefined) {
+        return { code: message, details: {} };
+      }
+      let code = message;
+      const sepIndex = code.lastIndexOf('|');
+      if (sepIndex > -1) {
+        code = message.substring(0, sepIndex);
+        const details = parseErrorDetails(message.substring(sepIndex + 1));
+        return { code: code, details: details };
+      } else {
+        return { code: code, details: {} };
       }
     }
   };

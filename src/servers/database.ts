@@ -695,7 +695,12 @@ export class DatabaseServer extends SkeletonServer {
             }
           }
         }
-        return bytesToHex(transactionHash);
+        return result.gasBurned
+          ? `${bytesToHex(transactionHash)}|${JSON.stringify({
+              gasBurned: result.gasBurned,
+              tx: result.tx,
+            })}`
+          : bytesToHex(transactionHash);
       },
       err: (message) => {
         const sepIndex = message.lastIndexOf('|');
