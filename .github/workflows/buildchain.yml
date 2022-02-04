@@ -37,3 +37,18 @@ jobs:
           SERVER_DESTINATION: buildchain.builder
           SERVER_PUB_KEY: ${{secrets.BUILDCHAIN_BUILDER_REMAPHORE_PUBLIC_KEY}}
           VERBS: build_relayer
+
+      - name: Run build
+        run: |
+          ./buildchain/client/run.sh \
+            buildchain.builder \
+            build_relayer \
+            "$BRANCH $COMMIT_HASH"
+        env:
+          BUILDCHAIN_CLIENT_REMAPHORE_CONFIG: /etc/buildchain-client/remaphore.conf
+          BRANCH: ${{GITHUB_REF_NAME}}
+          COMMIT_HASH: ${{GITHUB_SHA}}
+
+      - name: Cleanup
+        if: ${{ always() }}
+        run: rm -rf /etc/buildchain-client || true
