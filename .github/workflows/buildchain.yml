@@ -46,8 +46,8 @@ jobs:
             "$BRANCH $COMMIT_HASH"
         env:
           BUILDCHAIN_CLIENT_REMAPHORE_CONFIG: /etc/buildchain-client/remaphore.conf
-          BRANCH: ${{GITHUB_REF_NAME}}
-          COMMIT_HASH: ${{GITHUB_SHA}}
+          BRANCH: ${{env.GITHUB_REF_NAME}}
+          COMMIT_HASH: ${{env.GITHUB_SHA}}
 
       - name: Cleanup
         if: ${{ always() }}
