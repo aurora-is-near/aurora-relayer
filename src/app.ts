@@ -82,7 +82,7 @@ function rpcMiddleware(server: jayson.Server): any {
         };
 
         if (req?.body?.method == 'eth_sendRawTransaction') {
-          let { code, details } = parseTransactionDetails(
+          const { code, details } = parseTransactionDetails(
             response?.error?.message || success?.result
           );
           if (details.gasBurned) {
