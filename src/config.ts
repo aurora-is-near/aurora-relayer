@@ -2,7 +2,7 @@
 
 import { ConnectEnv, NetworkConfig, NETWORKS } from '@aurora-is-near/engine';
 
-export const MinGasPrice = 1_000_000_000
+export const MinGasPrice = 100_000_000
 
 export interface Config {
   debug: boolean;
