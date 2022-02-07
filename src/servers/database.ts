@@ -12,7 +12,6 @@ import {
   UnexpectedError,
   UnknownFilter,
   UnsupportedMethod,
-  GasPriceTooLow,
 } from '../errors.js';
 import { Request } from '../request.js';
 import { compileTopics } from '../topics.js';
@@ -37,7 +36,6 @@ import {
 } from '@ethersproject/transactions';
 import { keccak256 } from 'ethereumjs-util';
 //import { assert } from 'node:console';
-import { MinGasPrice } from '../config.js';
 
 export class DatabaseServer extends SkeletonServer {
   protected pgClient?: pg.Client;
@@ -671,11 +669,6 @@ export class DatabaseServer extends SkeletonServer {
     if ((banReason = this._scanForCABans(transaction))) {
       this._banIP(ip, banReason);
       throw new UnsupportedMethod('eth_sendRawTransaction');
-    }
-
-    const gasPrice = rawTransaction?.gasPrice || 0;
-    if (gasPrice < MinGasPrice) {
-      throw new GasPriceTooLow();
     }
 
     return (await this.engine.submit(transactionBytes)).match({
