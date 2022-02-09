@@ -31,22 +31,25 @@ jobs:
         run: apt-get install uuid-runtime
 
       - name: Configure
-        run: ./buildchain/cfg_template/client/configure.sh /etc/buildchain-client
+        run: |
+          mkdir -p /etc/buildchain-client
+          echo "$NATS_CREDS" > /etc/buildchain-client/nats.creds
+          echo "$REMAPHORE_CONFIG" > /etc/buildchain-client/remaphore.conf
         env:
           NATS_CREDS: ${{secrets.BUILDCHAIN_REMAPHORE_NATS_CREDS}}
-          CLIENT_DESTINATION: buildchain.ci_client
-          CLIENT_PUB_KEY: ${{secrets.BUILDCHAIN_CI_CLIENT_REMAPHORE_PUBLIC_KEY}}
-          CLIENT_PRIV_KEY: ${{secrets.BUILDCHAIN_CI_CLIENT_REMAPHORE_PRIVATE_KEY}}
-          SERVER_DESTINATION: buildchain.builder
-          SERVER_PUB_KEY: ${{secrets.BUILDCHAIN_BUILDER_REMAPHORE_PUBLIC_KEY}}
-          VERBS: build_relayer
+          REMAPHORE_CONFIG: ${{secrets.BUILDCHAIN_CLIENT_CONFIG}}
 
       - name: Run build
         run: |
-          ./buildchain/client/run.sh \
-            buildchain.builder \
-            build_relayer \
-            "$GITHUB_REF_NAME $GITHUB_SHA"
+          ./buildchain/client/run.sh buildchain.builder \
+            build_relayer "$GITHUB_REF_NAME $GITHUB_SHA"
+        env:
+          BUILDCHAIN_CLIENT_REMAPHORE_CONFIG: /etc/buildchain-client/remaphore.conf
+
+      - name: Run testing/beta deploy
+        run: |
+          ./buildchain/client/run.sh buildchain.relayer_tester \
+            build_relayer "$GITHUB_REF_NAME $GITHUB_SHA"
         env:
           BUILDCHAIN_CLIENT_REMAPHORE_CONFIG: /etc/buildchain-client/remaphore.conf
 
