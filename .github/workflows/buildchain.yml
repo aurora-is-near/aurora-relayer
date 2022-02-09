@@ -3,8 +3,8 @@ on:
   push:
     branches:
       - master
+      - mainnet
       - testnet
-      - buildchain-ci
 
 name: Buildchain
 jobs:
