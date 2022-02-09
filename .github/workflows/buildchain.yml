@@ -9,8 +9,8 @@ on:
 name: Buildchain
 jobs:
 
-  build:
-    name: Build
+  buildchain:
+    name: Buildchain
     runs-on: [self-hosted, light]
     steps:
 
@@ -45,13 +45,15 @@ jobs:
             build_relayer "$GITHUB_REF_NAME $GITHUB_SHA"
         env:
           BUILDCHAIN_CLIENT_REMAPHORE_CONFIG: /etc/buildchain-client/remaphore.conf
+        timeout-minutes: 15
 
-      - name: Run testing/beta deploy
+      - name: Run testing & beta deploy
         run: |
           ./buildchain/client/run.sh buildchain.relayer_tester \
-            build_relayer "$GITHUB_REF_NAME $GITHUB_SHA"
+            test_relayer "$GITHUB_REF_NAME $GITHUB_SHA"
         env:
           BUILDCHAIN_CLIENT_REMAPHORE_CONFIG: /etc/buildchain-client/remaphore.conf
+        timeout-minutes: 70
 
       - name: Cleanup
         if: ${{ always() }}
