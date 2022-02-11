@@ -797,7 +797,7 @@ export class DatabaseServer extends SkeletonServer {
     _subsciptionId: web3.Data
   ): Promise<boolean> {
     const query = sql.delete('subscription').where({ id: _subsciptionId });
-    await this._query(query.toParams());
+    await this._query(query.toString());
     return true;
   }
 

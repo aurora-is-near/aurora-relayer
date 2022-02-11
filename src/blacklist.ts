@@ -30,7 +30,7 @@ export function blacklist(method: string) {
         IPs: new Set([]),
         EOAs: new Set([]),
         CAs: new Set([]),
-      }
+      };
     }
   }
   return globalAny.blacklistConfig[method];
