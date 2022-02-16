@@ -1,0 +1,60 @@
+---
+on:
+  push:
+    branches:
+      - master
+      - mainnet
+      - testnet
+
+name: Buildchain
+jobs:
+
+  buildchain:
+    name: Buildchain
+    runs-on: [self-hosted, light]
+    steps:
+
+      - name: Clone the repository
+        uses: actions/checkout@v2
+
+      - name: Clone buildchain repository
+        uses: actions/checkout@v2
+        with:
+          repository: aurora-is-near/buildchain
+          ssh-key: ${{ secrets.BUILDCHAIN_REPO_SSH_KEY }}
+          path: buildchain
+
+      - name: Install remaphore
+        run: go get -u -v github.com/aurora-is-near/remaphore/cmd/remaphore
+
+      - name: Install uuidgen
+        run: apt-get install uuid-runtime
+
+      - name: Configure
+        run: |
+          mkdir -p /etc/buildchain-client
+          echo "$NATS_CREDS" > /etc/buildchain-client/nats.creds
+          echo "$REMAPHORE_CONFIG" > /etc/buildchain-client/remaphore.conf
+        env:
+          NATS_CREDS: ${{secrets.BUILDCHAIN_REMAPHORE_NATS_CREDS}}
+          REMAPHORE_CONFIG: ${{secrets.BUILDCHAIN_CLIENT_CONFIG}}
+
+      - name: Run build
+        run: |
+          ./buildchain/client/run.sh buildchain.builder \
+            build_relayer "$GITHUB_REF_NAME $GITHUB_SHA"
+        env:
+          BUILDCHAIN_CLIENT_REMAPHORE_CONFIG: /etc/buildchain-client/remaphore.conf
+        timeout-minutes: 15
+
+      - name: Run testing & beta deploy
+        run: |
+          ./buildchain/client/run.sh buildchain.relayer_tester \
+            test_relayer "$GITHUB_REF_NAME $GITHUB_SHA"
+        env:
+          BUILDCHAIN_CLIENT_REMAPHORE_CONFIG: /etc/buildchain-client/remaphore.conf
+        timeout-minutes: 70
+
+      - name: Cleanup
+        if: ${{ always() }}
+        run: rm -rf /etc/buildchain-client || true

@@ -56,7 +56,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv): Promise<void> {
 
   const [network, config] = parseConfig(
     program.opts() as Config,
-    externalConfig as unknown as Config,
+    (externalConfig as unknown) as Config,
     env
   );
 

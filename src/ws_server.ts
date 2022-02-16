@@ -79,7 +79,11 @@ export async function createWsServer(
       jaysonWsServer.call(body, {}, function (error: any, success: any) {
         forSubscriptions(pgClient, 'logs', function (row: any) {
           const address = row.filter?.address?.id?.toLowerCase() || null;
-          const topics = row.filter?.topics || null;
+          const topics =
+            row.filter?.topics?.reduce(
+              (accumulator: string, value: string) => accumulator.concat(value),
+              []
+            ) || null;
           let result = success.result;
           if (address) {
             result = result.filter((result: any) => {
@@ -95,12 +99,12 @@ export async function createWsServer(
               );
             });
           }
-          if (result.length > 0) {
+          result.forEach(function (res: any) {
             sendPayload(expressWsApp, row.ws_key, row.sub_id, {
               ...success,
-              ...{ result: result },
+              ...{ result: res },
             });
-          }
+          });
         });
       });
     }
