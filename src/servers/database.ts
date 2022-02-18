@@ -672,7 +672,8 @@ export class DatabaseServer extends SkeletonServer {
     }
 
     return (await this.engine.submit(transactionBytes)).match({
-      ok: (result) => {
+      ok: (wrappedSubmitResult) => {
+        const result = wrappedSubmitResult.submitResult;
         // Check if an error occurred
         if (result.output().isErr()) {
           if (result.result.kind === 'LegacyExecutionResult') {
@@ -695,10 +696,10 @@ export class DatabaseServer extends SkeletonServer {
             }
           }
         }
-        return result.gasBurned
+        return wrappedSubmitResult.gasBurned || wrappedSubmitResult.tx
           ? `${bytesToHex(transactionHash)}|${JSON.stringify({
-              gasBurned: result.gasBurned,
-              tx: result.tx,
+              gasBurned: wrappedSubmitResult.gasBurned,
+              tx: wrappedSubmitResult.tx,
             })}`
           : bytesToHex(transactionHash);
       },

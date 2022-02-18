@@ -101,8 +101,8 @@ function rpcMiddleware(server: jayson.Server): any {
             response.error.message = code;
             body = JSON.stringify(response);
           } else if (response?.result) {
-            headers['X-Aurora-Result'] = response.result;
             response.result = code;
+            headers['X-Aurora-Result'] = response.result;
             body = JSON.stringify(response);
           }
         }
