@@ -28,7 +28,7 @@ jobs:
         run: go get -u -v github.com/aurora-is-near/remaphore/cmd/remaphore
 
       - name: Install uuidgen
-        run: apt-get install uuid-runtime
+        run: apt-get update && apt-get install uuid-runtime
 
       - name: Configure
         run: |
