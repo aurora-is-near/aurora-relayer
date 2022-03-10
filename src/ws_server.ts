@@ -18,6 +18,7 @@ export async function createWsServer(
   // const pgPool = new pg.Pool({ "connectionString": config.database });
   const pgClient = new pg.Client(config.database);
   pgClient.connect();
+  pgClient.query('DELETE FROM subscription');
   const jaysonWsServer = createServer(config, logger, engine);
   const expressWsApp = expressWs(app);
   expressWsApp.app.ws('/', function (ws: any, req) {
@@ -78,7 +79,7 @@ export async function createWsServer(
       };
       jaysonWsServer.call(body, {}, function (error: any, success: any) {
         forSubscriptions(pgClient, 'logs', function (row: any) {
-          const address = row.filter?.address?.id?.toLowerCase() || null;
+          const address = parseAddresses(row.filter?.address);
           const topics =
             row.filter?.topics?.reduce(
               (accumulator: string, value: string) => accumulator.concat(value),
@@ -87,7 +88,7 @@ export async function createWsServer(
           let result = success.result;
           if (address) {
             result = result.filter((result: any) => {
-              return result.address == address;
+              return address.includes(result.address);
             });
           }
           if (topics) {
@@ -175,4 +176,9 @@ function forSubscriptions(
     .then(function (pgResult: any) {
       pgResult.rows.forEach(callback);
     });
+}
+function parseAddresses(inputs: any): any[] {
+  return (Array.isArray(inputs) ? inputs : [inputs]).map((input: any) => {
+    return input?.id?.toLowerCase() || null;
+  });
 }

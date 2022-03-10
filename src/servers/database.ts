@@ -758,7 +758,7 @@ export class DatabaseServer extends SkeletonServer {
     if (_filter !== null && _filter !== undefined) {
       if (_filter.address !== undefined && _filter.address !== null) {
         try {
-          filter.address = parseAddress(_filter.address);
+          filter.address = parseAddresses(_filter.address);
         } catch (error) {
           throw new InvalidAddress();
         }
