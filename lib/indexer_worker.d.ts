@@ -15,4 +15,5 @@ export declare class Indexer {
     indexEvent(blockID: BlockHeight, transactionIndex: number, transactionID: number, eventIndex: number, event: LogEventWithAddress | LogEvent): Promise<void>;
     notifyNewHeads(blockID: number): Promise<void>;
     isBlockIndexed(blockID: number): Promise<boolean>;
+    delay(ms: number): Promise<unknown>;
 }

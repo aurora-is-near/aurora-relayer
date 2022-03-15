@@ -88,7 +88,7 @@ export class Indexer {
           return;
         }
         if (this.config.debug) console.error(error); // DEBUG
-        await new Promise((resolve) => setTimeout(resolve, 100));
+        await this.delay(100);
         continue; // retry block
       }
       const block_ = proxy.unwrap();
@@ -261,6 +261,7 @@ export class Indexer {
           `NOTIFY block, ${format.literal(this.pendingHeadBlock.toString())}`
         );
         this.pendingHeadBlock += 1;
+        await this.delay(100);
       } else {
         return;
       }
@@ -272,6 +273,10 @@ export class Indexer {
       [this.pendingHeadBlock]
     );
     return result.rows.length == 1;
+  }
+
+  async delay(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 
