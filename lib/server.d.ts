@@ -1,6 +1,6 @@
 import { Config } from './config.js';
 import { Engine } from '@aurora-is-near/engine';
-import jayson from 'jayson';
+import jayson from 'jayson/promise/index.js';
 import { Logger } from 'pino';
 export declare class Method extends jayson.Method {
     handler?: jayson.MethodHandlerType | undefined;
