@@ -41,6 +41,7 @@ export class Method extends jayson.Method {
     callback: jayson.JSONRPCCallbackType
   ): any {
     const args = (requestParams || []) as any[];
+    console.log('execute')
     const result: Promise<any> = (this.handler as any).call(
       this.server,
       new Request(request),
@@ -49,6 +50,7 @@ export class Method extends jayson.Method {
     result
       .then((value: any) => (callback as any)(undefined, value))
       .catch((error: Error) => {
+        console.log('error', error)
         const metadata = {
           host: request?.headers?.host || undefined,
           'cf-ray': request?.headers['cf-ray'] || undefined,

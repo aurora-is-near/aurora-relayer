@@ -72,7 +72,9 @@ function rpcMiddleware(server: jayson.Server): any {
 
     //assert(req.body && typeof req.body === 'object');
     server.call(req.body, req, function (error: any, success: any) {
+      console.log("HERE!")
       const response = error || success;
+      console.log('response', response)
       let body = JSON.stringify(response);
       if (!body) {
         res.writeHead(204);
@@ -108,6 +110,7 @@ function rpcMiddleware(server: jayson.Server): any {
         }
         headers['Content-Length'] = Buffer.byteLength(body, options.encoding);
         res.writeHead(200, headers);
+        console.log("WRITE!")
         res.write(body);
       }
       res.end();
