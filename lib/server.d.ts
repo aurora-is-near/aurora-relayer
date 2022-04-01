@@ -8,6 +8,7 @@ export declare class Method extends jayson.Method {
     constructor(handler?: jayson.MethodHandlerType | undefined, options?: jayson.MethodOptions);
     getHandler(): jayson.MethodHandlerType;
     setHandler(handler: jayson.MethodHandlerType): void;
+    handleError(server: any, request: any, callback: any, error: any): any;
     execute(server: jayson.Server, requestParams: jayson.RequestParamsLike, request: any, // context
     callback: jayson.JSONRPCCallbackType): any;
 }
