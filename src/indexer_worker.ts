@@ -251,30 +251,6 @@ export class Indexer {
     }
   }
 
-  async notifyNewHeads(blockID: number): Promise<void> {
-    if (this.pendingHeadBlock == 0) {
-      this.pendingHeadBlock = blockID;
-    }
-    for (;;) {
-      if (await this.isBlockIndexed(this.pendingHeadBlock)) {
-        await this.pgClient.query(
-          `NOTIFY block, ${format.literal(this.pendingHeadBlock.toString())}`
-        );
-        this.pendingHeadBlock += 1;
-        await this.delay(100);
-      } else {
-        return;
-      }
-    }
-  }
-  async isBlockIndexed(blockID: number): Promise<boolean> {
-    const result = await this.pgClient.query(
-      `SELECT 1 FROM block WHERE id = $1 LIMIT(1)`,
-      [this.pendingHeadBlock]
-    );
-    return result.rows.length == 1;
-  }
-
   async delay(ms: number) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
@@ -292,15 +268,11 @@ async function main(parentPort: MessagePort, workerData: WorkerData) {
   );
   const indexer = new Indexer(config, network, engine);
   await indexer.start();
-  const blockHeight = (await engine.getBlockHeight()).unwrap() as number;
 
   parentPort
     .on('message', async (blockID: number) => {
       parentPort.postMessage(true); // ack the request
       await indexer.indexBlock(blockID);
-      if (blockID > blockHeight) {
-        await indexer.notifyNewHeads(blockID);
-      }
     })
     .on('close', () => {
       return; // TODO?
