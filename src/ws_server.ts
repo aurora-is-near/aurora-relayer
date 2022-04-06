@@ -8,6 +8,7 @@ import { Engine, exportJSON } from '@aurora-is-near/engine';
 import { Logger } from 'pino';
 
 const syncInterval = 3000;
+const newHeadsInterval = 200;
 
 export async function createWsServer(
   config: Config,
@@ -48,22 +49,6 @@ export async function createWsServer(
   // Listen to new block notifications:
   pgClient.on('notification', (message: pg.Notification) => {
     if (!message.payload) return;
-    if (message.channel === 'block') {
-      const blockID = parseInt(message.payload);
-      if (isNaN(blockID)) return; // ignore UFOs
-      const body = {
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'eth_getBlockByNumber',
-        params: [blockID, true],
-      };
-      jaysonWsServer.call(body, {}, function (error: any, success: any) {
-        forSubscriptions(pgClient, 'newHeads', function (row: any) {
-          sendPayload(expressWsApp, row.ws_key, row.sub_id, error || success);
-        });
-      });
-    }
-
     if (message.channel === 'log') {
       const parsedObject = JSON.parse(message.payload);
       const params = {
@@ -84,14 +69,14 @@ export async function createWsServer(
             row.filter?.topics?.reduce(
               (accumulator: string, value: string) => accumulator.concat(value),
               []
-            ) || null;
+            ) || [];
           let result = success.result;
-          if (address) {
+          if (address.length > 0) {
             result = result.filter((result: any) => {
               return address.includes(result.address);
             });
           }
-          if (topics) {
+          if (topics.length > 0) {
             result = result.filter((result: any) => {
               return (
                 result.topics.filter((topic: any) => {
@@ -122,6 +107,15 @@ export async function createWsServer(
   // pgClient.query('LISTEN transaction');
   await pgClient.query('LISTEN log');
   setTimeout(sync, syncInterval, pgClient, expressWsApp);
+  const blockHeight = (await engine.getBlockHeight()).unwrap() as number;
+  setTimeout(
+    notifyNewHeads,
+    newHeadsInterval,
+    pgClient,
+    expressWsApp,
+    jaysonWsServer,
+    blockHeight
+  );
   return true;
 }
 
@@ -139,6 +133,40 @@ async function sync(pgClient: any, expressWsApp: any, blockNumber: any) {
     sendPayload(expressWsApp, row.ws_key, row.sub_id, JSON.stringify(payload));
   });
   setTimeout(sync, syncInterval, pgClient, expressWsApp, maxID);
+}
+
+async function notifyNewHeads(
+  pgClient: any,
+  expressWsApp: any,
+  jaysonWsServer: any,
+  blockNumber: number
+) {
+  const result = await pgClient.query(
+    'SELECT 1 FROM block WHERE id = $1 LIMIT 1',
+    [blockNumber]
+  );
+  if (result.rows.length > 0) {
+    const body = {
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'eth_getBlockByNumber',
+      params: [blockNumber, true],
+    };
+    jaysonWsServer.call(body, {}, function (error: any, success: any) {
+      forSubscriptions(pgClient, 'newHeads', function (row: any) {
+        sendPayload(expressWsApp, row.ws_key, row.sub_id, error || success);
+      });
+    });
+    blockNumber = blockNumber + 1;
+  }
+  setTimeout(
+    notifyNewHeads,
+    newHeadsInterval,
+    pgClient,
+    expressWsApp,
+    jaysonWsServer,
+    blockNumber
+  );
 }
 
 function sendPayload(express: any, ws_key: any, subId: any, payload: any) {
@@ -178,7 +206,10 @@ function forSubscriptions(
     });
 }
 function parseAddresses(inputs: any): any[] {
-  return (Array.isArray(inputs) ? inputs : [inputs]).map((input: any) => {
-    return input?.id?.toLowerCase() || null;
-  });
+  const addresses = (Array.isArray(inputs) ? inputs : [inputs]).map(
+    (input: any) => {
+      return input?.id?.toLowerCase() || null;
+    }
+  );
+  return addresses.filter((x): x is any => x !== null);
 }
