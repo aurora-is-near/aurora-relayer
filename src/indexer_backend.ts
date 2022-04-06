@@ -89,21 +89,20 @@ async function main(argv: string[], env: NodeJS.ProcessEnv) {
   });
   input
     .on('line', (line: string) => {
-      const blockID = Number.parseInt(line);
-      queue.add(blockID);
+      queue.add(JSON.parse(line));
     })
     .on('close', () => {
       inputOpen = false;
     });
 
   while (!queue.isEmpty() || inputOpen) {
-    const blockID = queue.poll() as number;
-    if (blockID === undefined) {
+    const blockData = queue.poll();
+    if (blockData === undefined) {
       // The queue is empty, wait for more input:
       await new Promise((resolve) => setTimeout(resolve, 10));
       continue;
     }
-    await workers.exec(blockID);
+    await workers.exec(blockData);
   }
   process.exit(0);
 }

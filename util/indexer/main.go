@@ -85,12 +85,13 @@ var rootCmd = &cobra.Command{
 		go followChainHead(currentBlockID)
 		go scanForIndexGaps(currentBlockID)
 		for {
-			blockID := queue.Dequeue()
-			if blockID == -1 {
+			queueBlock := queue.Dequeue()
+			if queueBlock.Id == -1 {
 				time.Sleep(100 * time.Millisecond)
 				continue
 			}
-			fmt.Println(blockID)
+			data, _ := json.Marshal(queueBlock)
+			fmt.Println(string(data))
 		}
 	},
 }
@@ -111,7 +112,7 @@ func followChainHead(previousBlockID int64) {
 						fmt.Fprintf(os.Stderr, "Enqueued current block #%d.\n", blockID)
 					}
 				}
-				queue.Enqueue(blockID)
+				queue.Enqueue(QueueBlock{true, blockID})
 			}
 			previousBlockID = currentBlockID
 		}
@@ -135,31 +136,19 @@ func scanForIndexGaps(tipBlockID int64) {
 		if debug {
 			fmt.Fprintf(os.Stderr, "Scanning blocks #%d..#%d for gaps...\n", minBlockID, maxBlockID)
 		}
-		query := fmt.Sprintf(`SELECT ids AS "id"
+		query := fmt.Sprintf(`SELECT array_agg(ids) AS "id"
 			FROM generate_series(%d, %d, 1) ids
 			LEFT JOIN block ON ids = block.id
 			WHERE block.id IS NULL
-			ORDER BY block.id DESC
 			LIMIT %d`, minBlockID, maxBlockID, windowSize)
-		rows, err := database.Query(context.Background(), query)
+		blockIDs := make([]int64, 0)
+		err := database.QueryRow(context.Background(), query).Scan(&blockIDs)
 		if err != nil {
 			panic(err)
 		}
-		blockIDs := make([]int64, 0)
-		for rows.Next() {
-			var blockID int64
-			err := rows.Scan(&blockID)
-			if err != nil {
-				panic(err)
-			}
-			blockIDs = append(blockIDs, blockID)
-		}
-		rows.Close()
+
 		for _, blockID := range blockIDs {
-			if verbose || debug {
-				fmt.Fprintf(os.Stderr, "Enqueued missing block #%d.\n", blockID)
-			}
-			queue.Enqueue(blockID)
+			queue.Enqueue(QueueBlock{false, blockID})
 			time.Sleep(time.Duration(200*queue.LenSafe()) * time.Millisecond)
 		}
 	}

@@ -46,66 +46,6 @@ export async function createWsServer(
     ws.on('error', ws.send);
   });
 
-  // Listen to new block notifications:
-  pgClient.on('notification', (message: pg.Notification) => {
-    if (!message.payload) return;
-    if (message.channel === 'log') {
-      const parsedObject = JSON.parse(message.payload);
-      const params = {
-        fromBlock: parsedObject.blockId,
-        toBlock: parsedObject.blockId,
-        index: parsedObject.index,
-      };
-      const body = {
-        jsonrpc: '2.0',
-        id: 1,
-        method: 'eth_getLogs',
-        params: [params],
-      };
-      jaysonWsServer.call(body, {}, function (error: any, success: any) {
-        forSubscriptions(pgClient, 'logs', function (row: any) {
-          const address = parseAddresses(row.filter?.address);
-          const topics =
-            row.filter?.topics?.reduce(
-              (accumulator: string, value: string) => accumulator.concat(value),
-              []
-            ) || [];
-          let result = success.result;
-          if (address.length > 0) {
-            result = result.filter((result: any) => {
-              return address.includes(result.address);
-            });
-          }
-          if (topics.length > 0) {
-            result = result.filter((result: any) => {
-              return (
-                result.topics.filter((topic: any) => {
-                  return topics.includes(topic);
-                }).length > 0
-              );
-            });
-          }
-          result.forEach(function (res: any) {
-            sendPayload(expressWsApp, row.ws_key, row.sub_id, {
-              ...success,
-              ...{ result: res },
-            });
-          });
-        });
-      });
-    }
-
-    // NOT SUPPORTED YET
-    if (message.channel === 'transaction') {
-      // const payload = { result: message.payload}
-      // forSubscriptions(pgClient, 'newPendingTransactions', function (row: any){
-      //   sendPayload(expressWsApp, row.ws_key, row.sub_id, payload)
-      // })
-    }
-  });
-  await pgClient.query('LISTEN block');
-  // pgClient.query('LISTEN transaction');
-  await pgClient.query('LISTEN log');
   setTimeout(sync, syncInterval, pgClient, expressWsApp);
   const blockHeight = (await engine.getBlockHeight()).unwrap() as number;
   setTimeout(
@@ -146,17 +86,61 @@ async function notifyNewHeads(
     [blockNumber]
   );
   if (result.rows.length > 0) {
-    const body = {
+    const blockBody = {
       jsonrpc: '2.0',
       id: 1,
       method: 'eth_getBlockByNumber',
       params: [blockNumber, true],
     };
-    jaysonWsServer.call(body, {}, function (error: any, success: any) {
+    jaysonWsServer.call(blockBody, {}, function (error: any, success: any) {
       forSubscriptions(pgClient, 'newHeads', function (row: any) {
         sendPayload(expressWsApp, row.ws_key, row.sub_id, error || success);
       });
     });
+
+    const logsBody = {
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'eth_getLogs',
+      params: [
+        {
+          fromBlock: blockNumber,
+          toBlock: blockNumber,
+        },
+      ],
+    };
+    jaysonWsServer.call(logsBody, {}, function (error: any, success: any) {
+      forSubscriptions(pgClient, 'logs', function (row: any) {
+        const address = parseAddresses(row.filter?.address);
+        const topics =
+          row.filter?.topics?.reduce(
+            (accumulator: string, value: string) => accumulator.concat(value),
+            []
+          ) || [];
+        let result = success.result;
+        if (address.length > 0) {
+          result = result.filter((result: any) => {
+            return address.includes(result.address);
+          });
+        }
+        if (topics.length > 0) {
+          result = result.filter((result: any) => {
+            return (
+              result.topics.filter((topic: any) => {
+                return topics.includes(topic);
+              }).length > 0
+            );
+          });
+        }
+        result.forEach(function (res: any) {
+          sendPayload(expressWsApp, row.ws_key, row.sub_id, {
+            ...success,
+            ...{ result: res },
+          });
+        });
+      });
+    });
+
     blockNumber = blockNumber + 1;
   }
   setTimeout(
