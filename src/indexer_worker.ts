@@ -4,7 +4,6 @@ import { MessagePort, parentPort, workerData } from 'worker_threads';
 
 import { Config } from './config.js';
 import { pg, sql } from './database.js';
-import format from 'pg-format';
 import {
   computeBlockHash,
   EmptyBlock,
@@ -20,8 +19,11 @@ import {
   LogEvent,
   LogEventWithAddress,
   NetworkConfig,
-  Transaction,
 } from '@aurora-is-near/engine';
+
+interface PendingBlocks {
+  [key: number]: string;
+}
 
 interface WorkerData {
   config: Config;
@@ -33,6 +35,7 @@ export class Indexer {
   protected readonly contractID: AccountID;
   protected readonly pgClient: pg.Client;
   protected pendingHeadBlock: number;
+  protected pendingBlocks: PendingBlocks = {};
 
   constructor(
     public readonly config: Config,
@@ -42,14 +45,14 @@ export class Indexer {
     this.contractID = AccountID.parse(this.config.engine).unwrap();
     this.pgClient = new pg.Client(config.database);
     this.pendingHeadBlock = 0;
+    this.pendingBlocks = {};
   }
 
   async start(): Promise<void> {
     await this.pgClient.connect();
   }
 
-  async indexBlock(blockID: BlockHeight): Promise<void> {
-    console.error(`Indexing block #${blockID}...`);
+  async indexBlock(blockID: BlockHeight): Promise<any> {
     for (;;) {
       const proxy = await this.engine.getBlock(blockID, {
         transactions: 'full',
@@ -65,7 +68,8 @@ export class Indexer {
             this.network.chainID
           );
           //if (this.config.debug) console.debug(emptyBlock); // DEBUG
-          const query = sql.insert('block', {
+          console.error(`Indexing skipped block #${blockID}...`);
+          const skippedBlockDataJson = {
             chain: emptyBlock.chain,
             id: emptyBlock.id,
             hash: emptyBlock.hash,
@@ -78,14 +82,8 @@ export class Indexer {
             transactions_root: emptyBlock.transactionsRoot,
             state_root: emptyBlock.stateRoot,
             receipts_root: emptyBlock.receiptsRoot,
-          });
-          //if (this.config.debug) console.debug(query.toString()); // DEBUG
-          try {
-            await this.pgClient.query(query.toParams());
-          } catch (error) {
-            console.error('indexBlock', error);
-          }
-          return;
+          };
+          return skippedBlockDataJson;
         }
         if (this.config.debug) console.error(error); // DEBUG
         await this.delay(100);
@@ -108,7 +106,18 @@ export class Indexer {
         block.transactions.length == 0
           ? emptyTransactionsRoot()
           : block.transactionsRoot;
-      const query = sql.insert('block', {
+      // console.error(`Indexing block #${blockID}...`);
+      const transactions = await (block.transactions as any[]).map(
+        async (transaction, transactionIndex) => {
+          return await this.indexTransaction(
+            blockID,
+            transactionIndex,
+            transaction
+          );
+        }
+      );
+
+      const blockData = {
         chain: this.network.chainID,
         id: block.number,
         hash: blockHash,
@@ -121,30 +130,20 @@ export class Indexer {
         transactions_root: transactionsRoot,
         state_root: block.stateRoot,
         receipts_root: block.receiptsRoot,
-      });
-      //if (this.config.debug) console.debug(query.toString()); // DEBUG
-      try {
-        await this.pgClient.query(query.toParams());
-      } catch (error) {
-        console.error('indexBlock', error);
-        return; // abort block
-      }
-      // Index all transactions contained in this block:
-      (block.transactions as Transaction[]).forEach(
-        async (transaction, transactionIndex) => {
-          await this.indexTransaction(blockID, transactionIndex, transaction);
-        }
-      );
-
-      return; // finish block
+      };
+      const jsonBlockData = {
+        ...blockData,
+        ...{ transactions: await Promise.all(transactions) },
+      };
+      return jsonBlockData; // finish block
     } // for (;;)
   }
 
   async indexTransaction(
     blockID: BlockHeight,
     transactionIndex: number,
-    transaction: Transaction
-  ): Promise<void> {
+    transaction: any
+  ): Promise<any> {
     console.error(
       `Indexing transaction ${transaction.hash} at #${blockID}:${transactionIndex}...`
     );
@@ -162,92 +161,118 @@ export class Indexer {
       if (result.result?.status.success?.output.length)
         output = result.result?.status.success?.output;
     }
-
-    const query = sql
-      .insert('transaction', {
-        block: blockID,
-        index: transactionIndex,
-        //id: null,
-        hash: Buffer.from(hexToBytes(transaction.hash!)),
-        near_hash: transaction.near?.hash,
-        near_receipt_hash: transaction.near?.receiptHash,
-        from: Buffer.from(transaction.from!.toBytes()),
-        to: to?.isSome() ? Buffer.from(to.unwrap().toBytes()) : null,
-        nonce: transaction.nonce,
-        gas_price: transaction.gasPrice,
-        gas_limit: transaction.gasLimit,
-        gas_used: result.result?.gasUsed || 0,
-        value: transaction.value,
-        input: transaction.data?.length ? transaction.data : null,
-        v: transaction.v,
-        r: transaction.r,
-        s: transaction.s,
-        status: status,
-        output: output,
-      })
-      .returning('id');
-
     //if (this.config.debug) console.debug(query.toParams()); // DEBUG
-    let transactionID = 0;
-    try {
-      const {
-        rows: [{ id }],
-      } = await this.pgClient.query(query.toParams());
-      transactionID = parseInt(id as string);
-      await this.pgClient.query(
-        `NOTIFY transaction, ${format.literal(transaction.hash)}`
-      );
-    } catch (error) {
-      console.error('indexTransaction', error);
-      return;
-    }
 
-    // Index all log events emitted by this transaction:
-    (transaction.result?.result?.logs || []).forEach(
-      async (event, eventIndex) => {
-        await this.indexEvent(
+    const logs = await ((transaction.result?.result?.logs || []) as any[]).map(
+      async (event: any, eventIndex: any) => {
+        return await this.indexEvent(
           blockID,
           transactionIndex,
-          transactionID,
           eventIndex,
           event
         );
       }
     );
+
+    // Index all log events emitted by this transaction:
+    return {
+      block: blockID,
+      index: transactionIndex,
+      //id: null,
+      hash: Buffer.from(hexToBytes(transaction.hash!)),
+      near_hash: transaction.near?.hash,
+      near_receipt_hash: transaction.near?.receiptHash,
+      from: Buffer.from(transaction.from!.toBytes()),
+      to: to?.isSome() ? Buffer.from(to.unwrap().toBytes()) : null,
+      nonce: transaction.nonce,
+      gas_price: transaction.gasPrice,
+      gas_limit: transaction.gasLimit,
+      gas_used: result.result?.gasUsed || '0',
+      value: transaction.value,
+      input: transaction.data?.length ? transaction.data : null,
+      v: transaction.v,
+      r: transaction.r,
+      s: transaction.s,
+      status: status,
+      output: output,
+      logs: await Promise.all(logs),
+    };
   }
 
   async indexEvent(
     blockID: BlockHeight,
     transactionIndex: number,
-    transactionID: number,
     eventIndex: number,
     event: LogEventWithAddress | LogEvent
-  ): Promise<void> {
+  ): Promise<any> {
     console.error(
       `Indexing log event at #${blockID}:${transactionIndex}:${eventIndex}...`
     );
     const event_ = event as LogEventWithAddress;
-    const query = sql.insert('event', {
-      transaction: transactionID,
-      index: eventIndex,
+
+    return {
       //id: null,
       data: event_.data?.length ? event_.data : null,
       from: event_.address ? Buffer.from(event_.address) : Buffer.alloc(20),
       topics: event_.topics?.length
         ? event_.topics.map((topic) => topic.toBytes())
         : null,
-    });
+    };
+  }
 
-    //if (this.config.debug) console.debug(query.toParams()); // DEBUG
+  async insertNewHeads(): Promise<void> {
+    for (;;) {
+      if (this.pendingBlocks[this.pendingHeadBlock]) {
+        await this.insert(this.pendingBlocks[this.pendingHeadBlock]);
+        delete this.pendingBlocks[this.pendingHeadBlock];
+        this.pendingHeadBlock += 1;
+      }
+      await this.delay(100);
+    }
+  }
+
+  async notifyNewHeads(blockID: number, blockData: any): Promise<void> {
+    if (this.pendingHeadBlock == 0) {
+      this.pendingHeadBlock = blockID;
+    }
+    this.pendingBlocks[blockID] = blockData;
+  }
+
+  async insert(blockData: any) {
     try {
+      const transactions = blockData.transactions || [];
+      delete blockData.transactions;
+      await this.pgClient.query('BEGIN');
+      const query = sql.insert('block', blockData);
       await this.pgClient.query(query.toParams());
-      const logDetails = JSON.stringify({
-        blockId: blockID,
-        index: transactionIndex,
-      });
-      await this.pgClient.query(`NOTIFY log, ${format.literal(logDetails)}`);
+      for (const [transactionIndex, transaction] of transactions.entries()) {
+        const logs = transaction.logs;
+        delete transaction.logs;
+        const transactionData = {
+          ...transaction,
+          ...{ block: blockData.id, index: transactionIndex },
+        };
+        const query = sql
+          .insert('transaction', transactionData)
+          .returning('id');
+        const {
+          rows: [{ id }],
+        } = await this.pgClient.query(query.toParams());
+        const transactionID = parseInt(id as string);
+        for (const [eventIndex, event] of logs.entries()) {
+          const eventData = {
+            ...event,
+            ...{ transaction: transactionID, index: eventIndex },
+          };
+          const query = sql.insert('event', eventData);
+          await this.pgClient.query(query.toParams());
+        }
+      }
+      await this.pgClient.query('COMMIT');
     } catch (error) {
-      console.error('indexEvent', error);
+      console.error('Error indexing. Performing Rollback', error);
+      await this.pgClient.query('ROLLBACK');
+      return; // abort block
     }
   }
 
@@ -269,10 +294,19 @@ async function main(parentPort: MessagePort, workerData: WorkerData) {
   const indexer = new Indexer(config, network, engine);
   await indexer.start();
 
+  setTimeout(function () {
+    indexer.insertNewHeads();
+  });
+
   parentPort
-    .on('message', async (blockID: number) => {
+    .on('message', async (block: any) => {
       parentPort.postMessage(true); // ack the request
-      await indexer.indexBlock(blockID);
+      const blockData = await indexer.indexBlock(block.id);
+      if (block.is_head) {
+        indexer.notifyNewHeads(block.id, blockData);
+      } else {
+        indexer.insert(blockData);
+      }
     })
     .on('close', () => {
       return; // TODO?
