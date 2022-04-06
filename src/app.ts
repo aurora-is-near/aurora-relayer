@@ -12,6 +12,7 @@ import express from 'express';
 import jayson from 'jayson';
 //import { exit } from 'process';
 import { Logger } from 'pino';
+import { parse as parseRawTransaction } from '@ethersproject/transactions'
 
 //import { assert } from 'node:console';
 
@@ -51,7 +52,7 @@ export async function createApp(
 }
 
 function rpcMiddleware(server: jayson.Server): any {
-  return function (req: any, res: any): any {
+  return async function (req: any, res: any): any {
     const options: any = server.options;
 
     if (req.headers['sec-websocket-key']) {
@@ -70,10 +71,36 @@ function rpcMiddleware(server: jayson.Server): any {
       return error(415);
     }
 
-    //assert(req.body && typeof req.body === 'object');
-    server.call(req.body, req, function (error: any, success: any) {
-      const response = error || success;
-      let body = JSON.stringify(response);
+    const payloads = Array.isArray(req.body) ? req.body : [req.body]
+    const findRawTx = (element: any) => element.method == 'eth_sendRawTransaction';
+    if (payloads.some(findRawTx)) {
+      const parsedPayloads = payloads.map((element: any) => {
+        return {
+          ...element,
+          parsed: element.method === 'eth_sendRawTransaction' && parseRawTransaction(element.params[0])
+        }
+      })
+
+      parsedPayloads.sort((a, b) => (a.parsed.nonce > b.parsed.nonce) ? 1 : -1)
+
+      const executedPayloads = await parsedPayloads.reduce(async (acc, element) => {
+        let array = await acc
+        const promise = new Promise((resolve, reject) => {
+          server.call(element, req, function (error: any, success: any) {
+            const response = success || error
+            resolve(response)
+          })
+        })
+
+        const result = await promise
+        array.push(result)
+
+        return array
+      }, Promise.resolve([]))
+
+      let response = executedPayloads[executedPayloads.length - 1]
+      let body = JSON.stringify(executedPayloads)
+
       if (!body) {
         res.writeHead(204);
       } else {
@@ -83,7 +110,7 @@ function rpcMiddleware(server: jayson.Server): any {
 
         if (req?.body?.method == 'eth_sendRawTransaction') {
           const { code, details } = parseTransactionDetails(
-            response?.error?.message || success?.result
+            response?.error?.message || response?.result
           );
           if (details.gasBurned) {
             headers['X-NEAR-Gas-Burned'] = details.gasBurned;
@@ -111,7 +138,50 @@ function rpcMiddleware(server: jayson.Server): any {
         res.write(body);
       }
       res.end();
-    });
+
+    } else {
+      server.call(req.body, req, function (error: any, success: any) {
+        const response = error || success;
+        let body = JSON.stringify(response);
+        if (!body) {
+          res.writeHead(204);
+        } else {
+          const headers: Headers = {
+            'Content-Type': 'application/json; charset=utf-8',
+          };
+
+          if (req?.body?.method == 'eth_sendRawTransaction') {
+            const { code, details } = parseTransactionDetails(
+              response?.error?.message || success?.result
+            );
+            if (details.gasBurned) {
+              headers['X-NEAR-Gas-Burned'] = details.gasBurned;
+            }
+            if (details.tx) {
+              headers['X-NEAR-Transaction-ID'] = details.tx;
+            }
+            if (typeof response?.error?.message === 'string') {
+              if (code) {
+                headers['X-Aurora-Error-Code'] = code.replace(
+                  /[^a-zA-Z0-9!#$%&'*+\-.^_`|~ ]/g,
+                  ''
+                );
+              }
+              response.error.message = code;
+              body = JSON.stringify(response);
+            } else if (response?.result) {
+              response.result = code;
+              headers['X-Aurora-Result'] = response.result;
+              body = JSON.stringify(response);
+            }
+          }
+          headers['Content-Length'] = Buffer.byteLength(body, options.encoding);
+          res.writeHead(200, headers);
+          res.write(body);
+        }
+        res.end();
+      });
+    }
 
     function error(code: any, headers?: any) {
       res.writeHead(code, headers || {});
