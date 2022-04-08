@@ -23,6 +23,7 @@ interface Headers {
   'X-NEAR-Gas-Burned'?: string;
   'X-Aurora-Result'?: string;
   'X-NEAR-Transaction-ID'?: string;
+  'X-Aurora-Process-Result'?: string;
 }
 
 export async function createApp(
@@ -72,6 +73,30 @@ const handleResponse = ({
     const headers: Headers = {
       'Content-Type': 'application/json; charset=utf-8',
     };
+
+    if (Array.isArray(response)) {
+      const processResultHeader = response.reduce((acc, transaction) => {
+        const { code, details } = parseTransactionDetails(
+          transaction?.error?.message || transaction?.result
+        );
+        const metadata = {
+          neargas: details.gasBurned ? details.gasBurned : null,
+          tx: details.tx ? details.gasBurned : null,
+          error: '',
+        };
+
+        if (typeof transaction?.error?.message === 'string') {
+          if (code) {
+            metadata.error = code.replace(/[^a-zA-Z0-9!#$%&'*+\-.^_`|~ ]/g, '');
+          }
+        }
+
+        acc.push(metadata);
+        return acc;
+      }, []);
+
+      headers['X-Aurora-Process-Result'] = JSON.stringify(processResultHeader);
+    }
 
     if (req?.body?.method == 'eth_sendRawTransaction') {
       const { code, details } = parseTransactionDetails(
@@ -186,14 +211,13 @@ function rpcMiddleware(server: jayson.Server): any {
         Promise.resolve([])
       );
 
-      const response = executedPayloads[executedPayloads.length - 1];
       const body = JSON.stringify(executedPayloads);
 
       handleResponse({
         body,
         res,
         req,
-        response,
+        response: executedPayloads,
         options,
       });
     } else {
