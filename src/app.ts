@@ -180,9 +180,10 @@ function rpcMiddleware(server: jayson.Server): any {
       element.method == 'eth_sendRawTransaction';
 
     if (payloads.some(findRawTx)) {
-      const parsedPayloads = payloads.map((element: any) => {
+      const parsedPayloads = payloads.map((element: any, index: number) => {
         return {
           ...element,
+          aurora_req_position: index,
           parsed:
             element.method === 'eth_sendRawTransaction' &&
             parseRawTransaction(element.params[0]),
@@ -199,6 +200,7 @@ function rpcMiddleware(server: jayson.Server): any {
           const promise = new Promise((resolve) => {
             server.call(element, req, function (error: any, success: any) {
               const response = success || error;
+              response.aurora_req_position = element.aurora_req_position;
               resolve(response);
             });
           });
@@ -210,6 +212,14 @@ function rpcMiddleware(server: jayson.Server): any {
         },
         Promise.resolve([])
       );
+
+      executedPayloads.sort((a: any, b: any) =>
+        a.aurora_req_position > b.aurora_req_position ? 1 : -1
+      );
+
+      executedPayloads.forEach((payload: any) => {
+        delete payload.aurora_req_position;
+      });
 
       const body = JSON.stringify(executedPayloads);
 
