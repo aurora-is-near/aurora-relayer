@@ -7,8 +7,13 @@ import (
 	"sync"
 )
 
+type QueueBlock struct {
+	IsHead   bool  `json:"is_head"`
+	Id       int64 `json:"id"`
+}
+
 type Queue struct {
-	items []int64
+	items []QueueBlock
 	mutex sync.RWMutex
 }
 
@@ -18,19 +23,19 @@ func CreateQueue() *Queue {
 	return queue
 }
 
-func (queue *Queue) Enqueue(x int64) {
+func (queue *Queue) Enqueue(x QueueBlock) {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
 	heap.Push(queue, x)
 }
 
-func (queue *Queue) Dequeue() int64 {
+func (queue *Queue) Dequeue() QueueBlock {
 	queue.mutex.Lock()
 	defer queue.mutex.Unlock()
 	if queue.Len() == 0 {
-		return -1
+		return QueueBlock{true, -1}
 	}
-	return heap.Pop(queue).(int64)
+	return heap.Pop(queue).(QueueBlock)
 }
 
 func (queue *Queue) LenSafe() int {
@@ -44,7 +49,7 @@ func (queue *Queue) Len() int {
 }
 
 func (queue *Queue) Less(i, j int) bool {
-	return queue.items[i] > queue.items[j]
+	return queue.items[i].Id > queue.items[j].Id
 }
 
 func (queue *Queue) Swap(i, j int) {
@@ -52,7 +57,7 @@ func (queue *Queue) Swap(i, j int) {
 }
 
 func (queue *Queue) Push(x interface{}) {
-	queue.items = append(queue.items, x.(int64))
+	queue.items = append(queue.items, x.(QueueBlock))
 }
 
 func (queue *Queue) Pop() interface{} {

@@ -51,7 +51,7 @@
   "bugs": "https://github.com/aurora-is-near/aurora-relayer/issues",
   "repository": "https://github.com/aurora-is-near/aurora-relayer.git",
   "dependencies": {
-    "@aurora-is-near/engine": "aurora-is-near/aurora.js#fcaf78bcaf68ef3aee641e23ecfd53ebf8edc28d",
+    "@aurora-is-near/engine": "github:aurora-is-near/aurora.js#fcaf78b",
     "@ethersproject/transactions": "^5.5.0",
     "cloudflare": "^2.9.1",
     "commander": "^7.2.0",
@@ -73,7 +73,7 @@
     "jest": "^27.0.4",
     "js-yaml": "^4.1.0",
     "nanoid": "^3.1.22",
-    "nats": "^2.4.0",
+    "nats": "^2.6.0",
     "node-worker-threads-pool": "^1.5.1",
     "pg": "^8.7.1",
     "pg-format": "^1.0.4",
