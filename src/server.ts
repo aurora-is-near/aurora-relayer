@@ -61,7 +61,10 @@ export class Method extends jayson.Method {
               error.message,
               error.data
                 ? ((bytesToHex(error.data) as unknown) as undefined)
-                : metadata
+                : {
+                    ...metadata,
+                    ...{ request_body: request.body },
+                  }
             )
           );
         }
@@ -75,7 +78,10 @@ export class Method extends jayson.Method {
           server.error(
             -32603,
             `Internal Error - ${error.message}. Please report a bug at <https://github.com/aurora-is-near/aurora-relayer/issues>`,
-            metadata
+            {
+              ...metadata,
+              ...{ request_body: request.body },
+            }
           )
         );
       });
