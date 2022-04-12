@@ -19,10 +19,6 @@ import { parse as parseRawTransaction } from '@ethersproject/transactions';
 interface Headers {
   'Content-Length'?: number;
   'Content-Type': string;
-  'X-Aurora-Error-Code'?: string;
-  'X-NEAR-Gas-Burned'?: string;
-  'X-Aurora-Result'?: string;
-  'X-NEAR-Transaction-ID'?: string;
   'X-Aurora-Process-Result'?: string;
 }
 
@@ -60,6 +56,47 @@ interface HandleResponseProps {
   options: any;
 }
 
+interface SendRawTransactionMetaData {
+  code?: string;
+  details: {
+    tx?: string;
+    gasBurned?: number;
+  };
+  transactionResult?: string;
+  errorExists: boolean;
+}
+
+interface SendRawTransactionMetaDataResult {
+  neargas?: number;
+  tx?: string;
+  result?: string;
+  error?: string;
+}
+
+const sendRawTransactionMetaData = ({
+  code,
+  details,
+  transactionResult,
+  errorExists,
+}: SendRawTransactionMetaData): SendRawTransactionMetaDataResult => {
+  const metadata: SendRawTransactionMetaDataResult = {};
+
+  if (details.gasBurned) {
+    metadata.neargas = details.gasBurned;
+  }
+  if (details.tx) {
+    metadata.tx = details.tx;
+  }
+  if (transactionResult) {
+    metadata.result = transactionResult;
+  }
+  if (errorExists && code) {
+    metadata.error = code.replace(/[^a-zA-Z0-9!#$%&'*+\-.^_`|~ ]/g, '');
+  }
+
+  return metadata;
+};
+
 const handleResponse = ({
   body,
   res,
@@ -74,21 +111,26 @@ const handleResponse = ({
       'Content-Type': 'application/json; charset=utf-8',
     };
 
-    if (Array.isArray(response)) {
+    if (Array.isArray(req?.body) && Array.isArray(response)) {
       const processResultHeader = response.reduce((acc, transaction) => {
-        const { code, details } = parseTransactionDetails(
-          transaction?.error?.message || transaction?.result
+        const transactionRequest = req.body.find(
+          (transactionRequest: { id: number | string }) =>
+            transactionRequest.id === transaction.id
         );
-        const metadata = {
-          neargas: details.gasBurned ? details.gasBurned : null,
-          tx: details.tx ? details.gasBurned : null,
-          error: '',
-        };
 
-        if (typeof transaction?.error?.message === 'string') {
-          if (code) {
-            metadata.error = code.replace(/[^a-zA-Z0-9!#$%&'*+\-.^_`|~ ]/g, '');
-          }
+        let metadata = {};
+
+        if (transactionRequest.method === 'eth_sendRawTransaction') {
+          const { code, details } = parseTransactionDetails(
+            transaction?.error?.message || transaction?.result
+          );
+
+          metadata = sendRawTransactionMetaData({
+            code,
+            details,
+            transactionResult: transaction?.result,
+            errorExists: typeof transaction?.error?.message === 'string',
+          });
         }
 
         acc.push(metadata);
@@ -102,24 +144,21 @@ const handleResponse = ({
       const { code, details } = parseTransactionDetails(
         response?.error?.message || response?.result
       );
-      if (details.gasBurned) {
-        headers['X-NEAR-Gas-Burned'] = details.gasBurned;
-      }
-      if (details.tx) {
-        headers['X-NEAR-Transaction-ID'] = details.tx;
-      }
+
+      const metadata = sendRawTransactionMetaData({
+        code,
+        details,
+        transactionResult: response?.result,
+        errorExists: typeof response?.error?.message === 'string',
+      });
+
+      headers['X-Aurora-Process-Result'] = JSON.stringify([metadata]);
+
       if (typeof response?.error?.message === 'string') {
-        if (code) {
-          headers['X-Aurora-Error-Code'] = code.replace(
-            /[^a-zA-Z0-9!#$%&'*+\-.^_`|~ ]/g,
-            ''
-          );
-        }
         response.error.message = code;
         body = JSON.stringify(response);
       } else if (response?.result) {
         response.result = code;
-        headers['X-Aurora-Result'] = response.result;
         body = JSON.stringify(response);
       }
     }
@@ -175,12 +214,11 @@ function rpcMiddleware(server: jayson.Server): any {
       return error(415);
     }
 
-    const payloads = Array.isArray(req.body) ? req.body : [req.body];
     const findRawTx = (element: any) =>
       element.method == 'eth_sendRawTransaction';
 
-    if (payloads.some(findRawTx)) {
-      const parsedPayloads = payloads.map((element: any, index: number) => {
+    if (Array.isArray(req.body) && req.body.some(findRawTx)) {
+      const parsedPayloads = req.body.map((element: any, index: number) => {
         return {
           ...element,
           aurora_req_position: index,
