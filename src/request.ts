@@ -8,6 +8,10 @@ export class Request {
     return 'authorization' in this.req.headers;
   }
 
+  token(): string {
+    return this.req.url.length >= 2 ? this.req.url.substring(1) : '';
+  }
+
   ip(): string {
     return this.req.headers['cf-connecting-ip'];
   }

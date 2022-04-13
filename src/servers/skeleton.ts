@@ -170,6 +170,7 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_gasPrice(_request: Request): Promise<web3.Quantity> {
+    unimplemented('eth_gasPrice');
     return intToHex(0);
   }
 

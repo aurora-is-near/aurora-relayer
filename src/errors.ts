@@ -105,6 +105,13 @@ export class TransactionError extends ExpectedError {
   }
 }
 
+export class QuotaReached extends ExpectedError {
+  constructor(message: string) {
+    super(-32604, message);
+    Object.setPrototypeOf(this, QuotaReached.prototype);
+  }
+}
+
 export class RevertError extends ExpectedError {
   constructor(reason: Uint8Array) {
     const revertReason = parseEVMRevertReason(reason);

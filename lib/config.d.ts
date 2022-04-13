@@ -5,6 +5,10 @@ export interface Config {
     force: boolean;
     database?: string;
     broker?: string;
+    natsUrl?: string;
+    natsCreds?: string;
+    defaultGasPrice?: number | string;
+    profilesChannel?: string;
     port: number | string;
     network: string;
     endpoint?: string;

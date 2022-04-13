@@ -8,6 +8,10 @@ export interface Config {
   force: boolean;
   database?: string;
   broker?: string;
+  natsUrl?: string;
+  natsCreds?: string;
+  defaultGasPrice?: number | string;
+  profilesChannel?: string;
   port: number | string;
   network: string;
   endpoint?: string;
@@ -27,6 +31,10 @@ export const localConfig: Config = {
   force: false,
   database: undefined,
   broker: undefined,
+  natsUrl: undefined,
+  natsCreds: undefined,
+  defaultGasPrice: 0,
+  profilesChannel: undefined,
   port: 8545,
   network: 'local',
   endpoint: 'http://127.0.0.1:3030',
@@ -60,6 +68,14 @@ export function parseConfig(
       force: options.force || config.force,
       database: options.database || config.database,
       broker: options.broker || config.broker,
+      natsUrl: options.natsUrl || config.natsUrl,
+      natsCreds: options.natsCreds || config.natsCreds,
+      defaultGasPrice: parseInt(
+        (options.defaultGasPrice as string) ||
+          (config.defaultGasPrice as string) ||
+          '0'
+      ),
+      profilesChannel: options.profilesChannel || config.profilesChannel,
       port: parseInt((options.port as string) || (config.port as string)),
       network: networkID,
       endpoint:

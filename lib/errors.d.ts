@@ -36,6 +36,9 @@ export declare class UnknownFilter extends ExpectedError {
 export declare class TransactionError extends ExpectedError {
     constructor(message: string);
 }
+export declare class QuotaReached extends ExpectedError {
+    constructor(message: string);
+}
 export declare class RevertError extends ExpectedError {
     constructor(reason: Uint8Array);
 }

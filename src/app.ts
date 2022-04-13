@@ -1,6 +1,7 @@
 /* This is free and unencumbered software released into the public domain. */
 
 import { Config } from './config.js';
+import { Profiles } from './profiles.js';
 import middleware from './middleware.js';
 import { createServer } from './server.js';
 import { createWsServer } from './ws_server.js';
@@ -46,6 +47,9 @@ export async function createApp(
   app.use(rpcMiddleware(createServer(config, logger, engine)));
   app.use(middleware.handleErrors());
   await createWsServer(config, logger, engine, app);
+  const profiles = new Profiles(config);
+  await profiles.connect();
+  await profiles.startServer();
 
   return app;
 }

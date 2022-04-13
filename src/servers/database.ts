@@ -4,6 +4,7 @@ import { SkeletonServer } from './skeleton.js';
 
 import { Bus } from '../bus.js';
 import { pg, sql } from '../database.js';
+import { Profiles } from '../profiles.js';
 import {
   InvalidAddress,
   InvalidArguments,
@@ -34,18 +35,23 @@ import {
   parse as parseRawTransaction,
   Transaction,
 } from '@ethersproject/transactions';
+import { BigNumber } from '@ethersproject/bignumber';
 import { keccak256 } from 'ethereumjs-util';
 //import { assert } from 'node:console';
 
 export class DatabaseServer extends SkeletonServer {
   protected pgClient?: pg.Client;
   protected bus?: Bus;
+  protected profiles?: Profiles;
 
   protected async _init(): Promise<void> {
     // Connect to the PostgreSQL database:
     const pgClient = new pg.Client(this.config.database);
     this.pgClient = pgClient;
     await pgClient.connect();
+
+    this.profiles = new Profiles(this.config);
+    await this.profiles.connect();
 
     // Connect to the NATS message broker:
     if (this.config.broker) {
@@ -139,6 +145,15 @@ export class DatabaseServer extends SkeletonServer {
 
   async eth_coinbase(_request: Request): Promise<web3.Data> {
     return (await this.engine.getCoinbase()).unwrap().toString();
+  }
+
+  async eth_gasPrice(_request: Request): Promise<web3.Quantity> {
+    const allowedQuota = await this.profiles!.tokenQuota(_request.token());
+    return intToHex(
+      BigInt(
+        (allowedQuota == -1 ? this.config.defaultGasPrice : allowedQuota) || 0
+      )
+    );
   }
 
   async eth_getBalance(
@@ -652,8 +667,10 @@ export class DatabaseServer extends SkeletonServer {
 
     // Enforce the EOA blacklist:
     let rawTransaction: Transaction | undefined;
+    let gasPrice: BigNumber | undefined;
     try {
       rawTransaction = parseRawTransaction(transactionBytes);
+      gasPrice = rawTransaction.gasPrice;
       // eslint-disable-next-line no-empty
     } catch (error) {}
     if (rawTransaction?.from) {
@@ -670,6 +687,8 @@ export class DatabaseServer extends SkeletonServer {
       this._banIP(ip, banReason);
       throw new UnsupportedMethod('eth_sendRawTransaction');
     }
+
+    await this.profiles!.validateTransactionGasPrice(request.token(), gasPrice);
 
     return (await this.engine.submit(transactionBytes)).match({
       ok: (wrappedSubmitResult) => {
@@ -696,6 +715,13 @@ export class DatabaseServer extends SkeletonServer {
             }
           }
         }
+
+        this.profiles!.storeTransaction(
+          request.token(),
+          bytesToHex(transactionHash),
+          gasPrice
+        );
+
         return wrappedSubmitResult.gasBurned || wrappedSubmitResult.tx
           ? `${bytesToHex(transactionHash)}|${JSON.stringify({
               gasBurned: wrappedSubmitResult.gasBurned,
