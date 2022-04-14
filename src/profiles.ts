@@ -87,7 +87,7 @@ export class Profiles {
             try {
               const payload = JSON.parse(sc.decode(m.data));
               const token = payload.token;
-              const t = await this.getToken(token, true);
+              const t = await this.getToken({ token, withUsedQuota: true });
               if (t.token == token) {
                 m.respond(sc.encode(JSON.stringify(t)));
               } else {
@@ -137,11 +137,17 @@ export class Profiles {
   }
 
   async tokenQuota(token: string): Promise<number> {
-    const t = await this.getToken(token);
+    const t = await this.getToken({ token });
     return t.quota || -1;
   }
 
-  async getToken(token: string, withUsedQuota?: boolean): Promise<Token> {
+  async getToken({
+    token,
+    withUsedQuota = false,
+  }: {
+    token: string;
+    withUsedQuota?: boolean;
+  }): Promise<Token> {
     if (this.js == undefined) {
       return {};
     }
@@ -190,7 +196,7 @@ export class Profiles {
       return;
     }
     try {
-      const t = await this.getToken(token);
+      const t = await this.getToken({ token });
       if (t.token == token) {
         const kv = await this.js.views.kv(this.quotaBucketName(token));
         const sc = StringCodec();

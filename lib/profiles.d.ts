@@ -22,7 +22,10 @@ export declare class Profiles {
     addToken(token: string, payload: any): Promise<void>;
     signupKeys(token: string, payload: any): Promise<void>;
     tokenQuota(token: string): Promise<number>;
-    getToken(token: string, withUsedQuota?: boolean): Promise<Token>;
+    getToken({ token, withUsedQuota }: {
+        token: string;
+        withUsedQuota?: boolean;
+    }): Promise<Token>;
     usedQuota(token: string): Promise<number>;
     storeTransaction(token: string, key: string, gasPrice: BigNumber | undefined): Promise<void>;
     validateTransactionGasPrice(token: string, gasPrice: BigNumber | undefined): Promise<void>;
