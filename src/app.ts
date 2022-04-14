@@ -54,6 +54,7 @@ interface HandleResponseProps {
   req: any;
   response: any;
   options: any;
+  sendRawTransactionExists?: boolean;
 }
 
 interface SendRawTransactionMetaData {
@@ -91,7 +92,7 @@ const sendRawTransactionMetaData = ({
     metadata.result = transactionResult;
   }
   if (errorExists && code) {
-    metadata.error = code.replace(/[^a-zA-Z0-9!#$%&'*+\-.^_`|~ ]/g, '');
+    metadata.error = code;
   }
 
   return metadata;
@@ -103,6 +104,7 @@ const handleResponse = ({
   req,
   response,
   options,
+  sendRawTransactionExists,
 }: HandleResponseProps) => {
   if (!body) {
     res.writeHead(204);
@@ -111,7 +113,11 @@ const handleResponse = ({
       'Content-Type': 'application/json; charset=utf-8',
     };
 
-    if (Array.isArray(req?.body) && Array.isArray(response)) {
+    if (
+      sendRawTransactionExists &&
+      Array.isArray(req?.body) &&
+      Array.isArray(response)
+    ) {
       const processResultHeader = response.reduce((acc, transaction) => {
         const transactionRequest = req.body.find(
           (transactionRequest: { id: number | string }) =>
@@ -125,10 +131,18 @@ const handleResponse = ({
             transaction?.error?.message || transaction?.result
           );
 
+          if (typeof transaction?.error?.message === 'string') {
+            if (code) {
+              transaction.error.message = code;
+            }
+          } else if (transaction?.result) {
+            transaction.result = code;
+          }
+
           metadata = sendRawTransactionMetaData({
             code,
             details,
-            transactionResult: transaction?.result,
+            transactionResult: transaction?.result && code,
             errorExists: typeof transaction?.error?.message === 'string',
           });
         }
@@ -138,6 +152,7 @@ const handleResponse = ({
       }, []);
 
       headers['X-Aurora-Process-Result'] = JSON.stringify(processResultHeader);
+      body = JSON.stringify(response);
     }
 
     if (req?.body?.method == 'eth_sendRawTransaction') {
@@ -148,14 +163,16 @@ const handleResponse = ({
       const metadata = sendRawTransactionMetaData({
         code,
         details,
-        transactionResult: response?.result,
+        transactionResult: response?.result && code,
         errorExists: typeof response?.error?.message === 'string',
       });
 
       headers['X-Aurora-Process-Result'] = JSON.stringify([metadata]);
 
       if (typeof response?.error?.message === 'string') {
-        response.error.message = code;
+        if (code) {
+          response.error.message = code;
+        }
         body = JSON.stringify(response);
       } else if (response?.result) {
         response.result = code;
@@ -267,6 +284,7 @@ function rpcMiddleware(server: jayson.Server): any {
         req,
         response: executedPayloads,
         options,
+        sendRawTransactionExists: true,
       });
     } else {
       server.call(req.body, req, function (error: any, success: any) {
