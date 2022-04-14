@@ -3,7 +3,7 @@
 import { Config } from './config.js';
 import crypto from 'crypto';
 import { BigNumber } from '@ethersproject/bignumber';
-import * as fs from 'fs';
+import fs from 'fs';
 
 import {
   connect,
@@ -115,7 +115,7 @@ export class Profiles {
     try {
       const email = payload.email;
       const quota = payload.quota || 50;
-      const kv = await this.js.views.kv(await this.tokenBucketName());
+      const kv = await this.js.views.kv(this.tokenBucketName());
       const sc = StringCodec();
       kv.put(token, sc.encode(JSON.stringify({ email: email, quota: quota })));
     } catch (error: any) {
@@ -127,7 +127,7 @@ export class Profiles {
     if (this.js == undefined) {
       return;
     }
-    const kv = await this.js.views.kv(await this.tokenBucketName());
+    const kv = await this.js.views.kv(this.tokenBucketName());
     const keys = await kv.keys();
     await (async () => {
       for await (const k of keys) {
@@ -146,7 +146,7 @@ export class Profiles {
       return {};
     }
     try {
-      const kv = await this.js.views.kv(await this.tokenBucketName());
+      const kv = await this.js.views.kv(this.tokenBucketName());
       const kv_entry = await kv.get(token);
       const sc = StringCodec();
       if (kv_entry) {
@@ -170,7 +170,7 @@ export class Profiles {
       return 0;
     }
     try {
-      const kv = await this.js.views.kv(await this.quotaBucketName(token));
+      const kv = await this.js.views.kv(this.quotaBucketName(token));
       const status = await kv.status();
       return status.values;
     } catch (error: any) {
@@ -192,7 +192,7 @@ export class Profiles {
     try {
       const t = await this.getToken(token);
       if (t.token == token) {
-        const kv = await this.js.views.kv(await this.quotaBucketName(token));
+        const kv = await this.js.views.kv(this.quotaBucketName(token));
         const sc = StringCodec();
         kv.put(key, sc.encode(JSON.stringify({})));
       }
@@ -221,14 +221,14 @@ export class Profiles {
     }
   }
 
-  async quotaBucketName(token: string): Promise<string> {
+  quotaBucketName(token: string): string {
     const date = new Date();
     return `${this.config.profilesChannel}-quota-${
-      date.getFullYear() + ('0' + (date.getMonth() + 1)).slice(-2)
+      date.getFullYear() + String(date.getMonth() + 1).padStart(2, '0')
     }-${token}`;
   }
 
-  async tokenBucketName(): Promise<string> {
+  tokenBucketName(): string {
     return `${this.config.profilesChannel}-tokens`;
   }
 }

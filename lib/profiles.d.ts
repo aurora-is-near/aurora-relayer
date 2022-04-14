@@ -26,6 +26,6 @@ export declare class Profiles {
     usedQuota(token: string): Promise<number>;
     storeTransaction(token: string, key: string, gasPrice: BigNumber | undefined): Promise<void>;
     validateTransactionGasPrice(token: string, gasPrice: BigNumber | undefined): Promise<void>;
-    quotaBucketName(token: string): Promise<string>;
-    tokenBucketName(): Promise<string>;
+    quotaBucketName(token: string): string;
+    tokenBucketName(): string;
 }
