@@ -23,34 +23,34 @@ test('[] matches anything', () => {
 
 test('[A] matches A in topics[0]', () => {
   const where = compileTopics([A]);
-  expect(where!.toString()).toEqual("e.topics[0] = '\\xaa'");
+  expect(where!.toString()).toEqual("e.topics[1] = '\\xaa'");
 });
 
-test('[null, B] matches anything in topics[0] and B in topics[1]', () => {
+test('[null, B] matches anything in topics[0] and B in topics[2]', () => {
   const where = compileTopics([null, B]);
-  expect(where!.toString()).toEqual("e.topics[1] = '\\xbb'");
+  expect(where!.toString()).toEqual("e.topics[2] = '\\xbb'");
 });
 
-test('[A, B] matches A in topics[0] and B in topics[1]', () => {
+test('[A, B] matches A in topics[1] and B in topics[2]', () => {
   const where = compileTopics([A, B]);
   expect(where!.toString()).toEqual(
-    "(e.topics[0] = '\\xaa' AND e.topics[1] = '\\xbb')"
+    "(e.topics[1] = '\\xaa' AND e.topics[2] = '\\xbb')"
   );
 });
 
-test('[[A, B]] matches A or B in topics[0]', () => {
+test('[[A, B]] matches A or B in topics[1]', () => {
   const where = compileTopics([[A, B]]);
   expect(where!.toString()).toEqual(
-    "(e.topics[0] = '\\xaa' OR e.topics[0] = '\\xbb')"
+    "(e.topics[1] = '\\xaa' OR e.topics[1] = '\\xbb')"
   );
 });
 
-test('[[A, B], [A, B]] matches A or B in topics[0] and A or B in topics[1]', () => {
+test('[[A, B], [A, B]] matches A or B in topics[1] and A or B in topics[2]', () => {
   const where = compileTopics([
     [A, B],
     [A, B],
   ]);
   expect(where!.toString()).toEqual(
-    "((e.topics[0] = '\\xaa' OR e.topics[0] = '\\xbb') AND (e.topics[1] = '\\xaa' OR e.topics[1] = '\\xbb'))"
+    "((e.topics[1] = '\\xaa' OR e.topics[1] = '\\xbb') AND (e.topics[2] = '\\xaa' OR e.topics[2] = '\\xbb'))"
   );
 });

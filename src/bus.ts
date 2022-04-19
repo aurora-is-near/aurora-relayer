@@ -2,7 +2,7 @@
 
 import { Config } from './config.js';
 
-import nats from 'nats';
+import * as nats from 'nats';
 
 const codec = nats.JSONCodec();
 
