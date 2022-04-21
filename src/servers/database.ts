@@ -588,7 +588,8 @@ export class DatabaseServer extends SkeletonServer {
     } = await this._query('SELECT eth_newBlockFilter($1::inet) AS id', [
       '0.0.0.0', // TODO: IPv4
     ]);
-    return intToHex(id);
+
+    return intToHex(id.toString('hex'));
   }
 
   async eth_newFilter(
