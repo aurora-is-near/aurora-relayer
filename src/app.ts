@@ -212,11 +212,11 @@ function parseTransactionDetails(
 }
 
 function rpcMiddleware(server: jayson.Server): any {
-  return async function (req: any, res: any): Promise<any> {
+  return async function (req: any, res: any, next: any): Promise<any> {
     const options: any = server.options;
 
     if (req.headers['sec-websocket-key']) {
-      res.next();
+      return next();
     }
 
     if ((req.method || '') != 'POST') {
