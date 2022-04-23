@@ -43,11 +43,13 @@ export async function createWsServer(
         ws.id,
       ]);
     });
-    ws.on('error', ws.send);
+    ws.on('error', () => {
+      ws.send('Error connecting to WebSocket');
+    });
   });
 
   setTimeout(sync, syncInterval, pgClient, expressWsApp);
-  const blockHeight = (await engine.getBlockHeight()).unwrap() as number;
+  const blockHeight = ((await engine.getBlockHeight()).unwrap() as number) + 10;
   setTimeout(
     notifyNewHeads,
     newHeadsInterval,
