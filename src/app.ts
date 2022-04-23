@@ -41,7 +41,14 @@ export async function createApp(
   app.get('/metrics', (req, res) => {
     res.send(''); // TODO
   });
-  app.use(rpcMiddleware(createServer(config, logger, engine)));
+  app.use(async function (req, res, next) {
+    if (req.headers['sec-websocket-key']) {
+      return next();
+    }
+
+    const handler = rpcMiddleware(createServer(config, logger, engine));
+    return await handler(req, res);
+  });
   app.use(middleware.handleErrors());
   await createWsServer(config, logger, engine, app);
 
@@ -214,10 +221,6 @@ function parseTransactionDetails(
 function rpcMiddleware(server: jayson.Server): any {
   return async function (req: any, res: any): Promise<any> {
     const options: any = server.options;
-
-    if (req.headers['sec-websocket-key']) {
-      res.next();
-    }
 
     if ((req.method || '') != 'POST') {
       return error(405, { Allow: 'POST' });
