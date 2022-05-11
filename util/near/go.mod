@@ -1,4 +1,4 @@
-module github.com/auroraisnear/aurora-relayer/util/near
+module github.com/aurora-is-near/aurora-relayer/util/near
 
 go 1.17
 
