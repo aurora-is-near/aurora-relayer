@@ -42,7 +42,7 @@ CREATE TYPE block_result AS (
     "totalDifficulty" int2,
     "extraData" bytea,       -- 0 bytes
     "size" int4,
-    "gasLimit" int8,
+    "gasLimit" numeric,
     "gasUsed" int8,
     "timestamp" int4,
     "mixHash" hash
@@ -113,7 +113,11 @@ CREATE TABLE block (
   parent_hash       hash NOT NULL UNIQUE,
   transactions_root hash NOT NULL,
   state_root        hash NOT NULL,
-  receipts_root     hash NOT NULL
+  receipts_root     hash NOT NULL,
+  logs_bloom        bytea,
+  miner             address,
+  author            varchar(255),
+  sequence          int8 NOT NULL
 );
 
 CREATE UNIQUE INDEX block_chain_id_idx ON block (chain, id);
@@ -136,25 +140,30 @@ CREATE TABLE filter (
 DROP TABLE IF EXISTS transaction CASCADE;
 
 CREATE TABLE transaction (
-  block             blockno NOT NULL REFERENCES block ON DELETE CASCADE,
-  index             int NOT NULL CHECK (index >= 0),
-  id                bigserial NOT NULL PRIMARY KEY,
-  hash              hash NOT NULL UNIQUE,
-  near_hash         hash NOT NULL,
-  near_receipt_hash hash NULL,
-  "from"            address NOT NULL,
-  "to"              address NULL,
-  nonce             u256 NOT NULL,
-  gas_price         u256 NOT NULL,
-  gas_limit         u256 NOT NULL,
-  gas_used          u256 NOT NULL, -- FIXME: CHECK (gas_used <= gas_limit),
-  value             u256 NOT NULL,
-  input             bytea NULL CHECK (length(input) > 0),
-  v                 u64 NULL,
-  r                 u256 NULL,
-  s                 u256 NULL,
-  status            boolean NOT NULL,
-  output            bytea NULL CHECK (length(output) > 0)
+  block                     blockno NOT NULL REFERENCES block ON DELETE CASCADE,
+  index                     int NOT NULL CHECK (index >= 0),
+  id                        bigserial NOT NULL PRIMARY KEY,
+  hash                      hash NOT NULL UNIQUE,
+  near_hash                 hash NOT NULL,
+  near_receipt_hash         hash NULL,
+  "from"                    address NOT NULL,
+  "to"                      address NULL,
+  nonce                     u256 NOT NULL,
+  gas_price                 u256 NOT NULL,
+  gas_limit                 u256 NOT NULL,
+  gas_used                  u256 NOT NULL, -- FIXME: CHECK (gas_used <= gas_limit),
+  value                     u256 NOT NULL,
+  input                     bytea NULL CHECK (length(input) > 0),
+  v                         u64 NULL,
+  r                         u256 NULL,
+  s                         u256 NULL,
+  status                    boolean NOT NULL,
+  output                    bytea NULL CHECK (length(output) > 0),
+  access_list               json NULL,
+  max_fee_per_gas           u256 NULL,
+  max_priority_fee_per_gas  u256 NULL,
+  type                      int NOT NULL,
+  contract_address          address NULL
 );
 
 CREATE UNIQUE INDEX transaction_block_index_idx ON transaction (block, index);
@@ -222,7 +231,7 @@ BEGIN
       parent_hash,                  -- parentHash
       repeat('\000', 8)::bytea,     -- nonce
       '\x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347',    -- sha3Uncles keccak256(rlp.encode([]))
-      repeat('\000', 256)::bytea,   -- logsBloom
+      logs_bloom,                   -- logsBloom
       transactions_root,            -- transactionsRoot
       state_root,                   -- stateRoot
       receipts_root,                -- receiptsRoot

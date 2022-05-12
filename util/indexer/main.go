@@ -1,178 +1,81 @@
-// This is free and unencumbered software released into the public domain.
-
 package main
 
 import (
 	"context"
-	"encoding/json"
+	"errors"
 	"fmt"
-	"os"
-	"time"
 
-	"github.com/aurora-is-near/near-api-go"
+	"github.com/aurora-is-near/borealis.go"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/spf13/cobra"
+	"github.com/nats-io/nats.go"
 	"github.com/spf13/viper"
 )
 
-const version = "0.0.0"
-const timeFormat = "2006-01-02T15:04:05Z"
-
-var configFile string
-var verbose, debug bool
-var databaseURL, endpointURL string
-var queue = CreateQueue()
-
 func main() {
-	cobra.OnInitialize(initConfig)
-	rootCmd.PersistentFlags().StringVar(&configFile, "config", "", "config file (default is config/local.yaml)")
-	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Be verbose.")
-	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "d", false, "Enable debugging.")
-	cobra.CheckErr(rootCmd.Execute())
-}
-
-func initConfig() {
-	if configFile != "" {
-		viper.SetConfigFile(configFile)
-	} else {
-		if env, ok := os.LookupEnv("NEAR_ENV"); ok && env != "" {
-			viper.SetConfigName(env)
-		} else {
-			viper.SetConfigName("local")
-		}
-		viper.SetConfigType("yaml")
-		viper.AddConfigPath("config")
-		viper.AddConfigPath("../../config")
+	viper.AddConfigPath("config")
+	viper.AddConfigPath("../../config")
+	viper.SetConfigName("local")
+	viper.SetConfigType("yaml")
+	err := viper.ReadInConfig() // Find and read the config file
+	if err != nil {             // Handle errors reading the config file
+		panic(fmt.Errorf("Fatal error config file: %w \n", err))
 	}
 
-	viper.AutomaticEnv() // read in environment variables that match
+	var databaseURL = viper.GetString("database")
+	var natsURL = viper.GetString("natsUrl")
+	var natsCreds = viper.GetString("natsCreds")
+	var natsChannel = viper.GetString("natsChannel")
+	dbpool := DBConnection(databaseURL)
+	defer dbpool.Close()
 
-	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+	nc, err := nats.Connect(natsURL, nats.UserCredentials(natsCreds))
+	if err != nil {
+		panic(fmt.Errorf("Unable to connect to NATS server %s: %v\n", natsURL, err))
 	}
-}
 
-var rootCmd = &cobra.Command{
-	Use:     "indexer",
-	Short:   "Produces block numbers to be indexed, prioritized by freshness",
-	Long:    `Produces block numbers to be indexed, prioritized by freshness.`,
-	Version: version,
-	Run: func(cmd *cobra.Command, args []string) {
-		databaseURL = viper.GetString("database")
-		endpointURL = viper.GetString("endpoint")
+	followChainHead(natsChannel, nc, dbpool)
 
-		database, err := pgxpool.Connect(context.Background(), databaseURL)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Unable to connect to database %s: %v\n", databaseURL, err)
-			os.Exit(1)
-		}
-		defer database.Close()
-
-		endpoint := near.NewConnection(endpointURL)
-
-		indexedBlockID, err := getIndexedBlockHeight(database)
-		if err != nil {
-			indexedBlockID = 0
-		}
-
-		currentBlockID, err := getCurrentBlockHeight(endpoint)
-		if err != nil {
-			panic(err)
-		}
-
-		fmt.Fprintf(os.Stderr, "Indexing blocks #%d..#%d and #%d+...\n", currentBlockID, indexedBlockID, currentBlockID+1)
-
-		go followChainHead(currentBlockID)
-		go scanForIndexGaps(currentBlockID)
-		for {
-			queueBlock := queue.Dequeue()
-			if queueBlock.Id == -1 {
-				time.Sleep(100 * time.Millisecond)
-				continue
-			}
-			data, _ := json.Marshal(queueBlock)
-			fmt.Println(string(data))
-		}
-	},
-}
-
-func followChainHead(previousBlockID int64) {
-	endpoint := near.NewConnection(endpointURL)
 	for {
-		currentBlockID, err := getCurrentBlockHeight(endpoint)
+	}
+}
+
+func followChainHead(channel string, nc *nats.Conn, dbpool *pgxpool.Pool) {
+	js, _ := nc.JetStream()
+	cb := func(m *nats.Msg) {
+		meta, _ := m.Metadata()
+		// fmt.Printf("Stream seq: %s:%d, Consumer seq: %s:%d\n", meta.Stream, meta.Sequence.Stream, meta.Consumer, meta.Sequence.Consumer)
+
+		rawEvent, err := decodeEvent(m.Data[:])
 		if err != nil {
-			panic(err)
-		}
-		if currentBlockID > previousBlockID { // forward only
-			for blockID := previousBlockID + 1; blockID <= currentBlockID; blockID++ {
-				if verbose || debug {
-					if blockID < currentBlockID {
-						fmt.Fprintf(os.Stderr, "Enqueued skipped block #%d.\n", blockID)
-					} else {
-						fmt.Fprintf(os.Stderr, "Enqueued current block #%d.\n", blockID)
-					}
-				}
-				queue.Enqueue(QueueBlock{true, blockID})
+			fmt.Printf("Error: %+v\n", err)
+		} else {
+			block := *rawEvent.PayloadPtr
+			block.Sequence = meta.Sequence.Stream
+			blockId, error := Insert(dbpool, block)
+			if error != nil {
+				panic(fmt.Errorf("Unable import block %v: %v\n", blockId, error))
+			} else {
+				fmt.Println(blockId)
 			}
-			previousBlockID = currentBlockID
 		}
-		time.Sleep(100 * time.Millisecond)
+	}
+	var sequence uint64
+	_ = dbpool.QueryRow(context.Background(), `SELECT MAX(sequence) FROM block`).Scan(&sequence)
+	_, err := js.Subscribe(channel, cb, nats.StartSequence(sequence+1), nats.ReplayInstant())
+
+	if err != nil {
+		panic(fmt.Errorf("Unable to subscribe to NATS server %v\n", err))
 	}
 }
 
-func scanForIndexGaps(tipBlockID int64) {
-	windowSize := int64(1000) // TODO: make this configurable
-	database, err := pgxpool.Connect(context.Background(), databaseURL)
+func decodeEvent(msg []byte) (*borealis.TypedEvent[Block], error) {
+	var rawEvent borealis.RawEvent
+	paramsFactory := func(eventType borealis.EventType) any { p := Block{}; return &p }
+	rawEvent.OverrideEventFactory(paramsFactory)
+	err := rawEvent.DecodeCBOR(msg)
 	if err != nil {
-		panic(err)
+		return nil, errors.New(fmt.Sprintf("Could not parse message: %s", msg))
 	}
-	defer database.Close()
-	for i := int64(0); i < 100000; i++ {
-		maxBlockID := tipBlockID - i*windowSize
-		minBlockID := maxBlockID - windowSize + 1
-		if minBlockID < 0 {
-			break
-		}
-		if debug {
-			fmt.Fprintf(os.Stderr, "Scanning blocks #%d..#%d for gaps...\n", minBlockID, maxBlockID)
-		}
-		query := fmt.Sprintf(`SELECT array_agg(ids) AS "id"
-			FROM generate_series(%d, %d, 1) ids
-			LEFT JOIN block ON ids = block.id
-			WHERE block.id IS NULL
-			LIMIT %d`, minBlockID, maxBlockID, windowSize)
-		blockIDs := make([]int64, 0)
-		err := database.QueryRow(context.Background(), query).Scan(&blockIDs)
-		if err != nil {
-			panic(err)
-		}
-
-		for _, blockID := range blockIDs {
-			queue.Enqueue(QueueBlock{false, blockID})
-			time.Sleep(time.Duration(200*queue.LenSafe()) * time.Millisecond)
-		}
-	}
-}
-
-func getIndexedBlockHeight(database *pgxpool.Pool) (int64, error) {
-	var blockID int64
-	err := database.QueryRow(context.Background(),
-		"SELECT MAX(id) FROM block").Scan(&blockID)
-	if err != nil {
-		return -1, err
-	}
-	return blockID, nil
-}
-
-func getCurrentBlockHeight(endpoint *near.Connection) (int64, error) {
-	nodeStatus, err := endpoint.GetNodeStatus()
-	if err != nil {
-		return -1, err
-	}
-	syncInfo := nodeStatus["sync_info"].(map[string]interface{})
-	blockID, err := syncInfo["latest_block_height"].(json.Number).Int64()
-	if err != nil {
-		return -1, err
-	}
-	return blockID, nil
+	event, _ := borealis.CheckRawEventTyped[Block](&rawEvent)
+	return event, nil
 }

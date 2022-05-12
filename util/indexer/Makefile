@@ -11,7 +11,7 @@ all: indexer
 
 # Output executables:
 
-indexer: main.go queue.go
+indexer: main.go db.go types.go
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=0 $(GO) build $(GOFLAGS) -o $@ $^ && $(UPX) $(UPXFLAGS) $@
 
 # Rules for development:

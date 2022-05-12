@@ -10,7 +10,7 @@ BEGIN
       parent_hash,                  -- parentHash
       repeat('\000', 8)::bytea,     -- nonce
       '\x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347',    -- sha3Uncles keccak256(rlp.encode([]))
-      repeat('\000', 256)::bytea,   -- logsBloom
+      logs_bloom,                   -- logsBloom
       transactions_root,            -- transactionsRoot
       state_root,                   -- stateRoot
       receipts_root,                -- receiptsRoot

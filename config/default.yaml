@@ -7,3 +7,6 @@ endpoint:
 engine:
 signer:
 signerKey:
+natsUrl: "nats://europe.nats.backend.aurora.dev:4222"
+natsChannel:
+natsCreds:

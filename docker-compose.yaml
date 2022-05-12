@@ -24,7 +24,7 @@ services:
       - ./config:/srv/aurora/relayer/config
     extra_hosts:
       - host.docker.internal:host-gateway # See: https://stackoverflow.com/a/43541732
-    entrypoint: ["sh", "-c", "util/indexer/indexer | node lib/indexer_backend.js"]
+    entrypoint: ["sh", "-c", "util/indexer/indexer"]
   endpoint:
     container_name: "${NEAR_ENV:-testnet}_endpoint"
     image: auroraisnear/relayer-endpoint

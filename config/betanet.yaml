@@ -7,3 +7,6 @@ engine: aurora
 signer: relay.aurora
 signerKey:
 writable: true
+natsUrl: "nats://europe.nats.backend.aurora.dev:4222"
+natsChannel: "betanet.aurora.blocks"
+natsCreds:
