@@ -127,6 +127,7 @@ func (transaction Transaction) sqlInsertArgs(blockId uint64) insertArgs {
 		output = transaction.Output
 	}
 
+	var v big.Int
 	transactionInsertData := insertData{
 		"block":                    blockId,
 		"index":                    transaction.TransactionIndex,
@@ -141,7 +142,7 @@ func (transaction Transaction) sqlInsertArgs(blockId uint64) insertArgs {
 		"gas_used":                 transaction.GasUsed,
 		"value":                    transaction.Value.toSqlValue(),
 		"input":                    input,
-		"v":                        transaction.V,
+		"v":                        v.SetUint64(transaction.V).Text(10),
 		"r":                        transaction.R.toSqlValue(),
 		"s":                        transaction.S.toSqlValue(),
 		"status":                   transaction.Status,
