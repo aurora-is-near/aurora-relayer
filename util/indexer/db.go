@@ -74,6 +74,9 @@ func insertTransaction(tx pgx.Tx, transaction Transaction, blockId uint64) (uint
 }
 
 func insertLog(tx pgx.Tx, log Log, transactionId uint64, index int) error {
+	if transactionId == 0 {
+		return nil
+	}
 	args := log.sqlInsertArgs(transactionId, index)
 	_, err := tx.Exec(context.Background(), args[0].(string), args[1:]...)
 	if err != nil {
