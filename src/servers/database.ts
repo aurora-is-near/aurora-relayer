@@ -627,7 +627,7 @@ export class DatabaseServer extends SkeletonServer {
         topics ? JSON.stringify(topics) : null,
       ]
     );
-    return intToHex(id);
+    return intToHex(id.toString('hex'));
   }
 
   async eth_newPendingTransactionFilter(

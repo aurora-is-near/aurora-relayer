@@ -5,10 +5,10 @@
     "src/data_migrations/2021-12-02-event.ts",
     "src/data_migrations/2021-12-14-empty-blocks.ts",
   ],
-  "extends": "@tsconfig/node14/tsconfig.json",
+  "extends": "@tsconfig/node16/tsconfig.json",
   "compilerOptions": {
     "outDir": "./lib",
-    "target": "es2020",
+    "target": "es2021",
     "module": "es2020",
     "moduleResolution": "node",
     "declaration": true,
