@@ -116,3 +116,10 @@ export class RevertError extends ExpectedError {
     Object.setPrototypeOf(this, RevertError.prototype);
   }
 }
+
+export class GasPriceTooLow extends ExpectedError {
+  constructor(message?: string) {
+    super(-32000, message || `Gas price too low.`);
+    Object.setPrototypeOf(this, InvalidAddress.prototype);
+  }
+}
