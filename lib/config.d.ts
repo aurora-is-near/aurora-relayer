@@ -1,5 +1,4 @@
 import { ConnectEnv, NetworkConfig } from '@aurora-is-near/engine';
-export declare const MinGasPrice = 30000000;
 export interface Config {
     debug: boolean;
     verbose: boolean;
@@ -17,6 +16,7 @@ export interface Config {
     batchSize?: number | string;
     writable?: boolean;
     errorLog?: string;
+    minGasPrice?: number;
 }
 export declare const localConfig: Config;
 export declare function parseConfig(options: Config, config: Config, env: ConnectEnv): [NetworkConfig, Config];

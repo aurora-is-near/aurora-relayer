@@ -37,7 +37,6 @@ import {
 } from '@ethersproject/transactions';
 import { keccak256 } from 'ethereumjs-util';
 //import { assert } from 'node:console';
-import { MinGasPrice } from '../config.js';
 
 export class DatabaseServer extends SkeletonServer {
   protected pgClient?: pg.Client;
@@ -141,6 +140,12 @@ export class DatabaseServer extends SkeletonServer {
 
   async eth_coinbase(_request: Request): Promise<web3.Data> {
     return (await this.engine.getCoinbase()).unwrap().toString();
+  }
+
+  async eth_gasPrice(_request: Request): Promise<web3.Quantity>{
+    const minGasPrice =
+      this.config.minGasPrice !== undefined ? this.config.minGasPrice : 0;
+    return intToHex(minGasPrice);
   }
 
   async eth_getBalance(
@@ -675,7 +680,9 @@ export class DatabaseServer extends SkeletonServer {
     }
 
     const gasPrice = rawTransaction?.gasPrice || 0;
-    if (gasPrice < MinGasPrice) {
+    const minGasPrice =
+      this.config.minGasPrice !== undefined ? this.config.minGasPrice : 0;
+    if (gasPrice < minGasPrice) {
       throw new GasPriceTooLow();
     }
 

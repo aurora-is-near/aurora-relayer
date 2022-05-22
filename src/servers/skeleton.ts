@@ -1,7 +1,7 @@
 /* This is free and unencumbered software released into the public domain. */
 
 import * as web3 from '../web3.js';
-import { Config, MinGasPrice } from '../config.js';
+import { Config } from '../config.js';
 import { unimplemented, unsupported } from '../errors.js';
 import { Request } from '../request.js';
 import { blacklist } from '../blacklist.js';
@@ -170,7 +170,8 @@ export abstract class SkeletonServer implements web3.Service {
   }
 
   async eth_gasPrice(_request: Request): Promise<web3.Quantity> {
-    return intToHex(MinGasPrice);
+    unimplemented('eth_gasPrice');
+    return '0x';
   }
 
   async eth_getBalance(
