@@ -33,3 +33,29 @@ export function compileTopics(
 function hexToBytes(input: string): Uint8Array {
   return Buffer.from(input.substring(2), 'hex');
 }
+
+export function matchTopics(
+  topics: Array<string | null | Array<string>>,
+  topicsInTransaction: string[] | null | any[]
+): boolean {
+  return topics.every((topic, i) => {
+    if (topic === null || (Array.isArray(topic) && !topic.length)) {
+      return true;
+    }
+
+    // can be removed after https://github.com/aurora-is-near/aurora-relayer/pull/293 merge
+    if (!Array.isArray(topicsInTransaction)) {
+      return false;
+    }
+
+    if (Array.isArray(topic)) {
+      return topic.includes(topicsInTransaction[i]);
+    }
+
+    if (topic !== topicsInTransaction[i]) {
+      return false;
+    }
+
+    return true;
+  });
+}
