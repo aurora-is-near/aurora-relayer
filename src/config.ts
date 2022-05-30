@@ -52,6 +52,7 @@ export function parseConfig(
     throw new Error(`Unknown network ID: '${networkID}'`);
   }
   const debug = options.debug || config.debug;
+  console.log('config', config)
   return [
     network,
     {
