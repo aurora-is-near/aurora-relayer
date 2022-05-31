@@ -2,7 +2,7 @@
 
 CONTROLS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 WORKDIR=$CONTROLS_DIR/../workdir
-REPO_ROOT=$CONTROLS_DIR/../..
+REPO_ROOT=$CONTROLS_DIR/../../..
 
 
 if [[ ! -z $RUNNER_NAME ]]; then
@@ -23,7 +23,6 @@ if [[ ! -z $RUNNER_NAME ]]; then
     DATABASE_CONTAINER_NAME=relayer-database-$UNIQUE_KEY
     INDEXER_CONTAINER_NAME=relayer-indexer-$UNIQUE_KEY
     ENDPOINT_CONTAINER_NAME=relayer-endpoint-$UNIQUE_KEY
-    NEARCORE_CONTAINER_NAME=nearcore-$UNIQUE_KEY
 else
     NETWORK_NAME=relayer-testing-network
     DATABASE_IMAGE_NAME=relayer-testing-database-img
@@ -31,22 +30,4 @@ else
     DATABASE_CONTAINER_NAME=relayer-testing-database
     INDEXER_CONTAINER_NAME=relayer-testing-indexer
     ENDPOINT_CONTAINER_NAME=relayer-testing-endpoint
-    NEARCORE_CONTAINER_NAME=relayer-testing-nearcore
 fi
-
-
-# Version locks.
-# Specific versions of each dependency are used
-# in order to provide consistent CI.
-
-NEAR_CLI_HEAD=f96735433ac70e19d58823f0d2b9775675fc4dbc
-# Commit hash from: https://github.com/near/near-cli/commits/master
-
-AURORA_CLI_HEAD=7f7c2d29c5114db2b6530a6c0fa09b2068f217df
-# Commit hash from: https://github.com/aurora-is-near/aurora-cli/commits/master
-
-NEARCORE_TAG=master-6a4cffa70383c1d91b2abeedad553da7e25f067b
-# Docker image tag from: https://hub.docker.com/r/nearprotocol/nearcore/tags
-
-CONTRACT_URL=https://github.com/aurora-is-near/aurora-engine/releases/download/2.1.0/mainnet-release.wasm
-# Download url from: https://github.com/aurora-is-near/aurora-engine/releases

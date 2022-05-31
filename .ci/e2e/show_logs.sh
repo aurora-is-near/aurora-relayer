@@ -3,10 +3,7 @@
 CI_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 source $CI_DIR/controls/common.sh
 
-
-if [[ $1 == "nearcore" ]]; then
-    docker logs $NEARCORE_CONTAINER_NAME
-elif [[ $1 == "database" ]]; then
+if [[ $1 == "database" ]]; then
     docker logs $DATABASE_CONTAINER_NAME
 elif [[ $1 == "indexer" ]]; then
     docker logs $INDEXER_CONTAINER_NAME

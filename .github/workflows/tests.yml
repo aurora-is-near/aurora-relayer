@@ -60,50 +60,6 @@ jobs:
       - name: Teardown
         if: ${{ always() }}
         run: ./.ci/runner/teardown.sh
-  test-net-tests:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: Jest specs
-            run: |
-              npm test
-    name: ${{ matrix.name }}
-    runs-on: [self-hosted, heavy]
-    needs: prebuild
-    steps:
-      - name: Clone the repository
-        uses: actions/checkout@v2
-      - name: Setup
-        run: ./.ci/runner/setup.sh
-      - name: Cache node modules
-        id: cache-dep
-        uses: actions/cache@v3
-        env:
-          cache-name: cache-node-modules
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
-      - name: Install JS dependencies
-        if: steps.cache-dep.outputs.cache-hit != 'true'
-        run: npm install
-      - name: Run Test
-        run: ${{ matrix.run }}
-      - name: Print nearcore logs
-        if: ${{ always() }}
-        run: ./.ci/show_logs.sh nearcore
-      - name: Print database logs
-        if: ${{ always() }}
-        run: ./.ci/show_logs.sh database
-      - name: Print indexer logs
-        if: ${{ always() }}
-        run: ./.ci/show_logs.sh indexer
-      - name: Print endpoint logs
-        if: ${{ always() }}
-        run: ./.ci/show_logs.sh endpoint
-      - name: Teardown
-        if: ${{ always() }}
-        run: ./.ci/runner/teardown.sh
   cleanup:
     name: Cleanup
     runs-on: [self-hosted, heavy]

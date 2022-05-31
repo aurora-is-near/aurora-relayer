@@ -23,8 +23,8 @@ docker run -d --init \
     --network $NETWORK_NAME \
     -e WAIT_HOSTS=${DATABASE_CONTAINER_NAME}:5432 \
     -e WAIT_BEFORE=1 \
-    -e NEAR_ENV=localnet \
-    -e NODE_ENV=localnet \
+    -e NEAR_ENV=testnet \
+    -e NODE_ENV=testnet \
     -v $REPO_ROOT/config:/srv/aurora/relayer/config \
     --name $INDEXER_CONTAINER_NAME \
     $ENDPOINT_IMAGE_NAME \

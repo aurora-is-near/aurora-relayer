@@ -11,8 +11,6 @@ import request from 'supertest';
 
 let app: Promise<any>;
 
-console.log('externalConfig', externalConfig)
-
 describe('AppServer', () => {
   beforeAll(async () => {
     const logger = pino();

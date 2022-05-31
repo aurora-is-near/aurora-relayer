@@ -18,7 +18,6 @@ done
 
 $CI_DIR/controls/relayer/stop.sh
 $CI_DIR/controls/relayer/remove.sh
-$CI_DIR/controls/nearcore/stop.sh
 $CI_DIR/controls/network/remove.sh
 if [[ ! -z $remove_images ]]; then
     $CI_DIR/controls/relayer/remove_images.sh
