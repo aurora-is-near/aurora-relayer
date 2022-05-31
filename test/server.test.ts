@@ -147,6 +147,129 @@ describe('AppServer', () => {
       })
     })
 
+    describe('eth_getLogs', () => {
+      test('should return [], with [] in topics params', async () => {
+        const response = await request(app)
+          .post('/')
+          .send({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'eth_getLogs',
+            params: [{
+              address: "0x23a824dD17d6571e1BAdd25A6247C685D6802985",
+              fromBlock: "0x3ecdf57",
+              toBlock: "0x3ece307",
+              topics: [
+                  [],
+                  ["0x000000000000000000000000fe28a27a95e51bb2604abd65375411a059371616"]
+              ]
+            }],
+          })
+
+        expect(response.body.result).toEqual([])
+      })
+
+      test('should return [], with hash in topics params', async () => {
+        const response = await request(app)
+          .post('/')
+          .send({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'eth_getLogs',
+            params: [{
+              address: "0x23a824dD17d6571e1BAdd25A6247C685D6802985",
+              fromBlock: "0x3ecdf57",
+              toBlock: "0x3ece307",
+              topics: ["0x000000000000000000000000fe28a27a95e51bb2604abd65375411a059371616"]
+            }],
+          })
+
+        expect(response.body.result).toEqual([])
+      })
+
+      test('should return [], with double [] in topics params', async () => {
+        const response = await request(app)
+          .post('/')
+          .send({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'eth_getLogs',
+            params: [{
+              address: "0x23a824dD17d6571e1BAdd25A6247C685D6802985",
+              fromBlock: "0x3ecdf57",
+              toBlock: "0x3ece307",
+              topics: [
+                [],
+                [],
+                "0x000000000000000000000000fe28a27a95e51bb2604abd65375411a059371616"
+              ]
+            }],
+          })
+
+        expect(response.body.result).toEqual([])
+      })
+
+      test('should return [], with double null in topics params', async () => {
+        const response = await request(app)
+          .post('/')
+          .send({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'eth_getLogs',
+            params: [{
+              address: "0x23a824dD17d6571e1BAdd25A6247C685D6802985",
+              fromBlock: "0x3ecdf57",
+              toBlock: "0x3ece307",
+              topics: [
+                null,
+                null,
+                "0x000000000000000000000000fe28a27a95e51bb2604abd65375411a059371616"
+              ]
+            }],
+          })
+
+        expect(response.body.result).toEqual([])
+      })
+
+      test('should return [], with null in topics params', async () => {
+        const response = await request(app)
+          .post('/')
+          .send({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'eth_getLogs',
+            params: [{
+              address: "0x23a824dD17d6571e1BAdd25A6247C685D6802985",
+              fromBlock: "0x3ecdf57",
+              toBlock: "0x3ece307",
+              topics: [
+                  null,
+                  ["0x000000000000000000000000fe28a27a95e51bb2604abd65375411a059371616"]
+              ]
+            }],
+          })
+
+        expect(response.body.result).toEqual([])
+      })
+
+      test('should return [], without topics param', async () => {
+        const response = await request(app)
+          .post('/')
+          .send({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'eth_getLogs',
+            params: [{
+              address: "0x23a824dD17d6571e1BAdd25A6247C685D6802985",
+              fromBlock: "0x3ecdf57",
+              toBlock: "0x3ece307"
+            }],
+          })
+
+        expect(response.body.result).toEqual([])
+      })
+    })
+
     describe('eth_getTransactionByBlockHashAndIndex', () => {
       test("should return null for block that doesn't exist", async () => {
         const response = await request(app)

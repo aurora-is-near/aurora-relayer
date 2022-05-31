@@ -837,7 +837,7 @@ export class DatabaseServer extends SkeletonServer {
     return rows.map((row: Record<string, unknown>) => {
       row['topics'] =
         row['topics'] === null
-          ? null
+          ? []
           : (row['topics'] as string)
               .split(';')
               .map((topic) => topic.replace('\\x', '0x'));

@@ -32,6 +32,24 @@ You can customize the configuration by copying [`config/testnet.yaml`] to
 
 [`config/testnet.yaml`]: https://github.com/aurora-is-near/aurora-relayer/blob/master/config/testnet.yaml
 
+### Usage for Testnet without Docker
+
+1. `npm i`
+2. Install postgresql and create database, [example](https://github.com/aurora-is-near/aurora-relayer/blob/master/.docker/docker-entrypoint-initdb.d/init.sh) of how to create database
+3. Go to indexer directory `cd util/indexer`
+4. Compile `indexer` binary, `go build`
+5. Return to root directory of the project
+6. Run Node.js server `NEAR_ENV=testnet node lib/index.js`
+7. Run indexer `sh -c util/indexer/indexer | NEAR_ENV=testnet node lib/indexer_backend.js`
+
+### Usage for Testnet without Docker and with live changes
+
+To see local changes without restarting the Node.js server, instead of step 6, execute:
+```
+NEAR_ENV=testnet npm run start
+npm run build:watch
+```
+
 ### Usage for LocalNet
 
 To run the relayer locally, first start [nearcore] and then execute:
@@ -236,3 +254,16 @@ Method | Status | Notes
 [`txpool_inspect`]: https://geth.ethereum.org/docs/rpc/ns-txpool#txpool_inspect
 [`txpool_status`]: https://geth.ethereum.org/docs/rpc/ns-txpool#txpool_status
 [`parity_pendingTransactions`]: https://openethereum.github.io/JSONRPC-parity-module#parity_pendingtransactions
+
+## Contributing
+
+1. Clone the repo
+2. Create your branch
+3. Add your changes
+4. Run tests (`npm run test`, the local server must be running for the tests to pass). Fix if you broke something. Add your own tests
+5. Format your code (`npm run format`)
+6. Run linter (`npm run lint`)
+7. Build changes (`npm run build`)
+8. Commit your Changes (`git commit -m 'Resolved an issue'`)
+9. Push to the Branch (`git push origin new_feature`)
+10. Open a Pull Request

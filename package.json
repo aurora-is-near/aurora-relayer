@@ -29,6 +29,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "build:watch": "tsc --watch",
     "format": "prettier -w src",
     "lint": "eslint test && eslint **/*.ts",
     "start": "nodemon",
