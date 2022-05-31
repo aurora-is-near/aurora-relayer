@@ -15,6 +15,7 @@ export function compileTopics(
         return [sql.eq(`e.topics[${i + 1}]`, hexToBytes(topic))];
       }
       if (Array.isArray(topic)) {
+        if (!topic.length) return [];
         const operands: sql.WhereExpression[] = topic
           .map((topic: web3.FilterTopic): sql.WhereExpression[] => {
             if (topic === null) return [];
