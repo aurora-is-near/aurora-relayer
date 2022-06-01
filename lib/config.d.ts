@@ -16,6 +16,7 @@ export interface Config {
     batchSize?: number | string;
     writable?: boolean;
     errorLog?: string;
+    minGasPrice?: number;
 }
 export declare const localConfig: Config;
 export declare function parseConfig(options: Config, config: Config, env: ConnectEnv): [NetworkConfig, Config];
