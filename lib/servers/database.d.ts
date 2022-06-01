@@ -12,6 +12,7 @@ export declare class DatabaseServer extends SkeletonServer {
     eth_call(_request: Request, transaction: web3.TransactionForCall, blockNumberOrHash?: web3.Quantity | web3.Tag | web3.Data): Promise<web3.Data>;
     eth_chainId(_request: Request): Promise<web3.Quantity>;
     eth_coinbase(_request: Request): Promise<web3.Data>;
+    eth_gasPrice(_request: Request): Promise<web3.Quantity>;
     eth_getBalance(_request: Request, address: web3.Data, blockNumber?: web3.Quantity | web3.Tag): Promise<web3.Quantity>;
     eth_getBlockByHash(_request: Request, blockHash: web3.Data, fullObject?: boolean): Promise<web3.BlockResult | null>;
     eth_getBlockByNumber(_request: Request, blockNumber: web3.Quantity | web3.Tag, fullObject?: boolean): Promise<web3.BlockResult | null>;
