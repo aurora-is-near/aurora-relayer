@@ -103,7 +103,7 @@ type Transaction struct {
 	Output               []byte          `cbor:"output"`                   //Vec<u8>
 	AccessList           []AccessList    `cbor:"access_list"`              //Vec<AccessTuple>
 	TxType               uint8           `cbor:"tx_type"`                  //u8
-	Status               bool            `cbor:"bool"`                     //bool
+	Status               bool            `cbor:"status"`                   //bool
 	Logs                 []Log           `cbor:"logs"`                     //Vec<ResultLog>,
 	ContractAddress      Address         `cbor:"contract_address"`         //Address
 	V                    uint64          `cbor:"v"`                        //U64
