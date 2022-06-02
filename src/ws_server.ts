@@ -1,6 +1,7 @@
 /* This is free and unencumbered software released into the public domain. */
 
 import { Config } from './config.js';
+import { matchTopics } from './topics.js';
 import { createServer } from './server.js';
 import pg from 'pg';
 import expressWs from 'express-ws';
@@ -127,11 +128,7 @@ async function notifyNewHeads(
         }
         if (topics.length > 0) {
           result = result.filter((result: any) => {
-            return (
-              result.topics.filter((topic: any) => {
-                return topics.includes(topic);
-              }).length > 0
-            );
+            return matchTopics(topics, result.topics);
           });
         }
         result.forEach(function (res: any) {

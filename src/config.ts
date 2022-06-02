@@ -19,6 +19,7 @@ export interface Config {
   batchSize?: number | string;
   writable?: boolean;
   errorLog?: string;
+  minGasPrice?: number;
 }
 
 export const localConfig: Config = {
@@ -36,6 +37,7 @@ export const localConfig: Config = {
   signerKeys: [],
   writable: true,
   errorLog: undefined,
+  minGasPrice: undefined,
 };
 
 export function parseConfig(
@@ -80,6 +82,8 @@ export function parseConfig(
       ),
       writable: config.writable !== undefined ? config.writable : true,
       errorLog: config.errorLog,
+      minGasPrice:
+        config.minGasPrice !== undefined ? config.minGasPrice : 0,
     },
   ];
 }

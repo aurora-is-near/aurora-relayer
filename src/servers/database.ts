@@ -12,6 +12,7 @@ import {
   UnexpectedError,
   UnknownFilter,
   UnsupportedMethod,
+  GasPriceTooLow,
 } from '../errors.js';
 import { Request } from '../request.js';
 import { compileTopics } from '../topics.js';
@@ -139,6 +140,12 @@ export class DatabaseServer extends SkeletonServer {
 
   async eth_coinbase(_request: Request): Promise<web3.Data> {
     return (await this.engine.getCoinbase()).unwrap().toString();
+  }
+
+  async eth_gasPrice(_request: Request): Promise<web3.Quantity>{
+    const minGasPrice =
+      this.config.minGasPrice !== undefined ? this.config.minGasPrice : 0;
+    return intToHex(minGasPrice);
   }
 
   async eth_getBalance(
@@ -672,6 +679,13 @@ export class DatabaseServer extends SkeletonServer {
       throw new UnsupportedMethod('eth_sendRawTransaction');
     }
 
+    const gasPrice = rawTransaction?.gasPrice || 0;
+    const minGasPrice =
+      this.config.minGasPrice !== undefined ? this.config.minGasPrice : 0;
+    if (gasPrice < minGasPrice) {
+      throw new GasPriceTooLow();
+    }
+
     return (await this.engine.submit(transactionBytes)).match({
       ok: (wrappedSubmitResult) => {
         const result = wrappedSubmitResult.submitResult;
@@ -837,7 +851,7 @@ export class DatabaseServer extends SkeletonServer {
     return rows.map((row: Record<string, unknown>) => {
       row['topics'] =
         row['topics'] === null
-          ? null
+          ? []
           : (row['topics'] as string)
               .split(';')
               .map((topic) => topic.replace('\\x', '0x'));
