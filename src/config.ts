@@ -82,8 +82,7 @@ export function parseConfig(
       ),
       writable: config.writable !== undefined ? config.writable : true,
       errorLog: config.errorLog,
-      minGasPrice:
-        config.minGasPrice !== undefined ? config.minGasPrice : 0,
+      minGasPrice: config.minGasPrice !== undefined ? config.minGasPrice : 0,
     },
   ];
 }
