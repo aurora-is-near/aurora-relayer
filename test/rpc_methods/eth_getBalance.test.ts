@@ -1,14 +1,12 @@
 /* This is free and unencumbered software released into the public domain. */
 
-import { createServer } from '../helpers';
 import Web3 from 'web3';
 
 let web3: any;
 
 describe('eth_getBalance', () => {
   beforeAll(async () => {
-    const app = await createServer();
-    const port = app.address().port;
+    const port = process.env['EXPRESS_PORT'];
     web3 = new Web3(`http://localhost:${port}`)
   })
 
