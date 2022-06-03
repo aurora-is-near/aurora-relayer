@@ -48,6 +48,8 @@ jobs:
       - name: Install JS dependencies
         if: steps.cache-dep.outputs.cache-hit != 'true'
         run: npm install
+      - name: Build app
+        run: npm run build
       - name: Run Test
         run: ${{ matrix.run }}
       - name: Print database logs
