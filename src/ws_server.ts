@@ -115,11 +115,7 @@ async function notifyNewHeads(
     jaysonWsServer.call(logsBody, {}, function (error: any, success: any) {
       forSubscriptions(pgClient, 'logs', function (row: any) {
         const address = parseAddresses(row.filter?.address);
-        const topics =
-          row.filter?.topics?.reduce(
-            (accumulator: string, value: string) => accumulator.concat(value),
-            []
-          ) || [];
+        const topics = row.filter?.topics || [];
         let result = success.result;
         if (address.length > 0) {
           result = result.filter((result: any) => {

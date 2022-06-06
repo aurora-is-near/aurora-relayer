@@ -142,7 +142,7 @@ export class DatabaseServer extends SkeletonServer {
     return (await this.engine.getCoinbase()).unwrap().toString();
   }
 
-  async eth_gasPrice(_request: Request): Promise<web3.Quantity>{
+  async eth_gasPrice(_request: Request): Promise<web3.Quantity> {
     const minGasPrice =
       this.config.minGasPrice !== undefined ? this.config.minGasPrice : 0;
     return intToHex(minGasPrice);
