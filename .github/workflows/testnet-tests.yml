@@ -1,6 +1,8 @@
 ---
 on:
   push:
+    branches:
+      - master
   pull_request:
 
 env:
@@ -13,7 +15,7 @@ jobs:
     runs-on: [self-hosted, heavy]
     steps:
       - name: Clone the repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Install upx
         run: apt-get install -y upx
       - name: Prebuild
@@ -34,7 +36,7 @@ jobs:
     needs: prebuild
     steps:
       - name: Clone the repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup
         run: ./.ci/e2e/runner/setup.sh
       - name: Cache node modules
@@ -71,6 +73,6 @@ jobs:
     if: ${{ always() }}
     steps:
       - name: Clone the repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Cleanup
         run: ./.ci/e2e/runner/cleanup.sh

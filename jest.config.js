@@ -16,5 +16,5 @@ export default {
   transformIgnorePatterns: [
     "node_modules/(?!(@aurora-is-near))"
   ],
-  globalSetup: '<rootDir>/test/setup.js'
+  globalSetup: '<rootDir>/test/setup.js',
 };
