@@ -1,8 +1,6 @@
 ---
 on:
   push:
-    branches:
-      - master
   pull_request:
 
 name: Lints
@@ -13,7 +11,18 @@ jobs:
     steps:
       - name: Clone the repository
         uses: actions/checkout@v2
-      - name: Install dependencies
+      - name: Cache node modules
+        id: cache-dep
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+      - name: Install JS dependencies
+        if: steps.cache-dep.outputs.cache-hit != 'true'
         run: npm install
+      - name: Run prettier
+        run: npx prettier --check src
       - name: Run ESLint
-        run: npx eslint . --ext .ts,.tsx
+        run: npm run lint
