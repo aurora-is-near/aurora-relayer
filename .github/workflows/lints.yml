@@ -22,7 +22,7 @@ jobs:
       - name: Install JS dependencies
         if: steps.cache-dep.outputs.cache-hit != 'true'
         run: npm install
-      - name: Run prettier
-        run: npx prettier --check src
       - name: Run ESLint
         run: npm run lint
+      - name: Run prettier
+        run: npx prettier --check src
