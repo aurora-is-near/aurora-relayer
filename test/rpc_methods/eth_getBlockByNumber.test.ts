@@ -30,7 +30,7 @@ describe('eth_getBlockByNumber', () => {
   })
 
   test(`should return null for block that doesn't exist`, async () => {
-    const response = await web3.eth.getBlock('9999999970191245')
+    const response = await web3.eth.getBlock(Number.MAX_SAFE_INTEGER)
 
     expect(response).toBeNull()
   })

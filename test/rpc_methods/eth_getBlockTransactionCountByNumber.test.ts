@@ -11,7 +11,7 @@ describe('eth_getBlockTransactionCountByNumber', () => {
   })
 
   test(`should return 0 for block that doesn't exist`, async () => {
-    const response = await web3.eth.getBlockTransactionCount('999999999999999999')
+    const response = await web3.eth.getBlockTransactionCount(Number.MAX_SAFE_INTEGER)
 
     expect(response).toBe(0)
   })
