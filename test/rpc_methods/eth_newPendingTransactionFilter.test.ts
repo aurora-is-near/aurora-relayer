@@ -20,7 +20,6 @@ describe('eth_newPendingTransactionFilter', () => {
       params: [],
     })
 
-    expect(response.body.result).toContain(`0x`)
-    expect(response.body.result.length).toBe(34)
+    expect(response.body.result).toBe(`0x00000000000000000000000000000000`)
   })
 })
