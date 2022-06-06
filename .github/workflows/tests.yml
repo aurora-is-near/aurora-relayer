@@ -1,8 +1,6 @@
 ---
 on:
   push:
-    branches:
-      - master
   pull_request:
 
 name: Tests
@@ -12,7 +10,7 @@ jobs:
     runs-on: [self-hosted, heavy]
     steps:
       - name: Clone the repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Prebuild
         run: ./.ci/runner/prebuild.sh
       - name: Teardown
@@ -42,7 +40,7 @@ jobs:
     needs: prebuild
     steps:
       - name: Clone the repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Setup
         run: ./.ci/runner/setup.sh
       - name: Run Test
@@ -69,6 +67,6 @@ jobs:
     if: ${{ always() }}
     steps:
       - name: Clone the repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Cleanup
         run: ./.ci/runner/cleanup.sh
