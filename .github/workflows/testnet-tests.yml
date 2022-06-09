@@ -5,7 +5,10 @@ on:
       - master
   pull_request:
 
-name: Tests
+env:
+  TEST_NET_KEY: ${{ secrets.TEST_NET_KEY }}
+
+name: Tests for testnet
 jobs:
   prebuild:
     name: Prebuild
@@ -13,30 +16,21 @@ jobs:
     steps:
       - name: Clone the repository
         uses: actions/checkout@v3
+      - name: Install upx
+        run: apt-get install -y upx
       - name: Prebuild
-        run: ./.ci/runner/prebuild.sh
+        run: ./.ci/e2e/runner/prebuild.sh
       - name: Teardown
         if: ${{ always() }}
-        run: ./.ci/runner/teardown.sh
+        run: ./.ci/e2e/runner/teardown.sh
   tests:
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: Test 1
+          - name: Jest specs
             run: |
-              ENDPOINT_HOST=$(cat .ci/workdir/endpoint.txt)
-              curl -X POST \
-                -H 'Content-Type: application/json' \
-                -d '{"jsonrpc":"2.0","id":"1","method":"eth_blockNumber","params":[]}' \
-                http://${ENDPOINT_HOST}:8545
-          - name: Test 2
-            run: |
-              ENDPOINT_HOST=$(cat .ci/workdir/endpoint.txt)
-              curl -X POST \
-                -H 'Content-Type: application/json' \
-                -d '{"jsonrpc":"2.0","id":"1","method":"eth_blockNumber","params":[]}' \
-                http://${ENDPOINT_HOST}:8545
+              npm test
     name: ${{ matrix.name }}
     runs-on: [self-hosted, heavy]
     needs: prebuild
@@ -44,24 +38,34 @@ jobs:
       - name: Clone the repository
         uses: actions/checkout@v3
       - name: Setup
-        run: ./.ci/runner/setup.sh
+        run: ./.ci/e2e/runner/setup.sh
+      - name: Cache node modules
+        id: cache-dep
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+      - name: Install JS dependencies
+        if: steps.cache-dep.outputs.cache-hit != 'true'
+        run: npm install
+      - name: Build app
+        run: npm run build
       - name: Run Test
         run: ${{ matrix.run }}
-      - name: Print nearcore logs
-        if: ${{ always() }}
-        run: ./.ci/show_logs.sh nearcore
       - name: Print database logs
         if: ${{ always() }}
-        run: ./.ci/show_logs.sh database
+        run: ./.ci/e2e/show_logs.sh database
       - name: Print indexer logs
         if: ${{ always() }}
-        run: ./.ci/show_logs.sh indexer
+        run: ./.ci/e2e/show_logs.sh indexer
       - name: Print endpoint logs
         if: ${{ always() }}
-        run: ./.ci/show_logs.sh endpoint
+        run: ./.ci/e2e/show_logs.sh endpoint
       - name: Teardown
         if: ${{ always() }}
-        run: ./.ci/runner/teardown.sh
+        run: ./.ci/e2e/runner/teardown.sh
   cleanup:
     name: Cleanup
     runs-on: [self-hosted, heavy]
@@ -71,4 +75,4 @@ jobs:
       - name: Clone the repository
         uses: actions/checkout@v3
       - name: Cleanup
-        run: ./.ci/runner/cleanup.sh
+        run: ./.ci/e2e/runner/cleanup.sh
