@@ -10,7 +10,7 @@ jobs:
   prebuild:
     name: Prebuild
     runs-on: [self-hosted, heavy]
-    if: contains(github.event.pull_request.labels.*.name, 'safe to test')
+    if: ${{ contains(github.event.pull_request.labels.*.name, 'safe to test') || github.ref == 'refs/heads/master' }}
     steps:
       - name: Clone the repository
         uses: actions/checkout@v3
