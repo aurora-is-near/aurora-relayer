@@ -42,8 +42,8 @@ export async function createApp(
     res.send(''); // TODO
   });
   app.use(rpcMiddleware(createServer(config, logger, engine)));
-  app.use(middleware.handleErrors());
   await createWsServer(config, logger, engine, app);
+  app.use(middleware.handleErrors(config.trace));
 
   return app;
 }

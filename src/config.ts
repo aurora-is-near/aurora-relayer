@@ -5,6 +5,7 @@ import { ConnectEnv, NetworkConfig, NETWORKS } from '@aurora-is-near/engine';
 export interface Config {
   debug: boolean;
   verbose: boolean;
+  trace: boolean;
   force: boolean;
   database?: string;
   broker?: string;
@@ -25,6 +26,7 @@ export interface Config {
 export const localConfig: Config = {
   debug: false,
   verbose: false,
+  trace: false,
   force: false,
   database: undefined,
   broker: undefined,
@@ -59,6 +61,7 @@ export function parseConfig(
     {
       debug: debug,
       verbose: debug || options.verbose || config.verbose,
+      trace: options.trace || config.trace,
       force: options.force || config.force,
       database: options.database || config.database,
       broker: options.broker || config.broker,

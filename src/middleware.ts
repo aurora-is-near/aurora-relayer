@@ -1,6 +1,7 @@
 /* This is free and unencumbered software released into the public domain. */
 
 import { blacklist } from './blacklist.js';
+import tracer from './tracer.js';
 
 import expressIpFilter from 'express-ipfilter';
 const { IpDeniedError, IpFilter } = expressIpFilter;
@@ -52,12 +53,16 @@ export function blacklistIPs(): any {
   });
 }
 
-export function handleErrors() {
+export function handleErrors(tracingEnabled: boolean) {
   return (err: any, req: any, res: any, next: any): void => {
     if (err instanceof IpDeniedError) {
       // TODO: req.log.info(...);
       res.status(403).end();
     } else {
+      tracingEnabled &&
+        tracer.trace('error', (span, cb) => {
+          cb && cb(err);
+        });
       next();
     }
   };

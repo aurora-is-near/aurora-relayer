@@ -26,6 +26,7 @@ async function main(argv: string[], env: NodeJS.ProcessEnv): Promise<void> {
   program
     .option('-d, --debug', 'enable debug output')
     .option('-v, --verbose', 'enable verbose output')
+    .option('-t, --trace', 'enable tracing errors')
     .option(
       '--database <url>',
       `specify PostgreSQL database URL (default: none)`
