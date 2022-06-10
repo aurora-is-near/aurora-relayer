@@ -822,7 +822,7 @@ export class DatabaseServer extends SkeletonServer {
     return true;
   }
 
-  protected async _fetchCurrentBlockID(): Promise<number> {
+  protected async _fetchCurrentBlockID(): Promise<bigint> {
     const {
       rows: [{ result }],
     } = await this._query('SELECT eth_blockNumber() AS result');
@@ -860,7 +860,7 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   protected async _fetchTransactions(
-    blockID: number | Uint8Array,
+    blockID: bigint | number | Uint8Array,
     fullObject: boolean
   ): Promise<unknown[] | string[]> {
     const idColumn = ['bigint', 'number'].includes(typeof blockID)
