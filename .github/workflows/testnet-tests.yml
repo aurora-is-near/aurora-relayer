@@ -4,6 +4,7 @@ on:
     branches:
       - master
   pull_request:
+    types: [labeled]
 
 name: Tests for testnet
 jobs:
