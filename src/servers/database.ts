@@ -863,7 +863,9 @@ export class DatabaseServer extends SkeletonServer {
     blockID: number | Uint8Array,
     fullObject: boolean
   ): Promise<unknown[] | string[]> {
-    const idColumn = typeof blockID === 'number' ? 'id' : 'hash';
+    const idColumn = ['bigint', 'number'].includes(typeof blockID)
+      ? 'id'
+      : 'hash';
     if (fullObject) {
       const { rows } = await this._query(
         `SELECT
