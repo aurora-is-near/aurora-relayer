@@ -142,7 +142,7 @@ export class DatabaseServer extends SkeletonServer {
     return (await this.engine.getCoinbase()).unwrap().toString();
   }
 
-  async eth_gasPrice(_request: Request): Promise<web3.Quantity>{
+  async eth_gasPrice(_request: Request): Promise<web3.Quantity> {
     const minGasPrice =
       this.config.minGasPrice !== undefined ? this.config.minGasPrice : 0;
     return intToHex(minGasPrice);
@@ -822,7 +822,7 @@ export class DatabaseServer extends SkeletonServer {
     return true;
   }
 
-  protected async _fetchCurrentBlockID(): Promise<number> {
+  protected async _fetchCurrentBlockID(): Promise<bigint> {
     const {
       rows: [{ result }],
     } = await this._query('SELECT eth_blockNumber() AS result');
@@ -860,10 +860,12 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   protected async _fetchTransactions(
-    blockID: number | Uint8Array,
+    blockID: bigint | number | Uint8Array,
     fullObject: boolean
   ): Promise<unknown[] | string[]> {
-    const idColumn = typeof blockID === 'number' ? 'id' : 'hash';
+    const idColumn = ['bigint', 'number'].includes(typeof blockID)
+      ? 'id'
+      : 'hash';
     if (fullObject) {
       const { rows } = await this._query(
         `SELECT

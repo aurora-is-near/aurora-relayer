@@ -21,6 +21,7 @@ $WORKDIR/near-cli/bin/near create-account aurora.test.near \
     --node-url http://${NEARCORE_HOST}:3030
 
 rm $WORKDIR/aurora.test.near.json || true
+chmod 777 ~/.near-credentials/local/aurora.test.near.json
 cp ~/.near-credentials/local/aurora.test.near.json $WORKDIR/aurora.test.near.json
 
 echo "Downloading contract..."

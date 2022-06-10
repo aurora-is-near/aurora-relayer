@@ -3,7 +3,6 @@
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 source $SCRIPT_DIR/../common.sh
 
-
 echo "Creating relayer configuration..."
 rm $REPO_ROOT/config/aurora.test.near.json || true
 cp $WORKDIR/aurora.test.near.json $REPO_ROOT/config/aurora.test.near.json

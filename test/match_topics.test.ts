@@ -126,6 +126,21 @@ describe('Match topics', () => {
       expect(matchTopics(filterTopics, transactionTopics)).toBe(true)
     })
 
+    test('empty array as first param, with one topic as filter in first index', async () => {
+      const filterTopics = [
+        [],
+        '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
+      ]
+
+      const transactionTopics = [
+        "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+        "0x0000000000000000000000003cae5c23bfca0a1e2834fa6ffd2c55a32c11ddc9",
+        "0x0000000000000000000000003838956710bcc9d122dd23863a0549ca8d5675d6"
+      ]
+
+      expect(matchTopics(filterTopics, transactionTopics)).toBe(false)
+    })
+
     test(`empty array as first param, topics don't exist in the transaction`, async () => {
       const filterTopics = [
         [],

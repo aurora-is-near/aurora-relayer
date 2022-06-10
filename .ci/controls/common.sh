@@ -9,7 +9,7 @@ if [[ ! -z $RUNNER_NAME ]]; then
     # All CI-runners are docker containers, and creating new
     # Docker objects (images, containers, etc) from some runner
     # will make them appear on host-level Docker, since
-    # socket-binding solution is used for Docker-in-Docker. 
+    # socket-binding solution is used for Docker-in-Docker.
     #
     # To avoid collision of such objects, $RUNNER_NAME suffix
     # is added to every object's name.
@@ -39,7 +39,7 @@ fi
 # Specific versions of each dependency are used
 # in order to provide consistent CI.
 
-NEAR_CLI_HEAD=69319062495bc23fceb9a2276f7e6f209fa28887
+NEAR_CLI_HEAD=f96735433ac70e19d58823f0d2b9775675fc4dbc
 # Commit hash from: https://github.com/near/near-cli/commits/master
 
 AURORA_CLI_HEAD=7f7c2d29c5114db2b6530a6c0fa09b2068f217df
