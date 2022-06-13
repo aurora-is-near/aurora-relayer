@@ -1,3 +1,4 @@
+/// <reference types="node" />
 import { SkeletonServer } from './skeleton.js';
 import { Bus } from '../bus.js';
 import { pg } from '../database.js';
@@ -37,6 +38,14 @@ export declare class DatabaseServer extends SkeletonServer {
     eth_subscribe(_request: Request, _subsciptionType: web3.Data, _filter: any): Promise<web3.Data>;
     eth_uninstallFilter(_request: Request, filterID: web3.Quantity): Promise<boolean>;
     eth_unsubscribe(_request: Request, _subsciptionId: web3.Data): Promise<boolean>;
+    protected _updatePollBlock(filterID_: Buffer): Promise<void>;
+    protected _getFilterChangesEvent(filter: {
+        addresses: string;
+        poll_block: web3.Quantity;
+        to_block?: web3.Quantity;
+        topics?: web3.FilterTopic[];
+        type: 'block' | 'event' | 'transaction';
+    }, filterID_: Buffer): Promise<web3.LogObject[]>;
     protected _fetchCurrentBlockID(): Promise<bigint>;
     protected _fetchEvents(transactionID: Uint8Array): Promise<unknown[]>;
     protected _fetchTransactions(blockID: bigint | number | Uint8Array, fullObject: boolean): Promise<unknown[] | string[]>;
