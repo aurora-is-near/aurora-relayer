@@ -83,7 +83,7 @@ var rootCmd = &cobra.Command{
 		fmt.Fprintf(os.Stderr, "Indexing blocks #%d..#%d and #%d+...\n", currentBlockID, indexedBlockID, currentBlockID+1)
 
 		go followChainHead(currentBlockID)
-		go scanForIndexGaps(currentBlockID)
+		// go scanForIndexGaps(currentBlockID)
 		for {
 			queueBlock := queue.Dequeue()
 			if queueBlock.Id == -1 {
