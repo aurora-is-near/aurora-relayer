@@ -17,6 +17,7 @@ import {
 import { Request } from '../request.js';
 import { compileTopics } from '../topics.js';
 import * as web3 from '../web3.js';
+import { parse } from 'postgres-array';
 
 import {
   Address,
@@ -36,7 +37,6 @@ import {
   Transaction,
 } from '@ethersproject/transactions';
 import { keccak256 } from 'ethereumjs-util';
-//import { assert } from 'node:console';
 
 export class DatabaseServer extends SkeletonServer {
   protected pgClient?: pg.Client;
@@ -275,15 +275,22 @@ export class DatabaseServer extends SkeletonServer {
       return [];
     }
 
-    const {
-      rows: [row],
-    } = await this._query(
-      `SELECT type FROM filter WHERE uuid_send(id) = $1 LIMIT 1`,
+    const filterData = await this._query(
+      `SELECT
+          type,
+          poll_block,
+          to_block,
+          addresses,
+          topics
+        FROM filter
+        WHERE uuid_send(id) = $1 LIMIT 1`,
       [filterID_]
     );
-    if (!row) throw new UnknownFilter(filterID);
 
-    switch (row.type) {
+    if (!filterData.rows.length) throw new UnknownFilter(filterID);
+    const filter = filterData.rows[0];
+
+    switch (filter.type) {
       case 'block': {
         const {
           rows,
@@ -297,13 +304,7 @@ export class DatabaseServer extends SkeletonServer {
         return buffers.map(bytesToHex);
       }
       case 'event': {
-        const {
-          rows,
-        } = await this._query(
-          'SELECT * FROM eth_getFilterChanges_event($1::bytea)',
-          [filterID_]
-        );
-        return exportJSON(rows);
+        return await this._getFilterChangesEvent(filter, filterID_);
       }
       case 'transaction':
       default:
@@ -820,6 +821,93 @@ export class DatabaseServer extends SkeletonServer {
     const query = sql.delete('subscription').where({ id: _subsciptionId });
     await this._query(query.toString());
     return true;
+  }
+
+  protected async _updatePollBlock(filterID_: Buffer): Promise<void> {
+    const latestBlock = await this._fetchCurrentBlockID();
+    await this._query(
+      'UPDATE filter SET poll_block = $1 + 1 WHERE uuid_send(id) = $2',
+      [latestBlock, filterID_]
+    );
+  }
+
+  protected async _getFilterChangesEvent(
+    filter: {
+      addresses: string;
+      poll_block: web3.Quantity;
+      to_block?: web3.Quantity;
+      topics?: web3.FilterTopic[];
+      type: 'block' | 'event' | 'transaction';
+    },
+    filterID_: Buffer
+  ): Promise<web3.LogObject[]> {
+    const where = [];
+
+    const fromBlock = parseBlockSpec(filter.poll_block);
+    if (fromBlock !== null) {
+      where.push(sql.gte('b.id', fromBlock));
+    }
+
+    const toBlock =
+      parseBlockSpec(filter.to_block) != 0
+        ? parseBlockSpec(filter.to_block) || (await this._fetchCurrentBlockID())
+        : 0;
+    if (toBlock !== null) {
+      where.push(sql.lte('b.id', toBlock));
+    }
+
+    if (filter.addresses) {
+      const serializedAddresses = parse(filter.addresses, (address) => {
+        return address.replace('\\x', '0x');
+      });
+      const addresses = parseAddresses(serializedAddresses).map((address) =>
+        Buffer.from(address.toBytes())
+      );
+      if (addresses.length > 0) {
+        where.push(sql.in('e.from', addresses));
+      }
+    }
+    if (filter.topics) {
+      const clauses = compileTopics(filter.topics);
+      if (clauses) {
+        where.push(clauses);
+      }
+    }
+
+    const query = sql
+      .select(
+        'b.id AS "blockNumber"',
+        'b.hash AS "blockHash"',
+        't.index AS "transactionIndex"',
+        't.hash AS "transactionHash"',
+        'e.index AS "logIndex"',
+        'e.from AS "address"',
+        "string_to_array(concat('0x',encode(e.topics[1], 'hex'), ',', '0x', encode(e.topics[2], 'hex'), ',', '0x', encode(e.topics[3], 'hex'), ',', '0x', encode(e.topics[4], 'hex')), ',') AS \"topics\"",
+        'coalesce(e.data, repeat(\'\\000\', 32)::bytea) AS "data"',
+        '0::boolean AS "removed"'
+      )
+      .from('event e')
+      .leftJoin('transaction t', { 'e.transaction': 't.id' })
+      .leftJoin('block b', { 't.block': 'b.id' })
+      .where(sql.and(...where))
+      .orderBy('b.id ASC');
+
+    const result = await this._query(query);
+    await this._updatePollBlock(filterID_);
+    return exportJSON(
+      result.rows.map((row: Record<string, unknown>) => {
+        if (row['address'] === null) {
+          row['address'] = Address.zero().toString();
+        }
+        // remove null values
+        if (Array.isArray(row['topics'])) {
+          row['topics'] = row['topics'].filter((t: string) => {
+            return t !== '0x';
+          });
+        }
+        return row;
+      })
+    );
   }
 
   protected async _fetchCurrentBlockID(): Promise<bigint> {
