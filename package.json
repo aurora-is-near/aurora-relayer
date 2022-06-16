@@ -78,6 +78,7 @@
     "node-worker-threads-pool": "^1.5.1",
     "pg": "^8.7.1",
     "pg-format": "^1.0.4",
+    "postgres-array": "^3.0.1",
     "rlp": "^2.2.7",
     "sql-bricks-postgres": "^0.5.0",
     "ts-jest": "^28.0.3",
