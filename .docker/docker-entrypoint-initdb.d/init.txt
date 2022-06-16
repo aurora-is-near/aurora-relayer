@@ -240,7 +240,7 @@ BEGIN
       0,                            -- totalDifficulty
       ''::bytea,                    -- extraData
       size,                         -- size
-      gas_limit,                    -- gasLimit
+      4503599627370495,             -- gasLimit
       gas_used,                     -- gasUsed
       COALESCE(EXTRACT(EPOCH FROM timestamp), 0)::int4, -- timestamp
       repeat('\000', 32)::hash      -- mixHash
