@@ -194,7 +194,7 @@ export class Indexer {
       delete blockData.transactions;
       const query = sql.insert('block', blockData).returning('id');
       const partialBlockSql = query.toString();
-      let blockSql = `WITH b AS (${partialBlockSql})\n`;
+      const blockSql = `WITH b AS (${partialBlockSql})\n`;
       let transactionsSql = ``;
       const events = [];
       for (const [transactionIndex, transaction] of transactions.entries()) {
@@ -228,7 +228,7 @@ export class Indexer {
         }
       }
       if (events?.length > 0) {
-        transactionsSql += `INSERT INTO event (transaction, index, data, "from", topics)`;
+        transactionsSql += ` INSERT INTO event (transaction, index, data, "from", topics)`;
         transactionsSql += events.join(' UNION \n');
       }
       if (events?.length == 0 || transactionsSql.length == 0) {
@@ -256,6 +256,7 @@ export class Indexer {
     for (;;) {
       if (this.pendingBlocks[this.pendingHeadBlock]) {
         await this.insert(this.pendingBlocks[this.pendingHeadBlock]);
+        console.error(`Indexing Head Block #${this.pendingHeadBlock}...`);
         delete this.pendingBlocks[this.pendingHeadBlock];
         this.pendingHeadBlock += 1;
       }

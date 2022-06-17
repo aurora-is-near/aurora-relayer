@@ -38,6 +38,7 @@ async function main(parentPort: MessagePort, workerData: WorkerData) {
         indexer.notifyNewHeads(block.id, blockData);
       } else {
         await indexer.insert(blockData);
+        console.error(`Indexing Gap Block #${block.id}...`);
       }
     })
     .on('close', () => {
