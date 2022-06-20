@@ -6,8 +6,8 @@ let web3: any;
 
 describe('eth_getTransactionReceipt', () => {
   beforeAll(async () => {
-    const port = process.env['EXPRESS_PORT'];
-    web3 = new Web3(`http://localhost:${port}`);
+    const port = process.env['EXPRESS_PORT']
+    web3 = new Web3(`http://localhost:${port}`)
   })
 
   test(`should return null for transaction that doesn't exist`, async () => {

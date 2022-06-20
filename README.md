@@ -50,6 +50,12 @@ NEAR_ENV=testnet npm run start
 npm run build:watch
 ```
 
+### Run local specs
+
+1. Apply mocks to local database `sh test/fixtures/mocks_init.sh`
+2. Run indexer `sh -c util/indexer/indexer | NEAR_ENV=testnet node lib/indexer_backend.js`
+3. Run local specs `npm run test`
+
 ### Usage for LocalNet
 
 To run the relayer locally, first start [nearcore] and then execute:
