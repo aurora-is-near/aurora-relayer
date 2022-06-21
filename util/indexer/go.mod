@@ -3,6 +3,8 @@ module indexer
 go 1.18
 
 require (
+	github.com/aurora-is-near/borealis.go v0.1.1
+	github.com/btcsuite/btcutil v1.0.2
 	github.com/jackc/pgx/v4 v4.14.1
 	github.com/nats-io/nats.go v1.15.0
 	github.com/spf13/viper v1.10.1
@@ -10,10 +12,6 @@ require (
 
 require (
 	github.com/aurora-is-near/borealis-spec/go v0.0.0-20220507135349-eb5da9a19b9d // indirect
-	github.com/aurora-is-near/borealis.go v0.1.1 // indirect
-	github.com/aurora-is-near/go-jsonrpc/v3 v3.1.1 // indirect
-	github.com/aurora-is-near/near-api-go v0.0.12 // indirect
-	github.com/btcsuite/btcutil v1.0.2 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
 	github.com/fxamacker/cbor/v2 v2.4.0 // indirect
@@ -25,7 +23,6 @@ require (
 	github.com/jackc/pgproto3/v2 v2.2.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b // indirect
 	github.com/jackc/pgtype v1.9.1 // indirect
-	github.com/jackc/pgx v3.6.2+incompatible // indirect
 	github.com/jackc/puddle v1.2.0 // indirect
 	github.com/johncgriffin/overflow v0.0.0-20211019200055-46fa312c352c // indirect
 	github.com/kr/pretty v0.2.0 // indirect
@@ -35,9 +32,7 @@ require (
 	github.com/nats-io/nats-server/v2 v2.7.1 // indirect
 	github.com/nats-io/nkeys v0.3.0 // indirect
 	github.com/nats-io/nuid v1.0.1 // indirect
-	github.com/near/borsh-go v0.3.0 // indirect
 	github.com/pelletier/go-toml v1.9.4 // indirect
-	github.com/pkg/errors v0.8.1 // indirect
 	github.com/segmentio/ksuid v1.0.4 // indirect
 	github.com/spf13/afero v1.6.0 // indirect
 	github.com/spf13/cast v1.4.1 // indirect
