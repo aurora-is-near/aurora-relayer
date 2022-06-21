@@ -36,6 +36,7 @@ func main() {
 	natsClosed := make(chan error, 1)
 	nc, err := nats.Connect(
 		natsURL,
+		nats.Name("relayer-nats-indexer"),
 		nats.UserCredentials(natsCreds),
 		nats.PingInterval(time.Second*5),
 		nats.MaxPingsOutstanding(6),
