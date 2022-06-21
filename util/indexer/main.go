@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/aurora-is-near/borealis.go"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -35,8 +38,10 @@ func main() {
 
 	followChainHead(natsChannel, nc, dbpool)
 
-	for {
-	}
+	interrupt := make(chan os.Signal, 10)
+	signal.Notify(interrupt, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGABRT, syscall.SIGINT)
+
+	<-interrupt
 }
 
 func followChainHead(channel string, nc *nats.Conn, dbpool *pgxpool.Pool) {
