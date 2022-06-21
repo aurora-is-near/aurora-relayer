@@ -139,14 +139,14 @@ eth_compileSolidity | ❌ | Unsupported
 eth_getCompilers | ✅ |
 [`eth_getFilterChanges`] | ✅ |
 [`eth_getFilterLogs`] | 🚧 |
-[`eth_getLogs`] | 🚧 |
+[`eth_getLogs`] | ✅ |
 [`eth_getProof`] | ❌ | EIP-1186
 [`eth_getStorageAt`] | ✅ |
 [`eth_getTransactionByBlockHashAndIndex`] | ✅ |
 [`eth_getTransactionByBlockNumberAndIndex`] | ✅ |
 [`eth_getTransactionByHash`] | 🚧 |
 [`eth_getTransactionCount`] | ✅ |
-[`eth_getTransactionReceipt`] | 🚧 |
+[`eth_getTransactionReceipt`] | ✅ |
 [`eth_getUncleByBlockHashAndIndex`] | ✅ |
 [`eth_getUncleByBlockNumberAndIndex`] | ✅ |
 [`eth_getUncleCountByBlockHash`] | ✅ |
