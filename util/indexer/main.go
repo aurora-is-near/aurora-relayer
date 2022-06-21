@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/aurora-is-near/borealis.go"
 	"github.com/jackc/pgx/v4/pgxpool"
@@ -31,7 +33,17 @@ func main() {
 	dbpool := DBConnection(databaseURL)
 	defer dbpool.Close()
 
-	nc, err := nats.Connect(natsURL, nats.UserCredentials(natsCreds))
+	natsClosed := make(chan error, 1)
+	nc, err := nats.Connect(
+		natsURL,
+		nats.UserCredentials(natsCreds),
+		nats.PingInterval(time.Second*5),
+		nats.MaxPingsOutstanding(6),
+		nats.Timeout(time.Second*10),
+		nats.DisconnectErrHandler(func(c *nats.Conn, err error) {
+			natsClosed <- err
+		}),
+	)
 	if err != nil {
 		panic(fmt.Errorf("Unable to connect to NATS server %s: %v\n", natsURL, err))
 	}
@@ -41,7 +53,11 @@ func main() {
 	interrupt := make(chan os.Signal, 10)
 	signal.Notify(interrupt, syscall.SIGHUP, syscall.SIGTERM, syscall.SIGQUIT, syscall.SIGABRT, syscall.SIGINT)
 
-	<-interrupt
+	select {
+	case <-interrupt:
+	case err := <-natsClosed:
+		log.Printf("NATS closed: %v", err)
+	}
 }
 
 func followChainHead(channel string, nc *nats.Conn, dbpool *pgxpool.Pool) {
