@@ -6,86 +6,216 @@ let web3: any;
 
 describe('eth_getLogs', () => {
   beforeAll(async () => {
-    const port = process.env['EXPRESS_PORT'];
+    const port = process.env['EXPRESS_PORT']
     web3 = new Web3(`http://localhost:${port}`)
   })
 
-  test('should return [], with [] in topics params', async () => {
-    const response = await web3.eth.getPastLogs({
-      address: "0x23a824dD17d6571e1BAdd25A6247C685D6802985",
-      fromBlock: "0x3ecdf57",
-      toBlock: "0x3ece307",
-      topics: [
+  describe('without result', () => {
+    test('should return [], with [] in topics params', async () => {
+      const response = await web3.eth.getPastLogs({
+        address: '0x23a824dD17d6571e1BAdd25A6247C685D6802985',
+        fromBlock: '0x3ecdf57',
+        toBlock: '0x3ece307',
+        topics: [
           [],
-          ["0x000000000000000000000000fe28a27a95e51bb2604abd65375411a059371616"]
-      ]
+          [
+            '0x000000000000000000000000fe28a27a95e51bb2604abd65375411a059371616',
+          ],
+        ],
+      })
+
+      expect(response).toEqual([])
     })
 
-    expect(response).toEqual([])
-  })
+    test('should return [], with hash in topics params', async () => {
+      const response = await web3.eth.getPastLogs({
+        address: '0x23a824dD17d6571e1BAdd25A6247C685D6802985',
+        fromBlock: '0x3ecdf57',
+        toBlock: '0x3ece307',
+        topics: [
+          '0x000000000000000000000000fe28a27a95e51bb2604abd65375411a059371616',
+        ],
+      })
 
-  test('should return [], with hash in topics params', async () => {
-    const response = await web3.eth.getPastLogs({
-      address: "0x23a824dD17d6571e1BAdd25A6247C685D6802985",
-      fromBlock: "0x3ecdf57",
-      toBlock: "0x3ece307",
-      topics: ["0x000000000000000000000000fe28a27a95e51bb2604abd65375411a059371616"]
+      expect(response).toEqual([])
     })
 
-    expect(response).toEqual([])
-  })
+    test('should return [], with double [] in topics params', async () => {
+      const response = await web3.eth.getPastLogs({
+        address: '0x23a824dD17d6571e1BAdd25A6247C685D6802985',
+        fromBlock: '0x3ecdf57',
+        toBlock: '0x3ece307',
+        topics: [
+          [],
+          [],
+          '0x000000000000000000000000fe28a27a95e51bb2604abd65375411a059371616',
+        ],
+      })
 
-  test('should return [], with double [] in topics params', async () => {
-    const response = await web3.eth.getPastLogs({
-      address: "0x23a824dD17d6571e1BAdd25A6247C685D6802985",
-      fromBlock: "0x3ecdf57",
-      toBlock: "0x3ece307",
-      topics: [
-        [],
-        [],
-        "0x000000000000000000000000fe28a27a95e51bb2604abd65375411a059371616"
-      ]
+      expect(response).toEqual([])
     })
 
-    expect(response).toEqual([])
-  })
-
-  test('should return [], with double null in topics params', async () => {
-    const response = await web3.eth.getPastLogs({
-      address: "0x23a824dD17d6571e1BAdd25A6247C685D6802985",
-      fromBlock: "0x3ecdf57",
-      toBlock: "0x3ece307",
-      topics: [
-        null,
-        null,
-        "0x000000000000000000000000fe28a27a95e51bb2604abd65375411a059371616"
-      ]
-    })
-
-    expect(response).toEqual([])
-  })
-
-  test('should return [], with null in topics params', async () => {
-    const response = await web3.eth.getPastLogs({
-      address: "0x23a824dD17d6571e1BAdd25A6247C685D6802985",
-      fromBlock: "0x3ecdf57",
-      toBlock: "0x3ece307",
-      topics: [
+    test('should return [], with double null in topics params', async () => {
+      const response = await web3.eth.getPastLogs({
+        address: '0x23a824dD17d6571e1BAdd25A6247C685D6802985',
+        fromBlock: '0x3ecdf57',
+        toBlock: '0x3ece307',
+        topics: [
           null,
-          ["0x000000000000000000000000fe28a27a95e51bb2604abd65375411a059371616"]
-      ]
+          null,
+          '0x000000000000000000000000fe28a27a95e51bb2604abd65375411a059371616',
+        ],
+      })
+
+      expect(response).toEqual([])
     })
 
-    expect(response).toEqual([])
+    test('should return [], with null in topics params', async () => {
+      const response = await web3.eth.getPastLogs({
+        address: '0x23a824dD17d6571e1BAdd25A6247C685D6802985',
+        fromBlock: '0x3ecdf57',
+        toBlock: '0x3ece307',
+        topics: [
+          null,
+          [
+            '0x000000000000000000000000fe28a27a95e51bb2604abd65375411a059371616',
+          ],
+        ],
+      })
+
+      expect(response).toEqual([])
+    })
+
+    test('should return [], without topics param', async () => {
+      const response = await web3.eth.getPastLogs({
+        address: '0x23a824dD17d6571e1BAdd25A6247C685D6802985',
+        fromBlock: '0x3ecdf57',
+        toBlock: '0x3ece307',
+      })
+
+      expect(response).toEqual([])
+    })
   })
 
-  test('should return [], without topics param', async () => {
-    const response = await web3.eth.getPastLogs({
-      address: "0x23a824dD17d6571e1BAdd25A6247C685D6802985",
-      fromBlock: "0x3ecdf57",
-      toBlock: "0x3ece307"
+  describe('with result', () => {
+    test('should return logs, with hex as blocks, without topics in params', async () => {
+      const response = await web3.eth.getPastLogs({
+        address: '0xddf079d2f486f1ba8d5cbc0900e6a12c6f91ff82',
+        fromBlock: '0x57a3c01',
+        toBlock: '0x57a3c01',
+      })
+
+      expect(response).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            "address": "0xDdF079d2f486F1bA8D5cBC0900E6a12C6F91FF82",
+            "blockHash": "0xfafdeeba634974d9dba58ff084f621666ad2fa7c292fbd48f2ee76ecfdc62ce1",
+            "blockNumber": 91896833,
+            "data": "0x000000000000000000000000000000000000000000000000000000035df15940000000000000000000000000aa2666def065cbd1f16d2c3c296c0b3287ea2827",
+            "id": "log_a2758b4f",
+            "logIndex": 0,
+            "removed": false,
+            "topics": Array [
+              "0x17eabd0a66fa631f7537cefdd5df6aa25d5ac904cf7596e958d43a75a00d0d68",
+              "0x000000000000000000000000000000000000000000000000000000000000494b",
+            ],
+            "transactionHash": "0x5c33068b145d9028087d0a69db07c612f292dc9274323c73dafb7d37c1354549",
+            "transactionIndex": 0,
+          },
+        ]
+      `)
     })
 
-    expect(response).toEqual([])
+    test('should return logs, with number as blocks, without topics in params', async () => {
+      const response = await web3.eth.getPastLogs({
+        address: '0xddf079d2f486f1ba8d5cbc0900e6a12c6f91ff82',
+        fromBlock: 91896833,
+        toBlock: 91896833,
+      })
+
+      expect(response).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            "address": "0xDdF079d2f486F1bA8D5cBC0900E6a12C6F91FF82",
+            "blockHash": "0xfafdeeba634974d9dba58ff084f621666ad2fa7c292fbd48f2ee76ecfdc62ce1",
+            "blockNumber": 91896833,
+            "data": "0x000000000000000000000000000000000000000000000000000000035df15940000000000000000000000000aa2666def065cbd1f16d2c3c296c0b3287ea2827",
+            "id": "log_a2758b4f",
+            "logIndex": 0,
+            "removed": false,
+            "topics": Array [
+              "0x17eabd0a66fa631f7537cefdd5df6aa25d5ac904cf7596e958d43a75a00d0d68",
+              "0x000000000000000000000000000000000000000000000000000000000000494b",
+            ],
+            "transactionHash": "0x5c33068b145d9028087d0a69db07c612f292dc9274323c73dafb7d37c1354549",
+            "transactionIndex": 0,
+          },
+        ]
+      `)
+    })
+
+    test('should return logs, with [] in topics params', async () => {
+      const response = await web3.eth.getPastLogs({
+        address: '0xddf079d2f486f1ba8d5cbc0900e6a12c6f91ff82',
+        fromBlock: '0x57a3c01',
+        toBlock: '0x57a3c01',
+        topics: [
+          [],
+          ["0x000000000000000000000000000000000000000000000000000000000000494b", "0x0000000000000000000000000000000000000000000000000000000000004941"]
+        ]
+      })
+
+      expect(response).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            "address": "0xDdF079d2f486F1bA8D5cBC0900E6a12C6F91FF82",
+            "blockHash": "0xfafdeeba634974d9dba58ff084f621666ad2fa7c292fbd48f2ee76ecfdc62ce1",
+            "blockNumber": 91896833,
+            "data": "0x000000000000000000000000000000000000000000000000000000035df15940000000000000000000000000aa2666def065cbd1f16d2c3c296c0b3287ea2827",
+            "id": "log_a2758b4f",
+            "logIndex": 0,
+            "removed": false,
+            "topics": Array [
+              "0x17eabd0a66fa631f7537cefdd5df6aa25d5ac904cf7596e958d43a75a00d0d68",
+              "0x000000000000000000000000000000000000000000000000000000000000494b",
+            ],
+            "transactionHash": "0x5c33068b145d9028087d0a69db07c612f292dc9274323c73dafb7d37c1354549",
+            "transactionIndex": 0,
+          },
+        ]
+      `)
+    })
+
+    test('should return logs, with null in topics params', async () => {
+      const response = await web3.eth.getPastLogs({
+        address: '0xddf079d2f486f1ba8d5cbc0900e6a12c6f91ff82',
+        fromBlock: '0x57a3c01',
+        toBlock: '0x57a3c01',
+        topics: [
+          null,
+          "0x000000000000000000000000000000000000000000000000000000000000494b"
+        ]
+      })
+
+      expect(response).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            "address": "0xDdF079d2f486F1bA8D5cBC0900E6a12C6F91FF82",
+            "blockHash": "0xfafdeeba634974d9dba58ff084f621666ad2fa7c292fbd48f2ee76ecfdc62ce1",
+            "blockNumber": 91896833,
+            "data": "0x000000000000000000000000000000000000000000000000000000035df15940000000000000000000000000aa2666def065cbd1f16d2c3c296c0b3287ea2827",
+            "id": "log_a2758b4f",
+            "logIndex": 0,
+            "removed": false,
+            "topics": Array [
+              "0x17eabd0a66fa631f7537cefdd5df6aa25d5ac904cf7596e958d43a75a00d0d68",
+              "0x000000000000000000000000000000000000000000000000000000000000494b",
+            ],
+            "transactionHash": "0x5c33068b145d9028087d0a69db07c612f292dc9274323c73dafb7d37c1354549",
+            "transactionIndex": 0,
+          },
+        ]
+      `)
+    })
   })
 })

@@ -15,4 +15,10 @@ describe('eth_getBlockTransactionCountByNumber', () => {
 
     expect(response).toBe(0)
   })
+
+  test(`should return transactions count for block`, async () => {
+    const response = await web3.eth.getBlockTransactionCount(91896833)
+
+    expect(response).toBe(1)
+  })
 })

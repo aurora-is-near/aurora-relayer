@@ -10,7 +10,7 @@ describe('eth_blockNumber', () => {
     web3 = new Web3(`http://localhost:${port}`)
   })
 
-  test('should return block', async () => {
+  test('should return latest block', async () => {
     const response = await web3.eth.getBlockNumber()
 
     expect(response).toBeGreaterThan(0)
