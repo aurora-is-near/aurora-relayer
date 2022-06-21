@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"fmt"
 	"math/big"
-	"reflect"
 	"strings"
 	"time"
 
@@ -48,15 +47,15 @@ type Block struct {
 
 func (block Block) sqlInsertArgs() insertArgs {
 	var existingBlock ExistingBlock
-	switch reflect.TypeOf(block.NearBlock).String() {
-	case "map[interface {}]interface {}":
-		parsedExistingBlock := block.NearBlock.(map[interface{}]interface{})["ExistingBlock"].(map[interface{}]interface{})
+
+	switch nearBlock := block.NearBlock.(type) {
+	case map[interface{}]interface{}:
 		existingBlock = ExistingBlock{
-			NearHash:       parsedExistingBlock["near_hash"].(string),
-			NearParentHash: parsedExistingBlock["near_parent_hash"].(string),
-			Author:         parsedExistingBlock["author"].(string),
+			NearHash:       nearBlock["near_hash"].(string),
+			NearParentHash: nearBlock["near_parent_hash"].(string),
+			Author:         nearBlock["author"].(string),
 		}
-	case "string":
+	case string:
 		existingBlock = ExistingBlock{}
 	}
 
