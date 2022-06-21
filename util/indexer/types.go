@@ -50,10 +50,11 @@ func (block Block) sqlInsertArgs() insertArgs {
 
 	switch nearBlock := block.NearBlock.(type) {
 	case map[interface{}]interface{}:
+		parsedExistingBlock := nearBlock["ExistingBlock"].(map[interface{}]interface{})
 		existingBlock = ExistingBlock{
-			NearHash:       nearBlock["near_hash"].(string),
-			NearParentHash: nearBlock["near_parent_hash"].(string),
-			Author:         nearBlock["author"].(string),
+			NearHash:       parsedExistingBlock["near_hash"].(string),
+			NearParentHash: parsedExistingBlock["near_parent_hash"].(string),
+			Author:         parsedExistingBlock["author"].(string),
 		}
 	case string:
 		existingBlock = ExistingBlock{}
