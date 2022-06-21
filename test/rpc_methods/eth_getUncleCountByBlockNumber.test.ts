@@ -24,4 +24,10 @@ describe('eth_getUncleCountByBlockNumber', () => {
 
     expect(response).toBeNull()
   })
+
+  test(`should return 0, when block exists`, async () => {
+    const response = await web3.eth.getBlockUncleCount(91897216)
+
+    expect(response).toBe(0)
+  })
 })

@@ -5,7 +5,7 @@ import request from 'supertest';
 
 let app: Promise<any>;
 
-describe('eth_newFilter', () => {
+describe('eth_accounts', () => {
   beforeAll(async () => {
     app = await createServer({
       attachAppToPort: false

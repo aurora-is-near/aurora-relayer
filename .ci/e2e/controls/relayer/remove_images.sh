@@ -5,4 +5,4 @@ source $SCRIPT_DIR/../common.sh
 
 
 echo "Removing database and endpoint images..."
-docker rmi -f $DATABASE_IMAGE_NAME $ENDPOINT_IMAGE_NAME || true
+docker rmi -f $DATABASE_IMAGE_NAME $RAW_DATABASE_IMAGE_NAME $ENDPOINT_IMAGE_NAME || true

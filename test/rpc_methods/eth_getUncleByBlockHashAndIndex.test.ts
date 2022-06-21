@@ -18,4 +18,13 @@ describe('eth_getUncleByBlockHashAndIndex', () => {
 
     expect(response).toBeNull()
   })
+
+  test('should return null, when block exists', async () => {
+    const response = await web3.eth.getUncle(
+      "0x0b7a7bbef2fdf7df5e4aeafe4f290150757fef8a980d7045302dbd468ddedeeb",
+      "0x0"
+    )
+
+    expect(response).toBeNull()
+  })
 })

@@ -15,4 +15,27 @@ describe('eth_getTransactionByBlockHashAndIndex', () => {
 
     expect(response).toBeNull()
   })
+
+  test(`should return transaction for block`, async () => {
+    const response = await web3.eth.getTransactionFromBlock('0x0b7a7bbef2fdf7df5e4aeafe4f290150757fef8a980d7045302dbd468ddedeeb', '0x0')
+
+    expect(response).toMatchInlineSnapshot(`
+      Object {
+        "blockHash": "0x0b7a7bbef2fdf7df5e4aeafe4f290150757fef8a980d7045302dbd468ddedeeb",
+        "blockNumber": 91897216,
+        "from": "0xAA2666DEF065cbd1F16D2C3C296c0b3287eA2827",
+        "gas": 6721975,
+        "gasPrice": "0",
+        "hash": "0x661adbb4d1d36c919b284ec043584b538176a2f2d316cc3165b1470ff3993cf7",
+        "input": "0x82b8ebc700000000000000000000000000000000000000000000000000000003663a5200",
+        "nonce": 139434,
+        "r": "0xe559e53801272702c3f1105748d9ebe118dc31d4694035c69c8772fcb8b8cad0",
+        "s": "0x6428ff97292d6199b60f4586b839af965fc752889ff768c9f107667d8e7ae404",
+        "to": "0xDdF079d2f486F1bA8D5cBC0900E6a12C6F91FF82",
+        "transactionIndex": 0,
+        "v": "0x9c8a82ca",
+        "value": "0",
+      }
+    `)
+  })
 })

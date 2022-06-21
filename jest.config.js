@@ -1,6 +1,6 @@
 export default {
   testEnvironment: 'node',
-  testTimeout: 30000,
+  testTimeout: 90000,
   preset: 'ts-jest/presets/default-esm',
   globals: {
     'ts-jest': {
