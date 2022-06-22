@@ -2,45 +2,40 @@
 
 import { SkeletonServer } from './skeleton.js';
 
-import { Bus } from '../bus.js';
+import { Bus } from '@aurora-is-near/borealis';
+import { StringCodec } from 'nats';
 import { pg, sql } from '../database.js';
-import {
-  InvalidAddress,
-  InvalidArguments,
-  RevertError,
-  TransactionError,
-  UnexpectedError,
-  UnknownFilter,
-  UnsupportedMethod,
-  GasPriceTooLow,
-} from '../errors.js';
+import { InvalidAddress, InvalidArguments, UnknownFilter } from '../errors.js';
 import { Request } from '../request.js';
 import { compileTopics } from '../topics.js';
 import * as web3 from '../web3.js';
-import { parse } from 'postgres-array';
 
 import {
   Address,
   BlockID,
   bytesToHex,
   exportJSON,
-  formatU256,
   hexToBytes,
-  hexToInt,
   intToHex,
 } from '@aurora-is-near/engine';
 import fs from 'fs';
 import { getRandomBytesSync } from 'ethereum-cryptography/random.js';
 
-import {
-  parse as parseRawTransaction,
-  Transaction,
-} from '@ethersproject/transactions';
-import { keccak256 } from 'ethereumjs-util';
+interface Filter {
+  id: string;
+  type: string;
+  block_hash?: string;
+  poll_block?: web3.Quantity;
+  from_block?: web3.Quantity;
+  to_block?: web3.Quantity;
+  addresses?: string | string[];
+  topics?: web3.FilterTopic[];
+}
 
 export class DatabaseServer extends SkeletonServer {
   protected pgClient?: pg.Client;
   protected bus?: Bus;
+  protected filtersKV?: any;
 
   protected async _init(): Promise<void> {
     // Connect to the PostgreSQL database:
@@ -49,9 +44,14 @@ export class DatabaseServer extends SkeletonServer {
     await pgClient.connect();
 
     // Connect to the NATS message broker:
-    if (this.config.broker) {
-      this.bus = new Bus(this.config);
+    if (this.config.natsCreds.length > 0) {
+      const creds = fs.readFileSync(this.config.natsCreds, 'utf-8');
+      this.bus = await Bus.connectGlobal({ creds });
+    } else {
+      this.bus = await Bus.connectLocal();
     }
+    const js = this.bus?.nats?.jetstream();
+    this.filtersKV = await js?.views?.kv('eth_filters');
 
     // Add type parsers for relevant numeric types:
     (pgClient as any).setTypeParser(pg.types.builtins.INT8, (val: string) =>
@@ -88,50 +88,6 @@ export class DatabaseServer extends SkeletonServer {
     return intToHex(await this._fetchCurrentBlockID());
   }
 
-  async eth_call(
-    _request: Request,
-    transaction: web3.TransactionForCall,
-    blockNumberOrHash?: web3.Quantity | web3.Tag | web3.Data
-  ): Promise<web3.Data> {
-    let blockNumber_;
-    // EIP-1898 (enables the argument to be not only blockNumber, but also blockHash)
-    if (typeof blockNumberOrHash === 'string') {
-      if (/^0x([A-Fa-f0-9]{64})$/.test(blockNumberOrHash)) {
-        // Regex reference here https://ethereum.stackexchange.com/questions/34285/what-is-the-regex-to-validate-an-ethereum-transaction-hash/34286#34286
-        const block_ = await this.eth_getBlockByHash(
-          _request,
-          blockNumberOrHash
-        );
-        if (block_ === null) throw Error('Block is temporarily unavailable');
-        blockNumber_ = parseBlockSpec(
-          block_ ? block_['number']?.toString() : null
-        );
-      } else {
-        blockNumber_ = parseBlockSpec(blockNumberOrHash);
-      }
-    }
-    const from = transaction.from
-      ? parseAddress(transaction.from)
-      : Address.zero();
-    this._enforceEOABan(from, 'eth_call');
-    const to = parseAddress(transaction.to);
-    this._enforceBans(to, 'eth_call');
-    const value = transaction.value ? hexToInt(transaction.value) : 0;
-    const data = transaction.data
-      ? hexToBytes(transaction.data)
-      : Buffer.alloc(0);
-    return (
-      await this.engine.view(from, to, value, data, {
-        block: blockNumber_ !== null ? blockNumber_ : undefined,
-      })
-    ).match({
-      ok: (result) => bytesToHex(result as Uint8Array),
-      err: (message) => {
-        throw new Error(message);
-      },
-    });
-  }
-
   async eth_chainId(_request: Request): Promise<web3.Quantity> {
     // EIP-695
     const chainID = (await this.engine.getChainID()).unwrap();
@@ -140,23 +96,6 @@ export class DatabaseServer extends SkeletonServer {
 
   async eth_coinbase(_request: Request): Promise<web3.Data> {
     return (await this.engine.getCoinbase()).unwrap().toString();
-  }
-
-  async eth_gasPrice(_request: Request): Promise<web3.Quantity> {
-    const minGasPrice =
-      this.config.minGasPrice !== undefined ? this.config.minGasPrice : 0;
-    return intToHex(minGasPrice);
-  }
-
-  async eth_getBalance(
-    _request: Request,
-    address: web3.Data,
-    blockNumber?: web3.Quantity | web3.Tag
-  ): Promise<web3.Quantity> {
-    const address_ = parseAddress(address);
-    this._enforceBans(address_, 'eth_getBalance');
-    const balance = (await this.engine.getBalance(address_)).unwrap();
-    return intToHex(balance);
   }
 
   async eth_getBlockByHash(
@@ -250,61 +189,26 @@ export class DatabaseServer extends SkeletonServer {
     return result !== null ? intToHex(result) : null;
   }
 
-  async eth_getCode(
-    _request: Request,
-    address: web3.Data,
-    blockNumber: web3.Quantity | web3.Tag
-  ): Promise<web3.Data> {
-    const blockNumber_ = parseBlockSpec(blockNumber);
-    const address_ = parseAddress(address);
-    this._enforceBans(address_, 'eth_getCode');
-    const code = (
-      await this.engine.getCode(address_, {
-        block: blockNumber_ !== null ? blockNumber_ : undefined,
-      })
-    ).unwrap();
-    return bytesToHex(code);
-  }
-
   async eth_getFilterChanges(
     _request: Request,
     filterID: web3.Quantity
   ): Promise<web3.LogObject[]> {
-    const filterID_ = parseFilterID(filterID);
-    if (filterID_.every((b) => b === 0)) {
-      return [];
-    }
-
-    const filterData = await this._query(
-      `SELECT
-          type,
-          poll_block,
-          to_block,
-          addresses,
-          topics
-        FROM filter
-        WHERE uuid_send(id) = $1 LIMIT 1`,
-      [filterID_]
-    );
-
-    if (!filterData.rows.length) throw new UnknownFilter(filterID);
-    const filter = filterData.rows[0];
+    const filter = await this._getFilter(filterID);
 
     switch (filter.type) {
       case 'block': {
-        const {
-          rows,
-        } = await this._query(
-          'SELECT * FROM eth_getFilterChanges_block($1::bytea)',
-          [filterID_]
-        );
-        const buffers = rows.flatMap((row: Record<string, unknown>) =>
-          Object.values(row)
-        ) as Buffer[];
-        return buffers.map(bytesToHex);
+        const query = sql
+          .select(
+            "COALESCE(array_agg( REPLACE(b.hash::VARCHAR, '\\x', '0x' )), '{}') as hashes"
+          )
+          .from('block b')
+          .where(sql.gt('b.id', filter.poll_block));
+        const result = await this._query(query);
+        await this._storeFilter(filter);
+        return result.rows[0].hashes;
       }
       case 'event': {
-        return await this._getFilterChangesEvent(filter, filterID_);
+        return await this._getFilterChangesEvent(filter);
       }
       case 'transaction':
       default:
@@ -316,40 +220,21 @@ export class DatabaseServer extends SkeletonServer {
     _request: Request,
     filterID: web3.Quantity
   ): Promise<web3.LogObject[]> {
-    const filterID_ = parseFilterID(filterID);
-    if (filterID_.every((b) => b === 0)) {
-      return [];
-    }
+    const filter = await this._getFilter(filterID);
 
-    const {
-      rows: [row],
-    } = await this._query(
-      `SELECT type FROM filter WHERE uuid_send(id) = $1 LIMIT 1`,
-      [filterID_]
-    );
-    if (!row) throw new UnknownFilter(filterID);
-
-    switch (row.type) {
+    switch (filter.type) {
       case 'block': {
-        const {
-          rows,
-        } = await this._query(
-          'SELECT * FROM eth_getFilterLogs_block($1::bytea)',
-          [filterID_]
-        );
-        const buffers = rows.flatMap((row: Record<string, unknown>) =>
-          Object.values(row)
-        ) as Buffer[];
-        return buffers.map(bytesToHex);
+        throw new UnknownFilter(filterID);
       }
       case 'event': {
-        const {
-          rows,
-        } = await this._query(
-          'SELECT * FROM eth_getFilterLogs_event($1::bytea)',
-          [filterID_]
-        );
-        return exportJSON(rows);
+        const filterOptions: web3.FilterOptions = {
+          fromBlock: filter.from_block,
+          toBlock: filter.to_block,
+          address: filter.addresses,
+          topics: filter.topics,
+          blockHash: filter.block_hash,
+        };
+        return await this.eth_getLogs(_request, filterOptions);
       }
       case 'transaction':
       default:
@@ -434,18 +319,6 @@ export class DatabaseServer extends SkeletonServer {
     );
   }
 
-  async eth_getStorageAt(
-    _request: Request,
-    address: web3.Data,
-    key: web3.Quantity,
-    blockNumber: web3.Quantity | web3.Tag
-  ): Promise<web3.Data> {
-    const address_ = parseAddress(address);
-    this._enforceBans(address_, 'eth_getStorageAt');
-    const result = (await this.engine.getStorageAt(address_, key)).unwrap();
-    return formatU256(result);
-  }
-
   async eth_getTransactionByBlockHashAndIndex(
     _request: Request,
     blockHash: web3.Data,
@@ -517,24 +390,6 @@ export class DatabaseServer extends SkeletonServer {
     }
   }
 
-  async eth_getTransactionCount(
-    _request: Request,
-    address: web3.Data,
-    blockNumber: web3.Quantity | web3.Tag
-  ): Promise<web3.Quantity> {
-    const blockNumber_ = parseBlockSpec(blockNumber);
-    const address_ = parseAddress(address);
-    this._enforceBans(address_, 'eth_getTransactionCount');
-    const nonce = (
-      await this.engine.getNonce(address_, {
-        block: Number.isInteger(blockNumber_)
-          ? (blockNumber_ as number) + 1
-          : undefined,
-      })
-    ).unwrap();
-    return intToHex(nonce);
-  }
-
   async eth_getTransactionReceipt(
     _request: Request,
     transactionHash: string
@@ -591,13 +446,14 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_newBlockFilter(_request: Request): Promise<web3.Quantity> {
-    const {
-      rows: [{ id }],
-    } = await this._query('SELECT eth_newBlockFilter($1::inet) AS id', [
-      '0.0.0.0', // TODO: IPv4
-    ]);
-
-    return intToHex(id.toString('hex'));
+    const id = bytesToHex(getRandomBytesSync(16));
+    const newFilter = {
+      id: id,
+      type: 'block',
+      created_by: '0.0.0.0', // TODO: IPv4
+    };
+    await this._storeFilter(newFilter);
+    return id;
   }
 
   async eth_newFilter(
@@ -610,9 +466,7 @@ export class DatabaseServer extends SkeletonServer {
     const addresses =
       !filter.address || !filter.address.length
         ? null
-        : parseAddresses(filter.address).map((address) =>
-            Buffer.from(address.toBytes())
-          );
+        : parseAddresses(filter.address).map((address) => address.toString());
     if (addresses && addresses.length > 10) {
       // TODO: DoS
       throw new InvalidArguments();
@@ -623,19 +477,19 @@ export class DatabaseServer extends SkeletonServer {
       throw new InvalidArguments();
     }
 
-    const {
-      rows: [{ id }],
-    } = await this._query(
-      'SELECT eth_newFilter($1::inet, $2::blockno, $3::blockno, $4::address[], $5::jsonb) AS id',
-      [
-        '0.0.0.0', // TODO: IPv4
-        fromBlock,
-        toBlock,
-        addresses,
-        topics ? JSON.stringify(topics) : null,
-      ]
-    );
-    return intToHex(id.toString('hex'));
+    const id = bytesToHex(getRandomBytesSync(16));
+    const newFilter = {
+      id: id,
+      type: 'event',
+      created_by: '0.0.0.0', // TODO: IPv4,
+      block_hash: filter.blockHash,
+      from_block: fromBlock ? fromBlock.toString() : undefined,
+      to_block: toBlock ? toBlock.toString() : undefined,
+      addresses: addresses ? addresses : undefined,
+      topics: topics ? topics : undefined,
+    };
+    await this._storeFilter(newFilter);
+    return id;
   }
 
   async eth_newPendingTransactionFilter(
@@ -645,122 +499,6 @@ export class DatabaseServer extends SkeletonServer {
       rows: [{ id }],
     } = await this._query('SELECT eth_newPendingTransactionFilter() AS id');
     return bytesToHex(id);
-  }
-
-  async eth_sendRawTransaction(
-    request: any,
-    transaction: web3.Data
-  ): Promise<web3.Data> {
-    if (!this.config.writable) {
-      throw new UnsupportedMethod('eth_sendRawTransaction');
-    }
-
-    const ip = request.ip();
-    const transactionBytes = Buffer.from(hexToBytes(transaction));
-    const transactionHash = keccak256(transactionBytes);
-
-    // Enforce the EOA blacklist:
-    let rawTransaction: Transaction | undefined;
-    try {
-      rawTransaction = parseRawTransaction(transactionBytes);
-      // eslint-disable-next-line no-empty
-    } catch (error) {}
-    if (rawTransaction?.from) {
-      const sender = Address.parse(rawTransaction.from).unwrap();
-      if (this._isBannedEOA(sender)) {
-        this._banIP(ip, sender.toString());
-        throw new UnsupportedMethod('eth_sendRawTransaction');
-      }
-    }
-
-    // Enforce the CA blacklist:
-    let banReason;
-    if ((banReason = this._scanForCABans(transaction))) {
-      this._banIP(ip, banReason);
-      throw new UnsupportedMethod('eth_sendRawTransaction');
-    }
-
-    const gasPrice = rawTransaction?.gasPrice || 0;
-    const minGasPrice =
-      this.config.minGasPrice !== undefined ? this.config.minGasPrice : 0;
-    if (gasPrice < minGasPrice) {
-      throw new GasPriceTooLow();
-    }
-
-    return (await this.engine.submit(transactionBytes)).match({
-      ok: (wrappedSubmitResult) => {
-        const result = wrappedSubmitResult.submitResult;
-        // Check if an error occurred
-        if (result.output().isErr()) {
-          if (result.result.kind === 'LegacyExecutionResult') {
-            // legacy SubmitResult just put any error message in the output bytes
-            throw new RevertError(result.result.output);
-          } else {
-            // new versions of SubmitResult carry error information in the status
-            if (result.result.status.revert) {
-              throw new RevertError(
-                result.result.status.revert.output as Uint8Array
-              );
-            } else if (result.result.status.outOfFund) {
-              throw new TransactionError('Out Of Fund');
-            } else if (result.result.status.outOfGas) {
-              throw new TransactionError('Out Of Gas');
-            } else if (result.result.status.outOfOffset) {
-              throw new TransactionError('Out Of Offset');
-            } else if (result.result.status.callTooDeep) {
-              throw new TransactionError('Call Too Deep');
-            }
-          }
-        }
-        return wrappedSubmitResult.gasBurned || wrappedSubmitResult.tx
-          ? `${bytesToHex(transactionHash)}|${JSON.stringify({
-              gasBurned: wrappedSubmitResult.gasBurned,
-              tx: wrappedSubmitResult.tx,
-            })}`
-          : bytesToHex(transactionHash);
-      },
-      err: (message) => {
-        const sepIndex = message.lastIndexOf('|');
-        const code = sepIndex > -1 ? message.substring(0, sepIndex) : message;
-        if (this.config.errorLog && !code.includes('<html>')) {
-          const country = request.country();
-          fs.appendFileSync(
-            this.config.errorLog,
-            `${ip}\t${country}\t${code}\n`
-          );
-        }
-        switch (code) {
-          case 'ERR_INTRINSIC_GAS':
-            throw new TransactionError('intrinsic gas too low');
-          case 'ERR_INCORRECT_NONCE':
-          case 'ERR_TX_RLP_DECODE':
-          case 'ERR_UNKNOWN_TX_TYPE':
-            if (this.bus) {
-              this.bus.publishError('eth_sendRawTransaction', ip, code);
-            }
-            throw new TransactionError(message);
-          case 'ERR_MAX_GAS': // TODO
-          case 'Exceeded the maximum amount of gas allowed to burn per contract.':
-            if (this.bus) {
-              this.bus.publishError(
-                'eth_sendRawTransaction',
-                ip,
-                'ERR_MAX_GAS'
-              );
-            }
-            if (!request.hasAuthorization()) {
-              this._banIP(ip, 'ERR_MAX_GAS'); // temporarily heavy ban hammer
-            }
-            throw new TransactionError(message);
-          default: {
-            if (!code.startsWith('ERR_')) {
-              throw new UnexpectedError(message);
-            }
-            throw new TransactionError(message);
-          }
-        }
-      },
-    });
   }
 
   async eth_subscribe(
@@ -823,29 +561,29 @@ export class DatabaseServer extends SkeletonServer {
     return true;
   }
 
-  protected async _updatePollBlock(filterID_: Buffer): Promise<void> {
+  protected async _storeFilter(filter: Filter): Promise<void> {
     const latestBlock = await this._fetchCurrentBlockID();
-    await this._query(
-      'UPDATE filter SET poll_block = $1 + 1 WHERE uuid_send(id) = $2',
-      [latestBlock, filterID_]
-    );
+    filter.poll_block = latestBlock.toString();
+    const jsonNewFilter = JSON.stringify(filter);
+    const sc = StringCodec();
+    await this.filtersKV.put(filter.id, sc.encode(jsonNewFilter));
+  }
+
+  protected async _getFilter(filterID: string): Promise<Filter> {
+    const entry = await this.filtersKV.get(filterID);
+    if (!entry) throw new UnknownFilter(filterID);
+    const sc = StringCodec();
+    return JSON.parse(sc.decode(entry.value));
   }
 
   protected async _getFilterChangesEvent(
-    filter: {
-      addresses: string;
-      poll_block: web3.Quantity;
-      to_block?: web3.Quantity;
-      topics?: web3.FilterTopic[];
-      type: 'block' | 'event' | 'transaction';
-    },
-    filterID_: Buffer
+    filter: Filter
   ): Promise<web3.LogObject[]> {
     const where = [];
 
     const fromBlock = parseBlockSpec(filter.poll_block);
     if (fromBlock !== null) {
-      where.push(sql.gte('b.id', fromBlock));
+      where.push(sql.gt('b.id', fromBlock));
     }
 
     const toBlock =
@@ -856,16 +594,12 @@ export class DatabaseServer extends SkeletonServer {
       where.push(sql.lte('b.id', toBlock));
     }
 
-    if (filter.addresses) {
-      const serializedAddresses = parse(filter.addresses, (address) => {
-        return address.replace('\\x', '0x');
-      });
-      const addresses = parseAddresses(serializedAddresses).map((address) =>
-        Buffer.from(address.toBytes())
-      );
-      if (addresses.length > 0) {
-        where.push(sql.in('e.from', addresses));
-      }
+    if (filter.addresses && filter.addresses.length > 0) {
+      const addresses = (Array.isArray(filter.addresses)
+        ? filter.addresses
+        : [filter.addresses]
+      ).map((address) => address.replace('0x', '\\x'));
+      where.push(sql.in('e.from', addresses));
     }
     if (filter.topics) {
       const clauses = compileTopics(filter.topics);
@@ -893,7 +627,7 @@ export class DatabaseServer extends SkeletonServer {
       .orderBy('b.id ASC');
 
     const result = await this._query(query);
-    await this._updatePollBlock(filterID_);
+    await this._storeFilter(filter);
     return exportJSON(
       result.rows.map((row: Record<string, unknown>) => {
         if (row['address'] === null) {

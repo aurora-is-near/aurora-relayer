@@ -52,6 +52,7 @@
   "bugs": "https://github.com/aurora-is-near/aurora-relayer/issues",
   "repository": "https://github.com/aurora-is-near/aurora-relayer.git",
   "dependencies": {
+    "@aurora-is-near/borealis": "^1.0.0",
     "@aurora-is-near/engine": "github:aurora-is-near/aurora.js#2a272bd",
     "@ethersproject/transactions": "^5.5.0",
     "cloudflare": "^2.9.1",
