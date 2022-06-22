@@ -132,7 +132,7 @@ func (transaction Transaction) sqlInsertArgs(blockId uint64) insertArgs {
 		"block":                    blockId,
 		"index":                    transaction.TransactionIndex,
 		"hash":                     withHexPrefix(transaction.Hash),
-		"near_hash":                withHexPrefix(decodeBase58(transaction.NearTransaction.ReceiptHash)),
+		"near_hash":                withHexPrefix(decodeBase58(transaction.NearTransaction.Hash)),
 		"near_receipt_hash":        withHexPrefix(decodeBase58(transaction.NearTransaction.ReceiptHash)),
 		"from":                     withHexPrefix(transaction.From),
 		"to":                       withHexPrefix(transaction.To),
