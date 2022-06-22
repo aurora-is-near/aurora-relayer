@@ -17,6 +17,7 @@ export interface Config {
     writable?: boolean;
     errorLog?: string;
     minGasPrice?: number;
+    natsCreds: string;
 }
 export declare const localConfig: Config;
 export declare function parseConfig(options: Config, config: Config, env: ConnectEnv): [NetworkConfig, Config];
