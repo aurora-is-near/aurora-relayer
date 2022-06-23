@@ -40,7 +40,7 @@ export declare class DatabaseServer extends SkeletonServer {
     eth_unsubscribe(_request: Request, _subsciptionId: web3.Data): Promise<boolean>;
     protected _updatePollBlock(filterID_: Buffer): Promise<void>;
     protected _getFilterChangesEvent(filter: {
-        addresses: string;
+        addresses?: string;
         poll_block: web3.Quantity;
         to_block?: web3.Quantity;
         topics?: web3.FilterTopic[];

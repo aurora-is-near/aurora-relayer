@@ -42,7 +42,7 @@ export declare type FilterTopic = FilterTopic[] | Data | null;
 export interface FilterOptions {
     fromBlock?: Quantity | Tag;
     toBlock?: Quantity | Tag;
-    address: Data | Data[];
+    address?: Data | Data[];
     topics?: FilterTopic[];
     blockHash?: Data;
     index?: Quantity | null;
