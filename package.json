@@ -68,7 +68,7 @@
     "express-pino-logger": "^6.0.0",
     "express-ws": "^5.0.2",
     "fastpriorityqueue": "^0.7.1",
-    "got": "^11.8.2",
+    "got": "^11.8.5",
     "helmet": "^4.5.0",
     "jayson": "aurora-is-near/jayson#8f9b2da",
     "jest": "^28.1.0",
