@@ -138,13 +138,13 @@ eth_compileSolidity | ❌ | Unsupported
 [`eth_getCode`] | ✅ |
 eth_getCompilers | ✅ |
 [`eth_getFilterChanges`] | ✅ |
-[`eth_getFilterLogs`] | 🚧 |
+[`eth_getFilterLogs`] | ✅ |
 [`eth_getLogs`] | ✅ |
 [`eth_getProof`] | ❌ | EIP-1186
 [`eth_getStorageAt`] | ✅ |
 [`eth_getTransactionByBlockHashAndIndex`] | ✅ |
 [`eth_getTransactionByBlockNumberAndIndex`] | ✅ |
-[`eth_getTransactionByHash`] | 🚧 |
+[`eth_getTransactionByHash`] | ✅ |
 [`eth_getTransactionCount`] | ✅ |
 [`eth_getTransactionReceipt`] | ✅ |
 [`eth_getUncleByBlockHashAndIndex`] | ✅ |
@@ -154,8 +154,8 @@ eth_getCompilers | ✅ |
 [`eth_getWork`] | ❌ | Unsupported
 [`eth_hashrate`] | ✅ |
 [`eth_mining`] | ✅ |
-[`eth_newBlockFilter`] | 🚧 |
-[`eth_newFilter`] | 🚧 |
+[`eth_newBlockFilter`] | ✅ |
+[`eth_newFilter`] | ✅ |
 [`eth_newPendingTransactionFilter`] | ✅ |
 [`eth_pendingTransactions`] | ✅ | [Undocumented](https://github.com/ethereum/go-ethereum/issues/1648#issuecomment-130591933)
 [`eth_protocolVersion`] | ✅ |
@@ -167,7 +167,7 @@ eth_getCompilers | ✅ |
 [`eth_submitHashrate`] | ❌ | Unsupported
 [`eth_submitWork`] | ❌ | Unsupported
 [`eth_syncing`] | ✅ |
-[`eth_uninstallFilter`] | 🚧 |
+[`eth_uninstallFilter`] | ✅ |
 db_getHex | ❌ | Deprecated
 db_getString | ❌ | Deprecated
 db_putHex | ❌ | Deprecated
