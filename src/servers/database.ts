@@ -38,6 +38,8 @@ import {
 } from '@ethersproject/transactions';
 import { keccak256 } from 'ethereumjs-util';
 
+const GET_LOGS_LIMIT = 10000;
+
 export class DatabaseServer extends SkeletonServer {
   protected pgClient?: pg.Client;
   protected bus?: Bus;
@@ -321,15 +323,22 @@ export class DatabaseServer extends SkeletonServer {
       return [];
     }
 
-    const {
-      rows: [row],
-    } = await this._query(
-      `SELECT type FROM filter WHERE uuid_send(id) = $1 LIMIT 1`,
+    const filterData = await this._query(
+      `SELECT
+          addresses,
+          from_block,
+          to_block,
+          topics,
+          type
+        FROM filter
+        WHERE uuid_send(id) = $1 LIMIT 1`,
       [filterID_]
     );
-    if (!row) throw new UnknownFilter(filterID);
 
-    switch (row.type) {
+    if (!filterData.rows.length) throw new UnknownFilter(filterID);
+    const filter = filterData.rows[0];
+
+    switch (filter.type) {
       case 'block': {
         const {
           rows,
@@ -343,13 +352,17 @@ export class DatabaseServer extends SkeletonServer {
         return buffers.map(bytesToHex);
       }
       case 'event': {
-        const {
-          rows,
-        } = await this._query(
-          'SELECT * FROM eth_getFilterLogs_event($1::bytea)',
-          [filterID_]
-        );
-        return exportJSON(rows);
+        const filterOptions: web3.FilterOptions = {
+          fromBlock: filter.from_block ? filter.from_block : 0,
+          toBlock: filter.to_block,
+          address: filter.addresses
+            ? parse(filter.addresses, (address) => {
+                return address.replace('\\x', '0x');
+              })
+            : undefined,
+          topics: filter.topics,
+        };
+        return await this.eth_getLogs(_request, filterOptions);
       }
       case 'transaction':
       default:
@@ -409,7 +422,8 @@ export class DatabaseServer extends SkeletonServer {
       .from('event e')
       .leftJoin('transaction t', { 'e.transaction': 't.id' })
       .leftJoin('block b', { 't.block': 'b.id' })
-      .where(sql.and(...where));
+      .where(sql.and(...where))
+      .limit(GET_LOGS_LIMIT);
     if (this.config.debug) {
       console.debug('eth_getLogs', 'query:', query.toParams());
       console.debug('eth_getLogs', 'query:', query.toString());
@@ -833,7 +847,7 @@ export class DatabaseServer extends SkeletonServer {
 
   protected async _getFilterChangesEvent(
     filter: {
-      addresses: string;
+      addresses?: string;
       poll_block: web3.Quantity;
       to_block?: web3.Quantity;
       topics?: web3.FilterTopic[];
@@ -890,6 +904,7 @@ export class DatabaseServer extends SkeletonServer {
       .leftJoin('transaction t', { 'e.transaction': 't.id' })
       .leftJoin('block b', { 't.block': 'b.id' })
       .where(sql.and(...where))
+      .limit(GET_LOGS_LIMIT)
       .orderBy('b.id ASC');
 
     const result = await this._query(query);
