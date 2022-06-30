@@ -1,8 +1,11 @@
 /* This is free and unencumbered software released into the public domain. */
 
 import Web3 from 'web3';
+import request from 'supertest';
+import { createServer } from '../helpers';
 
 let web3: any;
+let app: Promise<any>;
 
 describe('eth_getLogs', () => {
   beforeAll(async () => {
@@ -161,8 +164,11 @@ describe('eth_getLogs', () => {
         toBlock: '0x57a3c01',
         topics: [
           [],
-          ["0x000000000000000000000000000000000000000000000000000000000000494b", "0x0000000000000000000000000000000000000000000000000000000000004941"]
-        ]
+          [
+            '0x000000000000000000000000000000000000000000000000000000000000494b',
+            '0x0000000000000000000000000000000000000000000000000000000000004941',
+          ],
+        ],
       })
 
       expect(response).toMatchInlineSnapshot(`
@@ -193,8 +199,8 @@ describe('eth_getLogs', () => {
         toBlock: '0x57a3c01',
         topics: [
           null,
-          "0x000000000000000000000000000000000000000000000000000000000000494b"
-        ]
+          '0x000000000000000000000000000000000000000000000000000000000000494b',
+        ],
       })
 
       expect(response).toMatchInlineSnapshot(`
@@ -216,6 +222,234 @@ describe('eth_getLogs', () => {
           },
         ]
       `)
+    })
+
+    describe('with empty topics params', () => {
+      beforeAll(async () => {
+        app = await createServer({
+          attachAppToPort: false,
+        })
+      })
+
+      test('should return logs, just null in topics params', async () => {
+        const response = await web3.eth.getPastLogs({
+          address: '0xddf079d2f486f1ba8d5cbc0900e6a12c6f91ff82',
+          fromBlock: '0x57a3c01',
+          toBlock: '0x57a3c01',
+          topics: [null],
+        })
+
+        expect(response).toMatchInlineSnapshot(`
+          Array [
+            Object {
+              "address": "0xDdF079d2f486F1bA8D5cBC0900E6a12C6F91FF82",
+              "blockHash": "0xfafdeeba634974d9dba58ff084f621666ad2fa7c292fbd48f2ee76ecfdc62ce1",
+              "blockNumber": 91896833,
+              "data": "0x000000000000000000000000000000000000000000000000000000035df15940000000000000000000000000aa2666def065cbd1f16d2c3c296c0b3287ea2827",
+              "id": "log_a2758b4f",
+              "logIndex": 0,
+              "removed": false,
+              "topics": Array [
+                "0x17eabd0a66fa631f7537cefdd5df6aa25d5ac904cf7596e958d43a75a00d0d68",
+                "0x000000000000000000000000000000000000000000000000000000000000494b",
+              ],
+              "transactionHash": "0x5c33068b145d9028087d0a69db07c612f292dc9274323c73dafb7d37c1354549",
+              "transactionIndex": 0,
+            },
+          ]
+        `)
+      })
+
+      test('should return logs, just few null in topics params', async () => {
+        const response = await web3.eth.getPastLogs({
+          address: '0xddf079d2f486f1ba8d5cbc0900e6a12c6f91ff82',
+          fromBlock: '0x57a3c01',
+          toBlock: '0x57a3c01',
+          topics: [null, null, null, null],
+        })
+
+        expect(response).toMatchInlineSnapshot(`
+          Array [
+            Object {
+              "address": "0xDdF079d2f486F1bA8D5cBC0900E6a12C6F91FF82",
+              "blockHash": "0xfafdeeba634974d9dba58ff084f621666ad2fa7c292fbd48f2ee76ecfdc62ce1",
+              "blockNumber": 91896833,
+              "data": "0x000000000000000000000000000000000000000000000000000000035df15940000000000000000000000000aa2666def065cbd1f16d2c3c296c0b3287ea2827",
+              "id": "log_a2758b4f",
+              "logIndex": 0,
+              "removed": false,
+              "topics": Array [
+                "0x17eabd0a66fa631f7537cefdd5df6aa25d5ac904cf7596e958d43a75a00d0d68",
+                "0x000000000000000000000000000000000000000000000000000000000000494b",
+              ],
+              "transactionHash": "0x5c33068b145d9028087d0a69db07c612f292dc9274323c73dafb7d37c1354549",
+              "transactionIndex": 0,
+            },
+          ]
+        `)
+      })
+
+      test('should return logs, just few [] in topics params', async () => {
+        const response = await web3.eth.getPastLogs({
+          address: '0xddf079d2f486f1ba8d5cbc0900e6a12c6f91ff82',
+          fromBlock: '0x57a3c01',
+          toBlock: '0x57a3c01',
+          topics: [
+            [],
+            [],
+            [],
+            [],
+          ],
+        })
+
+        expect(response).toMatchInlineSnapshot(`
+          Array [
+            Object {
+              "address": "0xDdF079d2f486F1bA8D5cBC0900E6a12C6F91FF82",
+              "blockHash": "0xfafdeeba634974d9dba58ff084f621666ad2fa7c292fbd48f2ee76ecfdc62ce1",
+              "blockNumber": 91896833,
+              "data": "0x000000000000000000000000000000000000000000000000000000035df15940000000000000000000000000aa2666def065cbd1f16d2c3c296c0b3287ea2827",
+              "id": "log_a2758b4f",
+              "logIndex": 0,
+              "removed": false,
+              "topics": Array [
+                "0x17eabd0a66fa631f7537cefdd5df6aa25d5ac904cf7596e958d43a75a00d0d68",
+                "0x000000000000000000000000000000000000000000000000000000000000494b",
+              ],
+              "transactionHash": "0x5c33068b145d9028087d0a69db07c612f292dc9274323c73dafb7d37c1354549",
+              "transactionIndex": 0,
+            },
+          ]
+        `)
+      })
+
+      test('should return logs, just empty array in topics params', async () => {
+        const response = await web3.eth.getPastLogs({
+          address: '0xddf079d2f486f1ba8d5cbc0900e6a12c6f91ff82',
+          fromBlock: '0x57a3c01',
+          toBlock: '0x57a3c01',
+          topics: [[]],
+        })
+
+        expect(response).toMatchInlineSnapshot(`
+          Array [
+            Object {
+              "address": "0xDdF079d2f486F1bA8D5cBC0900E6a12C6F91FF82",
+              "blockHash": "0xfafdeeba634974d9dba58ff084f621666ad2fa7c292fbd48f2ee76ecfdc62ce1",
+              "blockNumber": 91896833,
+              "data": "0x000000000000000000000000000000000000000000000000000000035df15940000000000000000000000000aa2666def065cbd1f16d2c3c296c0b3287ea2827",
+              "id": "log_a2758b4f",
+              "logIndex": 0,
+              "removed": false,
+              "topics": Array [
+                "0x17eabd0a66fa631f7537cefdd5df6aa25d5ac904cf7596e958d43a75a00d0d68",
+                "0x000000000000000000000000000000000000000000000000000000000000494b",
+              ],
+              "transactionHash": "0x5c33068b145d9028087d0a69db07c612f292dc9274323c73dafb7d37c1354549",
+              "transactionIndex": 0,
+            },
+          ]
+        `)
+      })
+
+      test('should return logs, empty array and null in topics params', async () => {
+        const response = await web3.eth.getPastLogs({
+          address: '0xddf079d2f486f1ba8d5cbc0900e6a12c6f91ff82',
+          fromBlock: '0x57a3c01',
+          toBlock: '0x57a3c01',
+          topics: [[], null],
+        })
+
+        expect(response).toMatchInlineSnapshot(`
+          Array [
+            Object {
+              "address": "0xDdF079d2f486F1bA8D5cBC0900E6a12C6F91FF82",
+              "blockHash": "0xfafdeeba634974d9dba58ff084f621666ad2fa7c292fbd48f2ee76ecfdc62ce1",
+              "blockNumber": 91896833,
+              "data": "0x000000000000000000000000000000000000000000000000000000035df15940000000000000000000000000aa2666def065cbd1f16d2c3c296c0b3287ea2827",
+              "id": "log_a2758b4f",
+              "logIndex": 0,
+              "removed": false,
+              "topics": Array [
+                "0x17eabd0a66fa631f7537cefdd5df6aa25d5ac904cf7596e958d43a75a00d0d68",
+                "0x000000000000000000000000000000000000000000000000000000000000494b",
+              ],
+              "transactionHash": "0x5c33068b145d9028087d0a69db07c612f292dc9274323c73dafb7d37c1354549",
+              "transactionIndex": 0,
+            },
+          ]
+        `)
+      })
+
+      test('should return logs, null in array in topics params', async () => {
+        const response = await web3.eth.getPastLogs({
+          address: '0xddf079d2f486f1ba8d5cbc0900e6a12c6f91ff82',
+          fromBlock: '0x57a3c01',
+          toBlock: '0x57a3c01',
+          topics: [[null], null],
+        })
+
+        expect(response).toMatchInlineSnapshot(`
+          Array [
+            Object {
+              "address": "0xDdF079d2f486F1bA8D5cBC0900E6a12C6F91FF82",
+              "blockHash": "0xfafdeeba634974d9dba58ff084f621666ad2fa7c292fbd48f2ee76ecfdc62ce1",
+              "blockNumber": 91896833,
+              "data": "0x000000000000000000000000000000000000000000000000000000035df15940000000000000000000000000aa2666def065cbd1f16d2c3c296c0b3287ea2827",
+              "id": "log_a2758b4f",
+              "logIndex": 0,
+              "removed": false,
+              "topics": Array [
+                "0x17eabd0a66fa631f7537cefdd5df6aa25d5ac904cf7596e958d43a75a00d0d68",
+                "0x000000000000000000000000000000000000000000000000000000000000494b",
+              ],
+              "transactionHash": "0x5c33068b145d9028087d0a69db07c612f292dc9274323c73dafb7d37c1354549",
+              "transactionIndex": 0,
+            },
+          ]
+        `)
+      })
+
+      test('should return logs, null and empty array in array in topics params', async () => {
+        const response = await request(app)
+          .post('/')
+          .send({
+            jsonrpc: '2.0',
+            id: 1,
+            method: 'eth_getLogs',
+            params: [
+              {
+                address: '0xddf079d2f486f1ba8d5cbc0900e6a12c6f91ff82',
+                fromBlock: '0x57a3c01',
+                toBlock: '0x57a3c01',
+                topics: [
+                  [
+                    null, []
+                  ]
+                ],
+              },
+            ],
+          })
+
+        expect(response.body.result).toMatchInlineSnapshot(`
+          Array [
+            Object {
+              "address": "0xddf079d2f486f1ba8d5cbc0900e6a12c6f91ff82",
+              "blockHash": "0xfafdeeba634974d9dba58ff084f621666ad2fa7c292fbd48f2ee76ecfdc62ce1",
+              "blockNumber": "0x57a3c01",
+              "data": "0x000000000000000000000000000000000000000000000000000000035df15940000000000000000000000000aa2666def065cbd1f16d2c3c296c0b3287ea2827",
+              "logIndex": "0x0",
+              "removed": false,
+              "topics": Array [
+                "0x17eabd0a66fa631f7537cefdd5df6aa25d5ac904cf7596e958d43a75a00d0d68",
+                "0x000000000000000000000000000000000000000000000000000000000000494b",
+              ],
+              "transactionHash": "0x5c33068b145d9028087d0a69db07c612f292dc9274323c73dafb7d37c1354549",
+              "transactionIndex": "0x0",
+            },
+          ]
+        `)
+      })
     })
   })
 })

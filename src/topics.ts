@@ -8,6 +8,26 @@ export function compileTopics(
   topics: web3.FilterTopic[]
 ): sql.WhereExpression | null {
   if (!topics || topics.length == 0) return null;
+  if (Array.isArray(topics)) {
+    const isEmptyTopics = topics.every((topic) => {
+      if (topic === null || (Array.isArray(topic) && !topic.length)) {
+        return true;
+      }
+
+      if (Array.isArray(topic)) {
+        return topic.every((value) => {
+          if (value === null || (Array.isArray(value) && !value.length)) {
+            return true;
+          }
+
+          return false;
+        });
+      }
+
+      return false;
+    });
+    if (isEmptyTopics) return null;
+  }
   const operands: sql.WhereExpression[] = topics
     .map((topic: web3.FilterTopic, i: number): sql.WhereExpression[] => {
       if (topic === null) return [];
