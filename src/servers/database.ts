@@ -13,6 +13,7 @@ import {
   UnknownFilter,
   UnsupportedMethod,
   GasPriceTooLow,
+  LimitExceeded,
 } from '../errors.js';
 import { Request } from '../request.js';
 import { compileTopics } from '../topics.js';
@@ -37,8 +38,6 @@ import {
   Transaction,
 } from '@ethersproject/transactions';
 import { keccak256 } from 'ethereumjs-util';
-
-const GET_LOGS_LIMIT = 10000;
 
 export class DatabaseServer extends SkeletonServer {
   protected pgClient?: pg.Client;
@@ -407,7 +406,7 @@ export class DatabaseServer extends SkeletonServer {
       where.push({ 't.index': filter.index });
     }
 
-    const query = sql
+    let query = sql
       .select(
         'b.id AS "blockNumber"',
         'b.hash AS "blockHash"',
@@ -420,10 +419,15 @@ export class DatabaseServer extends SkeletonServer {
         '0::boolean AS "removed"'
       )
       .from('event e')
-      .leftJoin('transaction t', { 'e.transaction': 't.id' })
-      .leftJoin('block b', { 't.block': 'b.id' })
+      .join('transaction t', { 'e.transaction': 't.id' })
+      .join('block b', { 't.block': 'b.id' })
       .where(sql.and(...where))
-      .limit(GET_LOGS_LIMIT);
+      .orderBy('b.id ASC');
+
+    if (this.config.getLogsLimit) {
+      query = query.limit(this.config.getLogsLimit + 1);
+    }
+
     if (this.config.debug) {
       console.debug('eth_getLogs', 'query:', query.toParams());
       console.debug('eth_getLogs', 'query:', query.toString());
@@ -432,20 +436,25 @@ export class DatabaseServer extends SkeletonServer {
     if (this.config.debug) {
       console.debug('eth_getLogs', 'result:', rows);
     }
-    return exportJSON(
-      rows.map((row: Record<string, unknown>) => {
-        if (row['address'] === null) {
-          row['address'] = Address.zero().toString();
-        }
-        // remove null values
-        if (Array.isArray(row['topics'])) {
-          row['topics'] = row['topics'].filter((t: string) => {
-            return t !== '0x';
-          });
-        }
-        return row;
-      })
-    );
+
+    const events = rows.map((row: Record<string, unknown>) => {
+      if (row['address'] === null) {
+        row['address'] = Address.zero().toString();
+      }
+      // remove null values
+      if (Array.isArray(row['topics'])) {
+        row['topics'] = row['topics'].filter((t: string) => {
+          return t !== '0x';
+        });
+      }
+      return row;
+    });
+
+    if (this.config.getLogsLimit && events.length > this.config.getLogsLimit) {
+      throw new LimitExceeded(this.config.getLogsLimit);
+    }
+
+    return exportJSON(events);
   }
 
   async eth_getStorageAt(
@@ -888,7 +897,7 @@ export class DatabaseServer extends SkeletonServer {
       }
     }
 
-    const query = sql
+    let query = sql
       .select(
         'b.id AS "blockNumber"',
         'b.hash AS "blockHash"',
@@ -901,28 +910,34 @@ export class DatabaseServer extends SkeletonServer {
         '0::boolean AS "removed"'
       )
       .from('event e')
-      .leftJoin('transaction t', { 'e.transaction': 't.id' })
-      .leftJoin('block b', { 't.block': 'b.id' })
+      .join('transaction t', { 'e.transaction': 't.id' })
+      .join('block b', { 't.block': 'b.id' })
       .where(sql.and(...where))
-      .limit(GET_LOGS_LIMIT)
       .orderBy('b.id ASC');
 
-    const result = await this._query(query);
+    if (this.config.getLogsLimit) {
+      query = query.limit(this.config.getLogsLimit + 1);
+    }
+
+    const { rows } = await this._query(query);
+    const events = rows.map((row: Record<string, unknown>) => {
+      if (row['address'] === null) {
+        row['address'] = Address.zero().toString();
+      }
+      // remove null values
+      if (Array.isArray(row['topics'])) {
+        row['topics'] = row['topics'].filter((t: string) => {
+          return t !== '0x';
+        });
+      }
+      return row;
+    });
+
+    if (this.config.getLogsLimit && events.length > this.config.getLogsLimit) {
+      throw new LimitExceeded(this.config.getLogsLimit);
+    }
     await this._updatePollBlock(filterID_);
-    return exportJSON(
-      result.rows.map((row: Record<string, unknown>) => {
-        if (row['address'] === null) {
-          row['address'] = Address.zero().toString();
-        }
-        // remove null values
-        if (Array.isArray(row['topics'])) {
-          row['topics'] = row['topics'].filter((t: string) => {
-            return t !== '0x';
-          });
-        }
-        return row;
-      })
-    );
+    return exportJSON(events);
   }
 
   protected async _fetchCurrentBlockID(): Promise<bigint> {

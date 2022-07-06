@@ -231,7 +231,7 @@ describe('eth_getFilterLogs', () => {
     `)
   })
 
-  test('should return log object, without params', async () => {
+  test('should return error message, without params', async () => {
     const response = await request(app)
       .post('/')
       .send({
@@ -255,6 +255,6 @@ describe('eth_getFilterLogs', () => {
         params: [filterHash],
       })
 
-    expect(responseGetFilterLogs.body.error).toBeUndefined()
+    expect(responseGetFilterLogs.body.error.message).toBe('query returned more than 5 results')
   })
 })
