@@ -123,3 +123,10 @@ export class GasPriceTooLow extends ExpectedError {
     Object.setPrototypeOf(this, InvalidAddress.prototype);
   }
 }
+
+export class LimitExceeded extends ExpectedError {
+  constructor(limit: number, message?: string) {
+    super(-32005, message || `query returned more than ${limit} results`);
+    Object.setPrototypeOf(this, InvalidAddress.prototype);
+  }
+}

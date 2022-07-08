@@ -20,6 +20,7 @@ export interface Config {
   writable?: boolean;
   errorLog?: string;
   minGasPrice?: number;
+  getLogsLimit: number;
 }
 
 export const localConfig: Config = {
@@ -38,6 +39,7 @@ export const localConfig: Config = {
   writable: true,
   errorLog: undefined,
   minGasPrice: undefined,
+  getLogsLimit: 10000,
 };
 
 export function parseConfig(
@@ -83,6 +85,7 @@ export function parseConfig(
       writable: config.writable !== undefined ? config.writable : true,
       errorLog: config.errorLog,
       minGasPrice: config.minGasPrice !== undefined ? config.minGasPrice : 0,
+      getLogsLimit: options.getLogsLimit || config.getLogsLimit || 10000,
     },
   ];
 }

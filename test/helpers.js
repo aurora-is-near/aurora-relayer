@@ -12,7 +12,10 @@ export const createServer = async({port = 0, attachAppToPort = true} = {}) => {
     HOME: os.homedir(),
   })
   const app = await createApp(
-    externalConfig,
+    {
+      ...externalConfig,
+      getLogsLimit: 5,
+    },
     logger,
     engine
   )
