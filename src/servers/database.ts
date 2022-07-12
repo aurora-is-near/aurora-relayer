@@ -352,7 +352,7 @@ export class DatabaseServer extends SkeletonServer {
       }
       case 'event': {
         const filterOptions: web3.FilterOptions = {
-          fromBlock: filter.from_block ? filter.from_block : 0,
+          fromBlock: filter.from_block,
           toBlock: filter.to_block,
           address: filter.addresses
             ? parse(filter.addresses, (address) => {
@@ -361,7 +361,7 @@ export class DatabaseServer extends SkeletonServer {
             : undefined,
           topics: filter.topics,
         };
-        return await this.eth_getLogs(_request, filterOptions);
+        return await this._getLogs(filterOptions);
       }
       case 'transaction':
       default:
@@ -373,88 +373,7 @@ export class DatabaseServer extends SkeletonServer {
     _request: Request,
     filter: web3.FilterOptions
   ): Promise<web3.LogObject[]> {
-    const where = [];
-    if (filter.blockHash !== undefined && filter.blockHash !== null) {
-      // EIP-234
-      where.push({ 'b.hash': hexToBytes(filter.blockHash) });
-    } else {
-      const fromBlock = parseBlockSpec(filter.fromBlock);
-      if (fromBlock !== null) {
-        where.push(sql.gte('b.id', fromBlock));
-      }
-      const toBlock = parseBlockSpec(filter.toBlock);
-      if (toBlock !== null) {
-        where.push(sql.lte('b.id', toBlock));
-      }
-    }
-    if (filter.address) {
-      const addresses = parseAddresses(filter.address).map((address) =>
-        Buffer.from(address.toBytes())
-      ); // TODO: handle 0x0 => NULL
-      if (addresses.length > 0) {
-        where.push(sql.in('e.from', addresses));
-      }
-    }
-    if (filter.topics) {
-      const clauses = compileTopics(filter.topics);
-      if (clauses) {
-        where.push(clauses);
-      }
-    }
-
-    if (typeof filter.index === 'number') {
-      where.push({ 't.index': filter.index });
-    }
-
-    let query = sql
-      .select(
-        'b.id AS "blockNumber"',
-        'b.hash AS "blockHash"',
-        't.index AS "transactionIndex"',
-        't.hash AS "transactionHash"',
-        'e.index AS "logIndex"',
-        'e.from AS "address"',
-        "string_to_array(concat('0x',encode(e.topics[1], 'hex'), ',', '0x', encode(e.topics[2], 'hex'), ',', '0x', encode(e.topics[3], 'hex'), ',', '0x', encode(e.topics[4], 'hex')), ',') AS \"topics\"",
-        'coalesce(e.data, repeat(\'\\000\', 32)::bytea) AS "data"',
-        '0::boolean AS "removed"'
-      )
-      .from('event e')
-      .join('transaction t', { 'e.transaction': 't.id' })
-      .join('block b', { 't.block': 'b.id' })
-      .where(sql.and(...where))
-      .orderBy('b.id ASC');
-
-    if (this.config.getLogsLimit) {
-      query = query.limit(this.config.getLogsLimit + 1);
-    }
-
-    if (this.config.debug) {
-      console.debug('eth_getLogs', 'query:', query.toParams());
-      console.debug('eth_getLogs', 'query:', query.toString());
-    }
-    const { rows } = await this._query(query);
-    if (this.config.debug) {
-      console.debug('eth_getLogs', 'result:', rows);
-    }
-
-    const events = rows.map((row: Record<string, unknown>) => {
-      if (row['address'] === null) {
-        row['address'] = Address.zero().toString();
-      }
-      // remove null values
-      if (Array.isArray(row['topics'])) {
-        row['topics'] = row['topics'].filter((t: string) => {
-          return t !== '0x';
-        });
-      }
-      return row;
-    });
-
-    if (this.config.getLogsLimit && events.length > this.config.getLogsLimit) {
-      throw new LimitExceeded(this.config.getLogsLimit);
-    }
-
-    return exportJSON(events);
+    return await this._getLogs(filter);
   }
 
   async eth_getStorageAt(
@@ -864,80 +783,20 @@ export class DatabaseServer extends SkeletonServer {
     },
     filterID_: Buffer
   ): Promise<web3.LogObject[]> {
-    const where = [];
+    const filterOptions: web3.FilterOptions = {
+      fromBlock: filter.poll_block,
+      toBlock: filter.to_block,
+      address: filter.addresses
+        ? parse(filter.addresses, (address) => {
+            return address.replace('\\x', '0x');
+          })
+        : undefined,
+      topics: filter.topics,
+    };
 
-    const fromBlock = parseBlockSpec(filter.poll_block);
-    if (fromBlock !== null) {
-      where.push(sql.gte('b.id', fromBlock));
-    }
-
-    const toBlock =
-      parseBlockSpec(filter.to_block) != 0
-        ? parseBlockSpec(filter.to_block) || (await this._fetchCurrentBlockID())
-        : 0;
-    if (toBlock !== null) {
-      where.push(sql.lte('b.id', toBlock));
-    }
-
-    if (filter.addresses) {
-      const serializedAddresses = parse(filter.addresses, (address) => {
-        return address.replace('\\x', '0x');
-      });
-      const addresses = parseAddresses(serializedAddresses).map((address) =>
-        Buffer.from(address.toBytes())
-      );
-      if (addresses.length > 0) {
-        where.push(sql.in('e.from', addresses));
-      }
-    }
-    if (filter.topics) {
-      const clauses = compileTopics(filter.topics);
-      if (clauses) {
-        where.push(clauses);
-      }
-    }
-
-    let query = sql
-      .select(
-        'b.id AS "blockNumber"',
-        'b.hash AS "blockHash"',
-        't.index AS "transactionIndex"',
-        't.hash AS "transactionHash"',
-        'e.index AS "logIndex"',
-        'e.from AS "address"',
-        "string_to_array(concat('0x',encode(e.topics[1], 'hex'), ',', '0x', encode(e.topics[2], 'hex'), ',', '0x', encode(e.topics[3], 'hex'), ',', '0x', encode(e.topics[4], 'hex')), ',') AS \"topics\"",
-        'coalesce(e.data, repeat(\'\\000\', 32)::bytea) AS "data"',
-        '0::boolean AS "removed"'
-      )
-      .from('event e')
-      .join('transaction t', { 'e.transaction': 't.id' })
-      .join('block b', { 't.block': 'b.id' })
-      .where(sql.and(...where))
-      .orderBy('b.id ASC');
-
-    if (this.config.getLogsLimit) {
-      query = query.limit(this.config.getLogsLimit + 1);
-    }
-
-    const { rows } = await this._query(query);
-    const events = rows.map((row: Record<string, unknown>) => {
-      if (row['address'] === null) {
-        row['address'] = Address.zero().toString();
-      }
-      // remove null values
-      if (Array.isArray(row['topics'])) {
-        row['topics'] = row['topics'].filter((t: string) => {
-          return t !== '0x';
-        });
-      }
-      return row;
-    });
-
-    if (this.config.getLogsLimit && events.length > this.config.getLogsLimit) {
-      throw new LimitExceeded(this.config.getLogsLimit);
-    }
+    const result = await this._getLogs(filterOptions);
     await this._updatePollBlock(filterID_);
-    return exportJSON(events);
+    return result;
   }
 
   protected async _fetchCurrentBlockID(): Promise<bigint> {
@@ -1018,6 +877,95 @@ export class DatabaseServer extends SkeletonServer {
         bytesToHex(row['hash'] as Uint8Array)
       );
     }
+  }
+
+  protected async _getLogs(
+    filter: web3.FilterOptions
+  ): Promise<web3.LogObject[]> {
+    const where = [];
+    if (filter == undefined) {
+      filter = {};
+    }
+    if (filter.blockHash !== undefined && filter.blockHash !== null) {
+      // EIP-234
+      where.push({ 'b.hash': hexToBytes(filter.blockHash) });
+    } else {
+      const fromBlock = parseBlockSpec(filter.fromBlock);
+      if (fromBlock !== null) {
+        where.push(sql.gte('b.id', fromBlock));
+      }
+      const toBlock = parseBlockSpec(filter.toBlock);
+      if (toBlock !== null) {
+        where.push(sql.lte('b.id', toBlock));
+      }
+    }
+    if (filter.address) {
+      const addresses = parseAddresses(filter.address).map((address) =>
+        Buffer.from(address.toBytes())
+      ); // TODO: handle 0x0 => NULL
+      if (addresses.length > 0) {
+        where.push(sql.in('e.from', addresses));
+      }
+    }
+    if (filter.topics) {
+      const clauses = compileTopics(filter.topics);
+      if (clauses) {
+        where.push(clauses);
+      }
+    }
+
+    let query = sql
+      .select(
+        'b.id AS "blockNumber"',
+        'b.hash AS "blockHash"',
+        't.index AS "transactionIndex"',
+        't.hash AS "transactionHash"',
+        'e.index AS "logIndex"',
+        'e.from AS "address"',
+        "string_to_array(concat('0x',encode(e.topics[1], 'hex'), ',', '0x', encode(e.topics[2], 'hex'), ',', '0x', encode(e.topics[3], 'hex'), ',', '0x', encode(e.topics[4], 'hex')), ',') AS \"topics\"",
+        'coalesce(e.data, repeat(\'\\000\', 32)::bytea) AS "data"',
+        '0::boolean AS "removed"'
+      )
+      .from('event e')
+      .join('transaction t', { 'e.transaction': 't.id' })
+      .join('block b', { 't.block': 'b.id' })
+      .orderBy('b.id ASC');
+
+    if (this.config.getLogsLimit) {
+      query = query.limit(this.config.getLogsLimit + 1);
+    }
+
+    if (where.length > 0) {
+      query = query.where(sql.and(...where));
+    }
+
+    if (this.config.debug) {
+      console.debug('eth_getLogs', 'query:', query.toParams());
+      console.debug('eth_getLogs', 'query:', query.toString());
+    }
+    const { rows } = await this._query(query);
+    if (this.config.debug) {
+      console.debug('eth_getLogs', 'result:', rows);
+    }
+
+    const events = rows.map((row: Record<string, unknown>) => {
+      if (row['address'] === null) {
+        row['address'] = Address.zero().toString();
+      }
+      // remove null values
+      if (Array.isArray(row['topics'])) {
+        row['topics'] = row['topics'].filter((t: string) => {
+          return t !== '0x';
+        });
+      }
+      return row;
+    });
+
+    if (this.config.getLogsLimit && events.length > this.config.getLogsLimit) {
+      throw new LimitExceeded(this.config.getLogsLimit);
+    }
+
+    return exportJSON(events);
   }
 }
 
