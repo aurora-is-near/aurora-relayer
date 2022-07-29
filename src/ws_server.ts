@@ -10,6 +10,7 @@ import { Logger } from 'pino';
 
 const syncInterval = 3000;
 const newHeadsInterval = 200;
+const retriesCount = 50;
 
 export async function createWsServer(
   config: Config,
@@ -57,7 +58,8 @@ export async function createWsServer(
     pgClient,
     expressWsApp,
     jaysonWsServer,
-    blockHeight
+    blockHeight,
+    0
   );
   return true;
 }
@@ -82,7 +84,8 @@ async function notifyNewHeads(
   pgClient: any,
   expressWsApp: any,
   jaysonWsServer: any,
-  blockNumber: number
+  blockNumber: number,
+  retries: number,
 ) {
   const result = await pgClient.query(
     'SELECT 1 FROM block WHERE id = $1 LIMIT 1',
@@ -137,6 +140,14 @@ async function notifyNewHeads(
     });
 
     blockNumber = blockNumber + 1;
+    retries = 0;
+  } else {
+    if (retries > retriesCount) {
+      blockNumber = blockNumber + 1;
+      retries = 0;
+    } else {
+      retries = retries + 1;
+    }
   }
   setTimeout(
     notifyNewHeads,
@@ -144,7 +155,8 @@ async function notifyNewHeads(
     pgClient,
     expressWsApp,
     jaysonWsServer,
-    blockNumber
+    blockNumber,
+    retries
   );
 }
 
