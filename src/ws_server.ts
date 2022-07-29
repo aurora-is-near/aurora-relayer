@@ -85,7 +85,7 @@ async function notifyNewHeads(
   expressWsApp: any,
   jaysonWsServer: any,
   blockNumber: number,
-  retries: number,
+  retries: number
 ) {
   const result = await pgClient.query(
     'SELECT 1 FROM block WHERE id = $1 LIMIT 1',
