@@ -149,6 +149,18 @@ async function notifyNewHeads(
       retries = retries + 1;
     }
   }
+
+  forSubscriptions(pgClient, 'newHeads_debug', function (row: any) {
+    const payload = {
+      jsonrpc: '2.0',
+      subscription: row.sub_id,
+      result: {
+        blockNumber,
+      },
+    };
+    sendPayload(expressWsApp, row.ws_key, row.sub_id, JSON.stringify(payload));
+  });
+
   setTimeout(
     notifyNewHeads,
     newHeadsInterval,
@@ -196,6 +208,7 @@ function forSubscriptions(
       pgResult.rows.forEach(callback);
     });
 }
+
 function parseAddresses(inputs: any): any[] {
   const addresses = (Array.isArray(inputs) ? inputs : [inputs]).map(
     (input: any) => {
