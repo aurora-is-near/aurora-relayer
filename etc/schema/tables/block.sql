@@ -12,9 +12,13 @@ CREATE TABLE block (
   parent_hash       hash NOT NULL UNIQUE,
   transactions_root hash NOT NULL,
   state_root        hash NOT NULL,
-  receipts_root     hash NOT NULL
+  receipts_root     hash NOT NULL,
+  logs_bloom        bytea NULL,
+  miner             address NULL,
+  author            varchar(255) NULL,
+  sequence          int8 NOT NULL
 );
 
 CREATE UNIQUE INDEX block_chain_id_idx ON block (chain, id);
-
+CREATE INDEX sequence_idx ON block (sequence);
 CREATE INDEX block_timestamp_idx ON block USING btree (timestamp);

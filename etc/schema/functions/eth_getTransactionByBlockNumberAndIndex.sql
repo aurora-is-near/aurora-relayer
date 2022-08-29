@@ -5,13 +5,13 @@ DECLARE
   result transaction_result;
 BEGIN
   SELECT
-      b.id AS "blockNumber",
-      b.hash AS "blockHash",
+      t.block AS "blockNumber",
+      t.block_hash AS "blockHash",
       t.index AS "transactionIndex",
       t.hash AS "hash",
       t.from AS "from",
       t.to AS "to",
-      t.gas_limit AS "gas",
+      LEAST(t.gas_limit, 4503599627370495) AS "gas",
       t.gas_price AS "gasPrice",
       t.nonce AS "nonce",
       t.value AS "value",
@@ -20,8 +20,7 @@ BEGIN
       t.r AS "r",
       t.s AS "s"
     FROM transaction t
-      LEFT JOIN block b ON t.block = b.id
-    WHERE b.id = block_id AND t.index = transaction_index
+    WHERE t.block = block_id AND t.index = transaction_index
     LIMIT 1
     INTO STRICT result;
   RETURN result;

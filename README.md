@@ -40,11 +40,8 @@ You can customize the configuration by copying [`config/testnet.yaml`] to
 
 1. `npm i`
 2. Install postgresql and create database, [example](https://github.com/aurora-is-near/aurora-relayer/blob/master/.docker/docker-entrypoint-initdb.d/init.sh) of how to create database
-3. Go to indexer directory `cd util/indexer`
-4. Compile `indexer` binary, `go build`
-5. Return to root directory of the project
-6. Run Node.js server `NEAR_ENV=testnet node lib/index.js`
-7. Run indexer `sh -c util/indexer/indexer | NEAR_ENV=testnet node lib/indexer_backend.js`
+3. Run indexer from this repo: [aurora-relayer-indexer](https://github.com/aurora-is-near/aurora-relayer-indexer)
+4. Run Node.js server `NEAR_ENV=testnet node lib/index.js`
 
 ### Usage for Testnet without Docker and with live changes
 
@@ -57,7 +54,7 @@ npm run build:watch
 ### Run local specs
 
 1. Apply mocks to local database `sh test/fixtures/mocks_init.sh`
-2. Run indexer `sh -c util/indexer/indexer | NEAR_ENV=testnet node lib/indexer_backend.js`
+2. Run indexer from this repo: [aurora-relayer-indexer](https://github.com/aurora-is-near/aurora-relayer-indexer)
 3. Run local specs `npm run test`
 
 ### Usage for LocalNet

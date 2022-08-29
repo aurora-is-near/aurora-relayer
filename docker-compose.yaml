@@ -8,23 +8,6 @@ services:
       - '127.0.0.1:5432:5432'
     volumes:
       - database:/var/lib/postgresql/data
-  indexer:
-    container_name: "${NEAR_ENV:-testnet}_indexer"
-    image: auroraisnear/relayer-endpoint
-    restart: unless-stopped
-    init: true
-    depends_on:
-      - database
-    environment:
-      - WAIT_HOSTS=database:5432
-      - WAIT_BEFORE=1
-      - NEAR_ENV=${NEAR_ENV:-testnet}
-      - NODE_ENV=${NEAR_ENV:-testnet}
-    volumes:
-      - ./config:/srv/aurora/relayer/config
-    extra_hosts:
-      - host.docker.internal:host-gateway # See: https://stackoverflow.com/a/43541732
-    entrypoint: ["sh", "-c", "util/indexer/indexer | node lib/indexer_backend.js"]
   endpoint:
     container_name: "${NEAR_ENV:-testnet}_endpoint"
     image: auroraisnear/relayer-endpoint

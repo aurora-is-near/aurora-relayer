@@ -5,8 +5,8 @@ DECLARE
   result transaction_receipt;
 BEGIN
   SELECT
-      b.id AS "blockNumber",
-      b.hash AS "blockHash",
+      t.block AS "blockNumber",
+      t.block_hash AS "blockHash",
       t.index AS "transactionIndex",
       t.hash AS "transactionHash",
       t.from AS "from",
@@ -17,12 +17,11 @@ BEGIN
            ELSE NULL
       END AS "contractAddress",
       NULL AS "logs",                 -- TODO: fetch event.id[]
-      repeat('\000', 256)::bytea AS "logsBloom",
+      t.logs_bloom AS "logsBloom",
       CASE WHEN t.status THEN 1 ELSE 0 END AS "status",
       t.near_hash AS "nearTransactionHash",
       t.near_receipt_hash AS "nearReceiptHash"
     FROM transaction t
-      LEFT JOIN block b ON t.block = b.id
     WHERE t.hash = transaction_hash
     LIMIT 1
     INTO STRICT result;

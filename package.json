@@ -52,7 +52,7 @@
   "bugs": "https://github.com/aurora-is-near/aurora-relayer/issues",
   "repository": "https://github.com/aurora-is-near/aurora-relayer.git",
   "dependencies": {
-    "@aurora-is-near/engine": "github:aurora-is-near/aurora.js#1ebcad",
+    "@aurora-is-near/engine": "github:aurora-is-near/aurora.js#f0b6478",
     "@ethersproject/transactions": "^5.5.0",
     "cloudflare": "^2.9.1",
     "commander": "^7.2.0",
@@ -81,7 +81,7 @@
     "postgres-array": "^3.0.1",
     "rlp": "^2.2.7",
     "sql-bricks-postgres": "^0.5.0",
-    "ts-jest": "^28.0.3",
+    "ts-jest": "^28.0.8",
     "ws": "^8.2.3"
   },
   "devDependencies": {
@@ -107,8 +107,8 @@
     "pino-pretty": "^4.7.1",
     "prettier": "2.2.1",
     "supertest": "^6.2.3",
-    "typedoc": "^0.22.7",
-    "typescript": "^4.6.4",
+    "typedoc": "^0.23.11",
+    "typescript": "^4.8.2",
     "web3": "^1.7.3"
   },
   "prettier": {

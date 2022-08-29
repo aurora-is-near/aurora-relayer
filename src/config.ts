@@ -20,7 +20,10 @@ export interface Config {
   writable?: boolean;
   errorLog?: string;
   minGasPrice?: number;
-  getLogsLimit: number;
+  getLogsBlockLimit: number;
+  getLogsEventLimit: number;
+  getLogsOnlyBlockLimit: number;
+  lockTimeout: number;
 }
 
 export const localConfig: Config = {
@@ -39,7 +42,10 @@ export const localConfig: Config = {
   writable: true,
   errorLog: undefined,
   minGasPrice: undefined,
-  getLogsLimit: 10000,
+  getLogsBlockLimit: 2000,
+  getLogsEventLimit: 10000,
+  getLogsOnlyBlockLimit: 30000,
+  lockTimeout: 100,
 };
 
 export function parseConfig(
@@ -85,7 +91,13 @@ export function parseConfig(
       writable: config.writable !== undefined ? config.writable : true,
       errorLog: config.errorLog,
       minGasPrice: config.minGasPrice !== undefined ? config.minGasPrice : 0,
-      getLogsLimit: options.getLogsLimit || config.getLogsLimit || 10000,
+      getLogsBlockLimit:
+        options.getLogsBlockLimit || config.getLogsBlockLimit || 2000,
+      getLogsEventLimit:
+        options.getLogsEventLimit || config.getLogsEventLimit || 10000,
+      getLogsOnlyBlockLimit:
+        options.getLogsOnlyBlockLimit || config.getLogsOnlyBlockLimit || 30000,
+      lockTimeout: options.lockTimeout || config.lockTimeout || 100,
     },
   ];
 }

@@ -42,6 +42,6 @@ export declare class RevertError extends ExpectedError {
 export declare class GasPriceTooLow extends ExpectedError {
     constructor(message?: string);
 }
-export declare class LimitExceeded extends ExpectedError {
-    constructor(limit: number, message?: string);
+export declare class LimitLogsExceeded extends ExpectedError {
+    constructor(logsLimit: number, blocksLimit: number, message?: string);
 }

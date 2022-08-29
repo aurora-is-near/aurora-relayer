@@ -13,12 +13,13 @@ import {
   UnknownFilter,
   UnsupportedMethod,
   GasPriceTooLow,
-  LimitExceeded,
+  LimitLogsExceeded,
 } from '../errors.js';
 import { Request } from '../request.js';
 import { compileTopics } from '../topics.js';
 import * as web3 from '../web3.js';
 import { parse } from 'postgres-array';
+import { blockRangeFilter } from '../utils.js';
 
 import {
   Address,
@@ -48,6 +49,9 @@ export class DatabaseServer extends SkeletonServer {
     const pgClient = new pg.Client(this.config.database);
     this.pgClient = pgClient;
     await pgClient.connect();
+    if (this.config.lockTimeout) {
+      await this._query(`SET lock_timeout TO ${this.config.lockTimeout}`);
+    }
 
     // Connect to the NATS message broker:
     if (this.config.broker) {
@@ -225,12 +229,13 @@ export class DatabaseServer extends SkeletonServer {
     const blockHash_ = blockHash.startsWith('0x')
       ? hexToBytes(blockHash)
       : blockHash;
+    const query = sql
+      .select('COALESCE(COUNT(1), 0) as result')
+      .from('transaction t')
+      .where(sql.eq('t.block_hash', blockHash_));
     const {
       rows: [{ result }],
-    } = await this._query(
-      'SELECT eth_getBlockTransactionCountByHash($1) AS result',
-      [blockHash_]
-    );
+    } = await this._query(query);
     return result !== null ? intToHex(result) : null;
   }
 
@@ -242,12 +247,13 @@ export class DatabaseServer extends SkeletonServer {
       parseBlockSpec(blockNumber) != 0
         ? parseBlockSpec(blockNumber) || (await this._fetchCurrentBlockID())
         : 0;
+    const query = sql
+      .select('COALESCE(COUNT(1), 0) as result')
+      .from('transaction t')
+      .where(sql.eq('t.block', blockNumber_));
     const {
       rows: [{ result }],
-    } = await this._query(
-      'SELECT eth_getBlockTransactionCountByNumber($1) AS result',
-      [blockNumber_]
-    );
+    } = await this._query(query);
     return result !== null ? intToHex(result) : null;
   }
 
@@ -489,8 +495,15 @@ export class DatabaseServer extends SkeletonServer {
         'SELECT * FROM eth_getTransactionReceipt($1) LIMIT 1',
         [transactionHash_]
       );
-      //assert(receipt, 'receipt is not null');
-      receipt.logs = await this._fetchEvents(transactionHash_);
+
+      if (receipt === null) {
+        return exportJSON(receipt);
+      }
+      let query = _eventQuery();
+      query = query.where({ 'e.transaction_hash': receipt.transactionHash });
+      console.log(query.toString());
+      const { rows } = await this._query(query);
+      receipt.logs = rows;
       return exportJSON(receipt);
     } catch (error) {
       if (this.config.debug) {
@@ -807,33 +820,11 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   protected async _fetchEvents(transactionID: Uint8Array): Promise<unknown[]> {
-    const { rows } = await this._query(
-      `SELECT
-          b.id AS "blockNumber",
-          b.hash AS "blockHash",
-          t.index AS "transactionIndex",
-          t.hash AS "transactionHash",
-          e.index AS "logIndex",
-          e.from AS "address",
-          ARRAY_TO_STRING(e.topics, ';') AS "topics",
-          coalesce(e.data, repeat('\\000', 32)::bytea) AS "data",
-          false AS "removed"
-        FROM event e
-          LEFT JOIN transaction t ON e.transaction = t.id
-          LEFT JOIN block b ON t.block = b.id
-        WHERE t.hash = $1
-        ORDER BY b.id ASC, t.index ASC, e.index ASC`,
-      [transactionID]
-    );
-    return rows.map((row: Record<string, unknown>) => {
-      row['topics'] =
-        row['topics'] === null
-          ? []
-          : (row['topics'] as string)
-              .split(';')
-              .map((topic) => topic.replace('\\x', '0x'));
-      return row;
-    });
+    let query = _eventQuery();
+    query = query.where({ 'e.transaction_hash': transactionID });
+
+    const { rows } = await this._query(query);
+    return rows;
   }
 
   protected async _fetchTransactions(
@@ -841,18 +832,18 @@ export class DatabaseServer extends SkeletonServer {
     fullObject: boolean
   ): Promise<unknown[] | string[]> {
     const idColumn = ['bigint', 'number'].includes(typeof blockID)
-      ? 'id'
-      : 'hash';
+      ? 'block'
+      : 'block_hash';
     if (fullObject) {
       const { rows } = await this._query(
         `SELECT
-            b.id AS "blockNumber",
-            b.hash AS "blockHash",
+            t.block AS "blockNumber",
+            t.block_hash AS "blockHash",
             t.index AS "transactionIndex",
             t.hash AS "hash",
             t.from AS "from",
             t.to AS "to",
-            t.gas_limit AS "gas",
+            LEAST(t.gas_limit, 4503599627370495) AS "gas",
             t.gas_price AS "gasPrice",
             t.nonce AS "nonce",
             t.value AS "value",
@@ -861,16 +852,16 @@ export class DatabaseServer extends SkeletonServer {
             t.r AS "r",
             t.s AS "s"
           FROM transaction t
-            LEFT JOIN block b ON t.block = b.id
-          WHERE b.${idColumn} = $1
+          WHERE t.${idColumn} = $1
           ORDER BY t.index ASC`,
         [blockID]
       );
       return rows;
     } else {
-      const { rows } = await this._query(
-        `SELECT t.hash FROM transaction t LEFT JOIN block b ON t.block = b.id
-          WHERE b.${idColumn} = $1 ORDER BY t.index ASC`,
+      const {
+        rows,
+      } = await this._query(
+        `SELECT t.hash FROM transaction t WHERE t.${idColumn} = $1 ORDER BY t.index ASC`,
         [blockID]
       );
       return rows.map((row: Record<string, unknown>) =>
@@ -883,20 +874,46 @@ export class DatabaseServer extends SkeletonServer {
     filter: web3.FilterOptions
   ): Promise<web3.LogObject[]> {
     const where = [];
+    let blockRange = BigInt(1);
     if (filter == undefined) {
       filter = {};
     }
     if (filter.blockHash !== undefined && filter.blockHash !== null) {
       // EIP-234
-      where.push({ 'b.hash': hexToBytes(filter.blockHash) });
+      where.push({ 'e.block_hash': hexToBytes(filter.blockHash) });
+    } else if (
+      filter.fromBlock === 'latest' ||
+      filter.fromBlock === 'pending'
+    ) {
+      where.push({ 'e.block': (await this._fetchCurrentBlockID()).toString() });
     } else {
-      const fromBlock = parseBlockSpec(filter.fromBlock);
-      if (fromBlock !== null) {
-        where.push(sql.gte('b.id', fromBlock));
+      let fromBlock = parseBlockSpec(filter.fromBlock);
+      let toBlock = parseBlockSpec(filter.toBlock);
+
+      if (fromBlock === null || toBlock === null) {
+        const latestBlock = await this._fetchCurrentBlockID();
+        fromBlock == null && (fromBlock = latestBlock);
+        toBlock == null && (toBlock = latestBlock);
       }
-      const toBlock = parseBlockSpec(filter.toBlock);
-      if (toBlock !== null) {
-        where.push(sql.lte('b.id', toBlock));
+
+      blockRange = BigInt(toBlock) - BigInt(fromBlock);
+
+      if (
+        blockRange < 0 ||
+        (blockRangeFilter(filter) &&
+          blockRange > this.config.getLogsOnlyBlockLimit)
+      ) {
+        throw new LimitLogsExceeded(
+          this.config.getLogsEventLimit,
+          this.config.getLogsBlockLimit
+        );
+      }
+
+      if (fromBlock !== null && fromBlock === toBlock) {
+        where.push({ 'e.block': fromBlock.toString() });
+      } else {
+        where.push(sql.gte('e.block', fromBlock.toString()));
+        where.push(sql.lte('e.block', toBlock.toString()));
       }
     }
     if (filter.address) {
@@ -914,59 +931,56 @@ export class DatabaseServer extends SkeletonServer {
       }
     }
 
-    let query = sql
-      .select(
-        'b.id AS "blockNumber"',
-        'b.hash AS "blockHash"',
-        't.index AS "transactionIndex"',
-        't.hash AS "transactionHash"',
-        'e.index AS "logIndex"',
-        'e.from AS "address"',
-        "string_to_array(concat('0x',encode(e.topics[1], 'hex'), ',', '0x', encode(e.topics[2], 'hex'), ',', '0x', encode(e.topics[3], 'hex'), ',', '0x', encode(e.topics[4], 'hex')), ',') AS \"topics\"",
-        'coalesce(e.data, repeat(\'\\000\', 32)::bytea) AS "data"',
-        '0::boolean AS "removed"'
-      )
-      .from('event e')
-      .join('transaction t', { 'e.transaction': 't.id' })
-      .join('block b', { 't.block': 'b.id' })
-      .orderBy('b.id ASC');
-
-    if (this.config.getLogsLimit) {
-      query = query.limit(this.config.getLogsLimit + 1);
-    }
+    let query = _eventQuery();
 
     if (where.length > 0) {
       query = query.where(sql.and(...where));
     }
+
+    if (blockRange > this.config.getLogsBlockLimit) {
+      query = query.limit(this.config.getLogsEventLimit + 1);
+    }
+
+    query = sql.select().from(query.as('logs')).orderBy('logs."blockNumber"');
 
     if (this.config.debug) {
       console.debug('eth_getLogs', 'query:', query.toParams());
       console.debug('eth_getLogs', 'query:', query.toString());
     }
     const { rows } = await this._query(query);
+
+    if (
+      blockRange > this.config.getLogsBlockLimit &&
+      rows.length > this.config.getLogsEventLimit
+    ) {
+      throw new LimitLogsExceeded(
+        this.config.getLogsEventLimit,
+        this.config.getLogsBlockLimit
+      );
+    }
     if (this.config.debug) {
       console.debug('eth_getLogs', 'result:', rows);
     }
 
-    const events = rows.map((row: Record<string, unknown>) => {
-      if (row['address'] === null) {
-        row['address'] = Address.zero().toString();
-      }
-      // remove null values
-      if (Array.isArray(row['topics'])) {
-        row['topics'] = row['topics'].filter((t: string) => {
-          return t !== '0x';
-        });
-      }
-      return row;
-    });
-
-    if (this.config.getLogsLimit && events.length > this.config.getLogsLimit) {
-      throw new LimitExceeded(this.config.getLogsLimit);
-    }
-
-    return exportJSON(events);
+    return exportJSON(rows);
   }
+}
+
+function _eventQuery(): any {
+  return sql
+    .select(
+      'e.block AS "blockNumber"',
+      'e.block_hash AS "blockHash"',
+      'e.transaction_index AS "transactionIndex"',
+      'e.transaction_hash AS "transactionHash"',
+      'e.index AS "logIndex"',
+      'e.from AS "address"',
+      "array(select REPLACE(t.val::varchar, '\\', '0') from unnest(e.topics) with ordinality as t(val)) AS topics",
+      'coalesce(e.data, repeat(\'\\000\', 32)::bytea) AS "data"',
+      '0::boolean AS "removed"'
+    )
+    .from('event e')
+    .orderBy('e.block ASC, e.transaction_index ASC, e.index ASC');
 }
 
 function parseAddress(input?: web3.Data): Address {

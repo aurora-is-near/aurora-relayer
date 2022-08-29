@@ -17,7 +17,10 @@ export interface Config {
     writable?: boolean;
     errorLog?: string;
     minGasPrice?: number;
-    getLogsLimit: number;
+    getLogsBlockLimit: number;
+    getLogsEventLimit: number;
+    getLogsOnlyBlockLimit: number;
+    lockTimeout: number;
 }
 export declare const localConfig: Config;
 export declare function parseConfig(options: Config, config: Config, env: ConnectEnv): [NetworkConfig, Config];

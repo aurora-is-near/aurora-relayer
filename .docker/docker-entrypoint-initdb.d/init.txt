@@ -42,10 +42,11 @@ CREATE TYPE block_result AS (
     "totalDifficulty" int2,
     "extraData" bytea,       -- 0 bytes
     "size" int4,
-    "gasLimit" int8,
+    "gasLimit" numeric,
     "gasUsed" int8,
     "timestamp" int4,
-    "mixHash" hash
+    "mixHash" hash,
+    "baseFeePerGas" u256
 );
 DROP TYPE IF EXISTS filter_result CASCADE;
 
@@ -113,10 +114,15 @@ CREATE TABLE block (
   parent_hash       hash NOT NULL UNIQUE,
   transactions_root hash NOT NULL,
   state_root        hash NOT NULL,
-  receipts_root     hash NOT NULL
+  receipts_root     hash NOT NULL,
+  logs_bloom        bytea,
+  miner             address,
+  author            varchar(255),
+  sequence          int8 NOT NULL
 );
 
 CREATE UNIQUE INDEX block_chain_id_idx ON block (chain, id);
+CREATE INDEX sequence_idx ON block (sequence);
 
 CREATE INDEX block_timestamp_idx ON block USING btree (timestamp);
 DROP TABLE IF EXISTS filter CASCADE;
@@ -136,25 +142,32 @@ CREATE TABLE filter (
 DROP TABLE IF EXISTS transaction CASCADE;
 
 CREATE TABLE transaction (
-  block             blockno NOT NULL REFERENCES block ON DELETE CASCADE,
-  index             int NOT NULL CHECK (index >= 0),
-  id                bigserial NOT NULL PRIMARY KEY,
-  hash              hash NOT NULL UNIQUE,
-  near_hash         hash NOT NULL,
-  near_receipt_hash hash NULL,
-  "from"            address NOT NULL,
-  "to"              address NULL,
-  nonce             u256 NOT NULL,
-  gas_price         u256 NOT NULL,
-  gas_limit         u256 NOT NULL,
-  gas_used          u256 NOT NULL, -- FIXME: CHECK (gas_used <= gas_limit),
-  value             u256 NOT NULL,
-  input             bytea NULL CHECK (length(input) > 0),
-  v                 u64 NULL,
-  r                 u256 NULL,
-  s                 u256 NULL,
-  status            boolean NOT NULL,
-  output            bytea NULL CHECK (length(output) > 0)
+  block                     blockno NOT NULL REFERENCES block ON DELETE CASCADE,
+  block_hash                hash NOT NULL,
+  index                     int NOT NULL CHECK (index >= 0),
+  id                        bigserial NOT NULL PRIMARY KEY,
+  hash                      hash NOT NULL UNIQUE,
+  near_hash                 hash NOT NULL,
+  near_receipt_hash         hash NULL,
+  "from"                    address NOT NULL,
+  "to"                      address NULL,
+  nonce                     u256 NOT NULL,
+  gas_price                 u256 NOT NULL,
+  gas_limit                 u256 NOT NULL,
+  gas_used                  u256 NOT NULL, -- FIXME: CHECK (gas_used <= gas_limit),
+  value                     u256 NOT NULL,
+  input                     bytea NULL CHECK (length(input) > 0),
+  v                         u64 NULL,
+  r                         u256 NULL,
+  s                         u256 NULL,
+  status                    boolean NOT NULL,
+  output                    bytea NULL CHECK (length(output) > 0),
+  access_list               json NULL,
+  max_fee_per_gas           u256 NULL,
+  max_priority_fee_per_gas  u256 NULL,
+  type                      int NOT NULL,
+  contract_address          address NULL,
+  logs_bloom                bytea NULL
 );
 
 CREATE UNIQUE INDEX transaction_block_index_idx ON transaction (block, index);
@@ -164,10 +177,17 @@ CREATE INDEX transaction_block_idx ON transaction USING btree (block);
 CREATE INDEX transaction_from_idx ON transaction USING btree ("from");
 
 CREATE INDEX transaction_to_idx ON transaction USING btree ("to");
+
+CREATE INDEX transaction_block_hash_idx ON transaction USING btree (block_hash);
+
 DROP TABLE IF EXISTS event CASCADE;
 
 CREATE TABLE event (
   transaction       bigint NOT NULL REFERENCES transaction ON DELETE CASCADE,
+  block             blockno NOT NULL,
+  block_hash        hash NOT NULL,
+  transaction_index int NOT NULL CHECK (index >= 0),
+  transaction_hash  hash NOT NULL,
   index             int NOT NULL CHECK (index >= 0),
   id                bigserial NOT NULL PRIMARY KEY,
   data              bytea NULL CHECK (length(data) > 0),
@@ -176,6 +196,12 @@ CREATE TABLE event (
 );
 
 CREATE UNIQUE INDEX event_transaction_index_idx ON event (transaction, index);
+CREATE EXTENSION IF NOT EXISTS btree_gin;
+CREATE INDEX IF NOT EXISTS event_logs_idx on "event" USING GIN ((topics[1]), (topics[2]), (topics[3]), (topics[4]));
+CREATE INDEX IF NOT EXISTS event_block_idx on "event" (block);
+CREATE INDEX IF NOT EXISTS event_block_hash_idx on "event" (block_hash);
+CREATE INDEX IF NOT EXISTS event_from_idx on "event" ("from");
+CREATE INDEX IF NOT EXISTS event_transaction_hash_idx on "event" (transaction_hash);
 DROP FUNCTION IF EXISTS eth_blockNumber() RESTRICT;
 
 DROP TABLE IF EXISTS subscription CASCADE;
@@ -222,7 +248,7 @@ BEGIN
       parent_hash,                  -- parentHash
       repeat('\000', 8)::bytea,     -- nonce
       '\x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347',    -- sha3Uncles keccak256(rlp.encode([]))
-      repeat('\000', 256)::bytea,   -- logsBloom
+      logs_bloom,                   -- logsBloom
       transactions_root,            -- transactionsRoot
       state_root,                   -- stateRoot
       receipts_root,                -- receiptsRoot
@@ -231,10 +257,11 @@ BEGIN
       0,                            -- totalDifficulty
       ''::bytea,                    -- extraData
       size,                         -- size
-      gas_limit,                    -- gasLimit
+      4503599627370495,             -- gasLimit
       gas_used,                     -- gasUsed
       COALESCE(EXTRACT(EPOCH FROM timestamp), 0)::int4, -- timestamp
-      repeat('\000', 32)::hash      -- mixHash
+      repeat('\000', 32)::hash,     -- mixHash
+      0
     FROM block
     WHERE id = block_id
     LIMIT 1
@@ -242,38 +269,6 @@ BEGIN
   RETURN result;
 END;
 $$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
-DROP FUNCTION IF EXISTS eth_getBlockTransactionCountByHash(hash) RESTRICT;
-
-CREATE FUNCTION eth_getBlockTransactionCountByHash(block_hash hash) RETURNS bigint AS $$
-DECLARE
-  result bigint;
-BEGIN
-  -- FIXME: return NULL for unknown blocks
-  SELECT COUNT(t.id)
-    FROM transaction t
-      LEFT JOIN block b ON t.block = b.id
-    WHERE b.hash = block_hash
-    INTO STRICT result;
-  RETURN result;
-END;
-$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
-DROP FUNCTION IF EXISTS eth_getBlockTransactionCountByNumber(blockno) RESTRICT;
-
-CREATE FUNCTION eth_getBlockTransactionCountByNumber(block_id blockno) RETURNS bigint AS $$
-DECLARE
-  result bigint;
-BEGIN
-  -- FIXME: return NULL for unknown blocks
-  SELECT COUNT(id)
-    FROM transaction
-    WHERE block = block_id
-    INTO STRICT result;
-  RETURN result;
-END;
-$$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
-DROP FUNCTION IF EXISTS eth_getFilterChanges_block(bytea) RESTRICT;
-DROP FUNCTION IF EXISTS eth_getFilterChanges_event(bytea) RESTRICT;
-DROP FUNCTION IF EXISTS eth_getFilterChanges_transaction(bytea) RESTRICT;
 
 CREATE FUNCTION eth_getFilterChanges_block(filter_id bytea) RETURNS SETOF hash AS $$
 DECLARE
@@ -322,18 +317,18 @@ END;
 $$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
 DROP FUNCTION IF EXISTS eth_getTransactionByBlockHashAndIndex(hash, int) RESTRICT;
 
-CREATE FUNCTION eth_getTransactionByBlockHashAndIndex(block_hash hash, transaction_index int) RETURNS transaction_result AS $$
+CREATE FUNCTION eth_getTransactionByBlockHashAndIndex(_block_hash hash, transaction_index int) RETURNS transaction_result AS $$
 DECLARE
   result transaction_result;
 BEGIN
   SELECT
-      b.id AS "blockNumber",
-      b.hash AS "blockHash",
+      t.block AS "blockNumber",
+      t.block_hash AS "blockHash",
       t.index AS "transactionIndex",
       t.hash AS "hash",
       t.from AS "from",
       t.to AS "to",
-      t.gas_limit AS "gas",
+      LEAST(t.gas_limit, 4503599627370495) AS "gas",
       t.gas_price AS "gasPrice",
       t.nonce AS "nonce",
       t.value AS "value",
@@ -342,8 +337,7 @@ BEGIN
       t.r AS "r",
       t.s AS "s"
     FROM transaction t
-      LEFT JOIN block b ON t.block = b.id
-    WHERE b.hash = block_hash AND t.index = transaction_index
+    WHERE t.block_hash = _block_hash AND t.index = transaction_index
     LIMIT 1
     INTO STRICT result;
   RETURN result;
@@ -356,13 +350,13 @@ DECLARE
   result transaction_result;
 BEGIN
   SELECT
-      b.id AS "blockNumber",
-      b.hash AS "blockHash",
+      t.block AS "blockNumber",
+      t.block_hash AS "blockHash",
       t.index AS "transactionIndex",
       t.hash AS "hash",
       t.from AS "from",
       t.to AS "to",
-      t.gas_limit AS "gas",
+      LEAST(t.gas_limit, 4503599627370495) AS "gas",
       t.gas_price AS "gasPrice",
       t.nonce AS "nonce",
       t.value AS "value",
@@ -371,8 +365,7 @@ BEGIN
       t.r AS "r",
       t.s AS "s"
     FROM transaction t
-      LEFT JOIN block b ON t.block = b.id
-    WHERE b.id = block_id AND t.index = transaction_index
+    WHERE t.block = block_id AND t.index = transaction_index
     LIMIT 1
     INTO STRICT result;
   RETURN result;
@@ -385,13 +378,13 @@ DECLARE
   result transaction_result;
 BEGIN
   SELECT
-      b.id AS "blockNumber",
-      b.hash AS "blockHash",
+      t.block AS "blockNumber",
+      t.block_hash AS "blockHash",
       t.index AS "transactionIndex",
       t.hash AS "hash",
       t.from AS "from",
       t.to AS "to",
-      t.gas_limit AS "gas",
+      LEAST(t.gas_limit, 4503599627370495) AS "gas",
       t.gas_price AS "gasPrice",
       t.nonce AS "nonce",
       t.value AS "value",
@@ -400,7 +393,6 @@ BEGIN
       t.r AS "r",
       t.s AS "s"
     FROM transaction t
-      LEFT JOIN block b ON t.block = b.id
     WHERE t.hash = transaction_hash
     LIMIT 1
     INTO STRICT result;
@@ -426,8 +418,8 @@ DECLARE
   result transaction_receipt;
 BEGIN
   SELECT
-      b.id AS "blockNumber",
-      b.hash AS "blockHash",
+      t.block AS "blockNumber",
+      t.block_hash AS "blockHash",
       t.index AS "transactionIndex",
       t.hash AS "transactionHash",
       t.from AS "from",
@@ -441,9 +433,9 @@ BEGIN
       repeat('\000', 256)::bytea AS "logsBloom",
       CASE WHEN t.status THEN 1 ELSE 0 END AS "status",
       t.near_hash AS "nearTransactionHash",
-      t.near_receipt_hash AS "nearReceiptHash"
+      t.near_receipt_hash AS "nearReceiptHash",
+      t.logs_bloom  AS "logsBloom"
     FROM transaction t
-      LEFT JOIN block b ON t.block = b.id
     WHERE t.hash = transaction_hash
     LIMIT 1
     INTO STRICT result;

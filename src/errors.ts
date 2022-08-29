@@ -124,9 +124,13 @@ export class GasPriceTooLow extends ExpectedError {
   }
 }
 
-export class LimitExceeded extends ExpectedError {
-  constructor(limit: number, message?: string) {
-    super(-32005, message || `query returned more than ${limit} results`);
+export class LimitLogsExceeded extends ExpectedError {
+  constructor(logsLimit: number, blocksLimit: number, message?: string) {
+    super(
+      -32005,
+      message ||
+        `Log response size exceeded. You can make eth_getLogs requests with up to a ${blocksLimit} block range, or you can request any block range with a cap of ${logsLimit} logs in the response.`
+    );
     Object.setPrototypeOf(this, InvalidAddress.prototype);
   }
 }
