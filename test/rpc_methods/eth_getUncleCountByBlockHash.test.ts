@@ -13,7 +13,7 @@ describe('eth_getUncleCountByBlockHash', () => {
   test('should return 0, when block exists', async () => {
 
     const latestBlock = await web3.eth.getBlock("latest")
-    const fewBlocksAgo = await web3.eth.getBlock(latestBlock.number - 3)
+    const fewBlocksAgo = await web3.eth.getBlock(latestBlock.number - 1)
     const response = await web3.eth.getBlockUncleCount(fewBlocksAgo.hash)
 
     expect(response).toBe(0)
@@ -26,7 +26,7 @@ describe('eth_getUncleCountByBlockHash', () => {
   })
 
   test(`should return 0, when block exists`, async () => {
-    const response = await web3.eth.getBlockUncleCount(`0x0b7a7bbef2fdf7df5e4aeafe4f290150757fef8a980d7045302dbd468ddedeeb`)
+    const response = await web3.eth.getBlockUncleCount(`0xd1b4463e3d7773caadcf7229a94f8777c7815feddb5ba7d245b762c43595a2f1`)
 
     expect(response).toBe(0)
   })

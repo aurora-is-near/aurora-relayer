@@ -37,6 +37,8 @@ describe('eth_getFilterLogs', () => {
         method: 'eth_newFilter',
         params: [
           {
+            fromBlock: 91893474,
+            toBlock: 91893474,
             address: '0x19161c50f5e2cd8be249c1031ee295546ba2756f',
             topics: [
               null,
@@ -64,8 +66,8 @@ describe('eth_getFilterLogs', () => {
       Array [
         Object {
           "address": "0x19161c50f5e2cd8be249c1031ee295546ba2756f",
-          "blockHash": "0x7d6ba4cb1daf8bf60983eea9695e1695a205374c11a8e99ab9241a9b203d03be",
-          "blockNumber": "0x57a2ee1",
+          "blockHash": "0xb109827db90e01443b117349d02821d091b283940c0bcd82c605ed573ecc0171",
+          "blockNumber": "0x57a2ee2",
           "data": "0x0000000000000000000000000000000000000000000000000000000000000000",
           "logIndex": "0x0",
           "removed": false,
@@ -89,6 +91,8 @@ describe('eth_getFilterLogs', () => {
         method: 'eth_newFilter',
         params: [
           {
+            fromBlock: 91893474,
+            toBlock: 91893474,
             address: '0x19161c50f5e2cd8be249c1031ee295546ba2756f',
             topics: [
               [],
@@ -116,8 +120,8 @@ describe('eth_getFilterLogs', () => {
       Array [
         Object {
           "address": "0x19161c50f5e2cd8be249c1031ee295546ba2756f",
-          "blockHash": "0x7d6ba4cb1daf8bf60983eea9695e1695a205374c11a8e99ab9241a9b203d03be",
-          "blockNumber": "0x57a2ee1",
+          "blockHash": "0xb109827db90e01443b117349d02821d091b283940c0bcd82c605ed573ecc0171",
+          "blockNumber": "0x57a2ee2",
           "data": "0x0000000000000000000000000000000000000000000000000000000000000000",
           "logIndex": "0x0",
           "removed": false,
@@ -141,8 +145,8 @@ describe('eth_getFilterLogs', () => {
         method: 'eth_newFilter',
         params: [
           {
-            fromBlock: 91897216,
-            toBlock: 91897216,
+            fromBlock: 91897217,
+            toBlock: 91897217,
             address: '0xddf079d2f486f1ba8d5cbc0900e6a12c6f91ff82',
           },
         ],
@@ -166,8 +170,8 @@ describe('eth_getFilterLogs', () => {
       Array [
         Object {
           "address": "0xddf079d2f486f1ba8d5cbc0900e6a12c6f91ff82",
-          "blockHash": "0x0b7a7bbef2fdf7df5e4aeafe4f290150757fef8a980d7045302dbd468ddedeeb",
-          "blockNumber": "0x57a3d80",
+          "blockHash": "0xd1b4463e3d7773caadcf7229a94f8777c7815feddb5ba7d245b762c43595a2f1",
+          "blockNumber": "0x57a3d81",
           "data": "0x00000000000000000000000000000000000000000000000000000003663a5200000000000000000000000000aa2666def065cbd1f16d2c3c296c0b3287ea2827",
           "logIndex": "0x0",
           "removed": false,
@@ -191,8 +195,8 @@ describe('eth_getFilterLogs', () => {
         method: 'eth_newFilter',
         params: [
           {
-            fromBlock: 91897216,
-            toBlock: 91897216,
+            fromBlock: 91897217,
+            toBlock: 91897217,
           },
         ],
       })
@@ -215,8 +219,8 @@ describe('eth_getFilterLogs', () => {
       Array [
         Object {
           "address": "0xddf079d2f486f1ba8d5cbc0900e6a12c6f91ff82",
-          "blockHash": "0x0b7a7bbef2fdf7df5e4aeafe4f290150757fef8a980d7045302dbd468ddedeeb",
-          "blockNumber": "0x57a3d80",
+          "blockHash": "0xd1b4463e3d7773caadcf7229a94f8777c7815feddb5ba7d245b762c43595a2f1",
+          "blockNumber": "0x57a3d81",
           "data": "0x00000000000000000000000000000000000000000000000000000003663a5200000000000000000000000000aa2666def065cbd1f16d2c3c296c0b3287ea2827",
           "logIndex": "0x0",
           "removed": false,
@@ -238,7 +242,12 @@ describe('eth_getFilterLogs', () => {
         jsonrpc: '2.0',
         id: 1,
         method: 'eth_newFilter',
-        params: [{}],
+        params: [
+          {
+            fromBlock: 91893474,
+            toBlock: 91897217,
+          },
+        ],
       })
 
     expect(response.body.result).toContain(`0x`)
@@ -255,6 +264,8 @@ describe('eth_getFilterLogs', () => {
         params: [filterHash],
       })
 
-    expect(responseGetFilterLogs.body.error.message).toBe('query returned more than 5 results')
+    expect(responseGetFilterLogs.body.error.message).toBe(
+      'Log response size exceeded. You can make eth_getLogs requests with up to a 5 block range, or you can request any block range with a cap of 5 logs in the response.'
+    )
   })
 })

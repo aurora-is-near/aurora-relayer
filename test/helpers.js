@@ -14,7 +14,8 @@ export const createServer = async({port = 0, attachAppToPort = true} = {}) => {
   const app = await createApp(
     {
       ...externalConfig,
-      getLogsLimit: 5,
+      getLogsEventLimit: 5,
+      getLogsBlockLimit: 5,
     },
     logger,
     engine

@@ -21,7 +21,7 @@ describe('eth_getUncleByBlockNumberAndIndex', () => {
 
   test('should return null, when block exists', async () => {
     const response = await web3.eth.getUncle(
-      91897216,
+      91897217,
       "0x0"
     )
 

@@ -21,7 +21,7 @@ describe('eth_getUncleByBlockHashAndIndex', () => {
 
   test('should return null, when block exists', async () => {
     const response = await web3.eth.getUncle(
-      "0x0b7a7bbef2fdf7df5e4aeafe4f290150757fef8a980d7045302dbd468ddedeeb",
+      "0xd1b4463e3d7773caadcf7229a94f8777c7815feddb5ba7d245b762c43595a2f1",
       "0x0"
     )
 

@@ -25,8 +25,8 @@ describe('eth_getTransactionReceipt', () => {
 
     expect(response).toMatchInlineSnapshot(`
       Object {
-        "blockHash": "0xfafdeeba634974d9dba58ff084f621666ad2fa7c292fbd48f2ee76ecfdc62ce1",
-        "blockNumber": 91896833,
+        "blockHash": "0xeb5e60342d3287697a8c2c650cd3dd5df73ceb07cd5b55a84ed4fd205db7e2f2",
+        "blockNumber": 91896836,
         "contractAddress": null,
         "cumulativeGasUsed": 0,
         "from": "0xaa2666def065cbd1f16d2c3c296c0b3287ea2827",
@@ -34,10 +34,10 @@ describe('eth_getTransactionReceipt', () => {
         "logs": Array [
           Object {
             "address": "0xDdF079d2f486F1bA8D5cBC0900E6a12C6F91FF82",
-            "blockHash": "0xfafdeeba634974d9dba58ff084f621666ad2fa7c292fbd48f2ee76ecfdc62ce1",
-            "blockNumber": 91896833,
+            "blockHash": "0xeb5e60342d3287697a8c2c650cd3dd5df73ceb07cd5b55a84ed4fd205db7e2f2",
+            "blockNumber": 91896836,
             "data": "0x000000000000000000000000000000000000000000000000000000035df15940000000000000000000000000aa2666def065cbd1f16d2c3c296c0b3287ea2827",
-            "id": "log_a2758b4f",
+            "id": "log_fca0bc00",
             "logIndex": 0,
             "removed": false,
             "topics": Array [
@@ -50,7 +50,7 @@ describe('eth_getTransactionReceipt', () => {
         ],
         "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
         "nearReceiptHash": "0x88bf609224db551b6c3bddc9cc6880c6b764e793d3b2fb46c34ca4c6216150d5",
-        "nearTransactionHash": "0xdc94085d1da9890574f4e437975f8122666ca2276158af299a2ce961bce08aea",
+        "nearTransactionHash": "0x88bf609224db551b6c3bddc9cc6880c6b764e793d3b2fb46c34ca4c6216150d5",
         "status": true,
         "to": "0xddf079d2f486f1ba8d5cbc0900e6a12c6f91ff82",
         "transactionHash": "0x5c33068b145d9028087d0a69db07c612f292dc9274323c73dafb7d37c1354549",

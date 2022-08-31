@@ -12,7 +12,7 @@ rm $REPO_ROOT/config/local.yaml || true
 cat >$REPO_ROOT/config/local.yaml <<EOF
 ---
 port: 8545
-database: postgres://aurora:aurora@${DATABASE_CONTAINER_NAME}/aurora
+database: postgres://aurora:aurora@${DATABASE_CONTAINER_NAME}/aurora_test
 broker:
 network: testnet
 endpoint: https://archival-rpc.testnet.near.org

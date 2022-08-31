@@ -17,19 +17,6 @@ docker run -d \
     "${params[@]}" \
     $DATABASE_IMAGE_NAME
 
-echo "Starting indexer..."
-docker run -d --init \
-    --restart unless-stopped \
-    --network $NETWORK_NAME \
-    -e WAIT_HOSTS=${DATABASE_CONTAINER_NAME}:5432 \
-    -e WAIT_BEFORE=1 \
-    -e NEAR_ENV=testnet \
-    -e NODE_ENV=testnet \
-    -v $REPO_ROOT/config:/srv/aurora/relayer/config \
-    --name $INDEXER_CONTAINER_NAME \
-    $ENDPOINT_IMAGE_NAME \
-    sh -c "util/indexer/indexer --config config/local.yaml | node lib/indexer_backend.js"
-
 echo "Starting endpoint..."
 params=()
 if [[ -z $RUNNER_NAME ]]; then

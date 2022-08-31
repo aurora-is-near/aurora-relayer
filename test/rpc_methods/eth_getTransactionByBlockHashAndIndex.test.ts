@@ -6,23 +6,29 @@ let web3: any;
 
 describe('eth_getTransactionByBlockHashAndIndex', () => {
   beforeAll(async () => {
-    const port = process.env['EXPRESS_PORT'];
+    const port = process.env['EXPRESS_PORT']
     web3 = new Web3(`http://localhost:${port}`)
   })
 
   test(`should return null for block that doesn't exist`, async () => {
-    const response = await web3.eth.getTransactionFromBlock('0x010b3538f64be7467b479f71ca96279817e33656f752b43ff256901b22596295', '0x1')
+    const response = await web3.eth.getTransactionFromBlock(
+      '0x010b3538f64be7467b479f71ca96279817e33656f752b43ff256901b22596295',
+      '0x1'
+    )
 
     expect(response).toBeNull()
   })
 
   test(`should return transaction for block`, async () => {
-    const response = await web3.eth.getTransactionFromBlock('0x0b7a7bbef2fdf7df5e4aeafe4f290150757fef8a980d7045302dbd468ddedeeb', '0x0')
+    const response = await web3.eth.getTransactionFromBlock(
+      '0xd1b4463e3d7773caadcf7229a94f8777c7815feddb5ba7d245b762c43595a2f1',
+      '0x0'
+    )
 
     expect(response).toMatchInlineSnapshot(`
       Object {
-        "blockHash": "0x0b7a7bbef2fdf7df5e4aeafe4f290150757fef8a980d7045302dbd468ddedeeb",
-        "blockNumber": 91897216,
+        "blockHash": "0xd1b4463e3d7773caadcf7229a94f8777c7815feddb5ba7d245b762c43595a2f1",
+        "blockNumber": 91897217,
         "from": "0xAA2666DEF065cbd1F16D2C3C296c0b3287eA2827",
         "gas": 6721975,
         "gasPrice": "0",
