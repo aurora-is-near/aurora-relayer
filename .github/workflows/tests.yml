@@ -53,9 +53,6 @@ jobs:
       - name: Print database logs
         if: ${{ always() }}
         run: ./.ci/show_logs.sh database
-      - name: Print indexer logs
-        if: ${{ always() }}
-        run: ./.ci/show_logs.sh indexer
       - name: Print endpoint logs
         if: ${{ always() }}
         run: ./.ci/show_logs.sh endpoint

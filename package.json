@@ -15,8 +15,6 @@
     "package.json",
     "lib/index.js",
     "lib/index.d.ts",
-    "lib/indexer.js",
-    "lib/indexer.d.ts",
     "lib/app.js",
     "lib/app.d.ts",
     "lib/errors.js",
