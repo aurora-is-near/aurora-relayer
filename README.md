@@ -27,20 +27,31 @@ instances deployed on the NEAR Protocol.
 To run the relayer locally, execute:
 
 ```bash
+docker compose build --build-arg env=testnet
 NEAR_ENV=testnet docker-compose up
 ```
 
-You can customize the configuration by copying [`config/testnet.yaml`] to
+Several services will be created:
+1. refiner - generates aurora blocks using either locally running archived Nearcore, or [nearlake](https://github.com/near/near-lake-framework-rs) - default.
+2. database - postgres database to store aurora blocks.
+3. indexer - uses refiner data to insert aurora blocks to the database.
+3. endpoint - web server that implements Etherium-compatible JSON-RPC server.
+
+You can customize the endpoint configuration by copying [`config/testnet.yaml`] to
 `config/local.yaml` and editing that file. (The configuration settings in
 `config/local.yaml` override the defaults from `config/testnet.yaml`.)
 
 [`config/testnet.yaml`]: https://github.com/aurora-is-near/aurora-relayer/blob/master/config/testnet.yaml
 
+You can also customize refiner and indexer configuration [here](https://github.com/aurora-is-near/aurora-relayer/docker/config/)
+
+To use [nearlake](https://github.com/near/near-lake-framework-rs) as a source you do require valid [AWS credentials](https://github.com/near/near-lake-indexer#prepare-development-environment). Place `credentials` file inside `docker/`.
+
 ### Usage for Testnet without Docker
 
-1. `npm i`
-2. Install postgresql and create database, [example](https://github.com/aurora-is-near/aurora-relayer/blob/master/.docker/docker-entrypoint-initdb.d/init.sh) of how to create database
-3. Run indexer from this repo: [aurora-relayer-indexer](https://github.com/aurora-is-near/aurora-relayer-indexer)
+1. `npm i`.
+2. Install postgresql and create database, [example](https://github.com/aurora-is-near/aurora-relayer/blob/master/.docker/docker-entrypoint-initdb.d/init.sh) of how to create database.
+3. Run indexer from this repo: [aurora-relayer-indexer](https://github.com/aurora-is-near/aurora-relayer-indexer). Please keep in mind that it does require you to run [refiner](https://github.com/aurora-is-near/borealis-engine-lib).
 4. Run Node.js server `NEAR_ENV=testnet node lib/index.js`
 
 ### Usage for Testnet without Docker and with live changes

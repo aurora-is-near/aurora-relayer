@@ -1,0 +1,16 @@
+{
+    "refiner": {
+        "chain_id": 1313161554,
+        "engine_path": "output/engine",
+        "engine_account_id": "aurora"
+    },
+    "input_mode": {
+        "DataLake": {
+            "network": "Mainnet"
+        }
+    },
+    "output_storage": {
+        "path": "output/refiner",
+        "batch_size": 10000
+    }
+}

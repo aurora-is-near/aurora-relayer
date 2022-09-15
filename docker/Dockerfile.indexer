@@ -1,0 +1,18 @@
+FROM golang:alpine
+
+ARG env=testnet
+
+ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.9.0/wait /wait
+RUN chmod +x /wait
+RUN apk update
+RUN apk add --no-cache git make
+
+WORKDIR /indexer
+RUN git clone -b simplified_make https://github.com/aurora-is-near/aurora-relayer-indexer.git
+
+RUN mkdir -p /indexer/aurora-relayer-indexer/config
+COPY docker/config/indexer_${env}.yaml /indexer/aurora-relayer-indexer/config/local.yaml
+
+WORKDIR /indexer/aurora-relayer-indexer
+
+RUN make

@@ -1,29 +1,64 @@
 version: '3.8'
 services:
   database:
-    container_name: "${NEAR_ENV:-testnet}_database"
+    container_name: "${NEAR_ENV:-testnet}_database${NAME}"
     image: auroraisnear/relayer-database
+    build:
+      dockerfile: docker/Dockerfile.database
     restart: unless-stopped
     ports:
-      - '127.0.0.1:5432:5432'
+      - '127.0.0.1:6432:5432'
     volumes:
       - database:/var/lib/postgresql/data
   endpoint:
-    container_name: "${NEAR_ENV:-testnet}_endpoint"
+    container_name: "${NEAR_ENV:-testnet}_endpoint${NAME}"
     image: auroraisnear/relayer-endpoint
+    build:
+      dockerfile: docker/Dockerfile.endpoint
     restart: unless-stopped
     init: true
     depends_on:
       - database
     environment:
-      - WAIT_HOSTS=database:5432
-      - WAIT_BEFORE=1
       - NEAR_ENV=${NEAR_ENV:-testnet}
       - NODE_ENV=${NEAR_ENV:-testnet}
+      - WAIT_HOSTS=database:5432
+      - WAIT_BEFORE=1
     ports:
       - '127.0.0.1:8545:8545'
+    entrypoint: sh -c "/wait && node lib/index.js"
+  refiner:
+    container_name: "${NEAR_ENV:-testnet}_refiner${NAME}"
+    image: auroraisnear/relayer-refiner
+    build:
+      dockerfile: docker/Dockerfile.refiner
+    restart: unless-stopped
+    depends_on:
+      - indexer
+    environment:
+      - RUST_BACKTRACE=${RUST_BACKTRACE:-1}
+      - WAIT_HOSTS=database:5432
+      - WAIT_PATHS=/refiner/borealis-engine-lib/output/refiner/.REFINER_LAST_BLOCK
+      - WAIT_BEFORE=1
     volumes:
-      - ./config:/srv/aurora/relayer/config
-    entrypoint: ["node", "lib/index.js"]
+      - ./output:/refiner/borealis-engine-lib/output # Output directory
+      - /var/indexer/${NEAR_ENV:-testnet}:/refiner/borealis-engine-lib/nearcore # Path to Nearcore data
+    entrypoint: sh -c "/wait && cargo run --release -- -c ./config.json run"
+  indexer:
+    container_name: "${NEAR_ENV:-testnet}_indexer${NAME}"
+    image: auroraisnear/relayer-indexer
+    build:
+      dockerfile: docker/Dockerfile.indexer
+    restart: unless-stopped
+    depends_on:
+      - database
+    environment:
+      - NEAR_ENV=${NEAR_ENV:-testnet}
+      - WAIT_HOSTS=database:5432
+      - WAIT_BEFORE=1
+    volumes:
+      - ./output:/refiner/borealis-engine-lib/output/ # Source (refiner output)
+    entrypoint: sh -c "/wait && ./indexer"
+
 volumes:
   database:

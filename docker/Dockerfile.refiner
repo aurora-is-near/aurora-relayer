@@ -1,0 +1,21 @@
+FROM rust
+
+ARG env=testnet
+ARG source=datalake
+
+ADD https://github.com/ufoscout/docker-compose-wait/releases/download/2.9.0/wait /wait
+RUN chmod +x /wait
+RUN apt update
+RUN apt install make pkg-config libssl-dev clang -y
+
+RUN mkdir -p /refiner
+WORKDIR  /refiner
+RUN git clone https://github.com/aurora-is-near/borealis-engine-lib.git
+WORKDIR borealis-engine-lib
+RUN mkdir -p output/refiner
+
+RUN mkdir -p /root/.aws
+COPY docker/credentials* /root/.aws/
+COPY docker/config/refiner_${source}_${env}_config.json ./config.json
+
+RUN cargo build --release
