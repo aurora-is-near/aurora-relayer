@@ -18,6 +18,5 @@ CREATE TYPE block_result AS (
     "gasLimit" int8,
     "gasUsed" int8,
     "timestamp" int4,
-    "mixHash" hash,
-    "baseFeePerGas" u256
+    "mixHash" hash
 );

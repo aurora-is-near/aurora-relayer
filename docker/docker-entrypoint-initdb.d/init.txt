@@ -45,8 +45,7 @@ CREATE TYPE block_result AS (
     "gasLimit" numeric,
     "gasUsed" int8,
     "timestamp" int4,
-    "mixHash" hash,
-    "baseFeePerGas" u256
+    "mixHash" hash
 );
 DROP TYPE IF EXISTS filter_result CASCADE;
 

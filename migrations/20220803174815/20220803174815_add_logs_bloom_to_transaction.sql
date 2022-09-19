@@ -1,7 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
 ALTER TABLE transaction ADD COLUMN IF NOT EXISTS "logs_bloom" bytea;
-ALTER TYPE block_result ADD ATTRIBUTE "baseFeePerGas" u256;
 
 ALTER TABLE event ADD COLUMN IF NOT EXISTS "block" blockno;
 ALTER TABLE event ADD COLUMN IF NOT EXISTS "block_hash" hash;
@@ -72,8 +71,7 @@ BEGIN
       4503599627370495,             -- gasLimit
       gas_used,                     -- gasUsed
       COALESCE(EXTRACT(EPOCH FROM timestamp), 0)::int4, -- timestamp
-      repeat('\000', 32)::hash,      -- mixHash
-      0                              -- baseFeePerGas
+      repeat('\000', 32)::hash      -- mixHash
     FROM block
     WHERE id = block_id
     LIMIT 1
@@ -175,7 +173,6 @@ DROP FUNCTION IF EXISTS eth_getBlockTransactionCountByNumber(blockno) RESTRICT;
 -- +goose Down
 -- +goose StatementBegin
 ALTER TABLE transaction DROP COLUMN "logs_bloom";
-ALTER TYPE block_result DROP ATTRIBUTE IF EXISTS "baseFeePerGas";
 
 DROP FUNCTION IF EXISTS eth_getTransactionReceipt(hash) RESTRICT;
 CREATE FUNCTION eth_getTransactionReceipt(transaction_hash hash) RETURNS transaction_receipt AS $$

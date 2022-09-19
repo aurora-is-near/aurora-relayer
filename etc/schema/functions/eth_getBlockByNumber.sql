@@ -23,7 +23,6 @@ BEGIN
       gas_used,                     -- gasUsed
       COALESCE(EXTRACT(EPOCH FROM timestamp), 0)::int4, -- timestamp
       repeat('\000', 32)::hash,     -- mixHash
-      0                             -- baseFeePerGas
     FROM block
     WHERE id = block_id
     LIMIT 1

@@ -35,7 +35,6 @@ describe('eth_getBlockByHash', () => {
 
     expect(response).toMatchInlineSnapshot(`
       Object {
-        "baseFeePerGas": 0,
         "difficulty": "0",
         "extraData": "0x",
         "gasLimit": 4503599627370495,
