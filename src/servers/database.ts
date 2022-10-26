@@ -32,6 +32,7 @@ import {
 } from '@aurora-is-near/engine';
 import fs from 'fs';
 import { getRandomBytesSync } from 'ethereum-cryptography/random.js';
+import { ResErr } from '@hqoss/monads/dist/lib/result/result';
 
 import {
   parse as parseRawTransaction,
@@ -121,16 +122,49 @@ export class DatabaseServer extends SkeletonServer {
     const data = transaction.data
       ? hexToBytes(transaction.data)
       : Buffer.alloc(0);
-    return (
-      await this.engine.view(from, to, value, data, {
-        block: blockNumber_ !== null ? blockNumber_ : undefined,
-      })
-    ).match({
-      ok: (result) => bytesToHex(result as Uint8Array),
-      err: (message) => {
-        throw new Error(message);
-      },
-    });
+
+    try {
+      return (
+        await this.engine.view(from, to, value, data, {
+          block: blockNumber_ !== null ? blockNumber_ : undefined,
+        })
+      ).match({
+        ok: (result) => {
+          if (
+            !Buffer.isBuffer(result) &&
+            (result as ResErr<any, any>).isErr()
+          ) {
+            const errorInstance = (result as ResErr<any, any>).err().unwrap()
+              .constructor.name;
+
+            if (errorInstance === 'OutOfFund') {
+              throw new TransactionError('Out Of Fund');
+            } else if (errorInstance === 'OutOfOffset') {
+              throw new TransactionError('Out Of Offset');
+            } else if (errorInstance === 'OutOfGas') {
+              throw new TransactionError('Out Of Gas');
+            }
+          }
+
+          return bytesToHex(result as Uint8Array);
+        },
+        err: (message) => {
+          throw new Error(message);
+        },
+      });
+    } catch (error: any) {
+      if (error?.message?.includes('ERR_STACK_OVERFLOW')) {
+        throw new TransactionError('ERR_STACK_OVERFLOW');
+      }
+
+      if (
+        error?.message?.includes('FunctionCallError(WasmTrap(Unreachable))')
+      ) {
+        throw new TransactionError('FunctionCallError(WasmTrap(Unreachable))');
+      }
+
+      throw error;
+    }
   }
 
   async eth_chainId(_request: Request): Promise<web3.Quantity> {
