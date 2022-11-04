@@ -52,6 +52,7 @@
   "dependencies": {
     "@aurora-is-near/engine": "github:aurora-is-near/aurora.js#c215790",
     "@ethersproject/transactions": "^5.5.0",
+    "@hqoss/monads": "^0.4.0",
     "cloudflare": "^2.9.1",
     "commander": "^7.2.0",
     "config": "^3.3.6",
@@ -105,8 +106,8 @@
     "pino-pretty": "^4.7.1",
     "prettier": "2.2.1",
     "supertest": "^6.2.3",
-    "typedoc": "^0.23.11",
-    "typescript": "^4.8.2",
+    "typedoc": "^0.23.18",
+    "typescript": "^4.8.4",
     "web3": "^1.7.3"
   },
   "prettier": {
