@@ -130,7 +130,7 @@ export class DatabaseServer extends SkeletonServer {
     try {
       return (
         await this.engine.view(from, to, value, data, {
-          block: blockNumber_ !== null ? blockNumber_ : undefined,
+          block: blockNumber_ !== null ? (blockNumber_ as BlockID) : undefined,
         })
       ).match({
         ok: (result) => {
@@ -301,7 +301,7 @@ export class DatabaseServer extends SkeletonServer {
     this._enforceBans(address_, 'eth_getCode');
     const code = (
       await this.engine.getCode(address_, {
-        block: blockNumber_ !== null ? blockNumber_ : undefined,
+        block: blockNumber_ !== null ? (blockNumber_ as BlockID) : undefined,
       })
     ).unwrap();
     return bytesToHex(code);
@@ -1030,7 +1030,7 @@ function parseAddresses(inputs: web3.Data | web3.Data[]): Address[] {
 
 function parseBlockSpec(
   blockSpec?: web3.Quantity | web3.Tag | null
-): BlockID | null {
+): BlockID | bigint | null {
   switch (blockSpec) {
     case undefined:
       return null;
