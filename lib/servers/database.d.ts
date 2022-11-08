@@ -39,6 +39,13 @@ export declare class DatabaseServer extends SkeletonServer {
     eth_uninstallFilter(_request: Request, filterID: web3.Quantity): Promise<boolean>;
     eth_unsubscribe(_request: Request, _subsciptionId: web3.Data): Promise<boolean>;
     protected _updatePollBlock(filterID_: Buffer): Promise<void>;
+    protected _getFilterChangesBlock(filter: {
+        addresses?: string;
+        poll_block: web3.Quantity;
+        to_block?: web3.Quantity;
+        topics?: web3.FilterTopic[];
+        type: 'block' | 'event' | 'transaction';
+    }): Promise<web3.Data[]>;
     protected _getFilterChangesEvent(filter: {
         addresses?: string;
         poll_block: web3.Quantity;
