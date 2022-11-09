@@ -13,6 +13,7 @@ import jayson from 'jayson';
 //import { exit } from 'process';
 import { Logger } from 'pino';
 import { parse as parseRawTransaction } from '@ethersproject/transactions';
+import proxy from 'express-http-proxy';
 
 //import { assert } from 'node:console';
 
@@ -41,6 +42,21 @@ export async function createApp(
   app.get('/metrics', (req, res) => {
     res.send(''); // TODO
   });
+
+  if (config.proxyMethods) {
+    app.use(
+      proxy(config.proxyMethods.url, {
+        filter: function (req: any): boolean {
+          if (config.proxyMethods?.methods?.includes(req?.body?.method)) {
+            return true;
+          } else {
+            return false;
+          }
+        },
+      })
+    );
+  }
+
   app.use(rpcMiddleware(createServer(config, logger, engine)));
   app.use(middleware.handleErrors());
   await createWsServer(config, logger, engine, app);

@@ -21,6 +21,10 @@ export interface Config {
     getLogsEventLimit: number;
     getLogsOnlyBlockLimit: number;
     lockTimeout: number;
+    proxyMethods?: {
+        url: string;
+        methods: string[];
+    };
 }
 export declare const localConfig: Config;
 export declare function parseConfig(options: Config, config: Config, env: ConnectEnv): [NetworkConfig, Config];

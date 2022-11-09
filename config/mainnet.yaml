@@ -7,3 +7,7 @@ engine: aurora
 signer: relay.aurora
 signerKey:
 writable: true
+proxyMethods:
+  url: "https://mainnet.aurora.dev"
+  methods:
+    - debug_traceTransaction
