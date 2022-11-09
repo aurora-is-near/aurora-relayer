@@ -333,16 +333,9 @@ export class DatabaseServer extends SkeletonServer {
 
     switch (filter.type) {
       case 'block': {
-        const {
-          rows,
-        } = await this._query(
-          'SELECT * FROM eth_getFilterChanges_block($1::bytea)',
-          [filterID_]
-        );
-        const buffers = rows.flatMap((row: Record<string, unknown>) =>
-          Object.values(row)
-        ) as Buffer[];
-        return buffers.map(bytesToHex);
+        const result = await this._getFilterChangesBlock(filter);
+        await this._updatePollBlock(filterID_);
+        return result;
       }
       case 'event': {
         return await this._getFilterChangesEvent(filter, filterID_);
@@ -366,6 +359,7 @@ export class DatabaseServer extends SkeletonServer {
       `SELECT
           addresses,
           from_block,
+          poll_block,
           to_block,
           topics,
           type
@@ -379,16 +373,7 @@ export class DatabaseServer extends SkeletonServer {
 
     switch (filter.type) {
       case 'block': {
-        const {
-          rows,
-        } = await this._query(
-          'SELECT * FROM eth_getFilterLogs_block($1::bytea)',
-          [filterID_]
-        );
-        const buffers = rows.flatMap((row: Record<string, unknown>) =>
-          Object.values(row)
-        ) as Buffer[];
-        return buffers.map(bytesToHex);
+        return await this._getFilterChangesBlock(filter);
       }
       case 'event': {
         const filterOptions: web3.FilterOptions = {
@@ -580,11 +565,20 @@ export class DatabaseServer extends SkeletonServer {
   }
 
   async eth_newBlockFilter(_request: Request): Promise<web3.Quantity> {
+    const latestBlock = await this._fetchCurrentBlockID();
+    const query = sql
+      .insert('filter', {
+        id: sql('gen_random_uuid()'),
+        type: 'block',
+        created_at: sql('now()'),
+        created_by: '0.0.0.0',
+        poll_block: latestBlock + BigInt(1),
+      })
+      .returning(sql('uuid_send(id)'));
+
     const {
-      rows: [{ id }],
-    } = await this._query('SELECT eth_newBlockFilter($1::inet) AS id', [
-      '0.0.0.0', // TODO: IPv4
-    ]);
+      rows: [{ uuid_send: id }],
+    } = await this._query(query);
 
     return intToHex(id.toString('hex'));
   }
@@ -612,28 +606,33 @@ export class DatabaseServer extends SkeletonServer {
       throw new InvalidArguments();
     }
 
+    const latestBlock = await this._fetchCurrentBlockID();
+
+    const query = sql
+      .insert('filter', {
+        id: sql('gen_random_uuid()'),
+        type: 'event',
+        created_at: sql('now()'),
+        created_by: '0.0.0.0',
+        poll_block: latestBlock + BigInt(1),
+        from_block: fromBlock,
+        to_block: toBlock,
+        addresses: addresses,
+        topics: topics ? JSON.stringify(topics) : null,
+      })
+      .returning(sql('uuid_send(id)'));
+
     const {
-      rows: [{ id }],
-    } = await this._query(
-      'SELECT eth_newFilter($1::inet, $2::blockno, $3::blockno, $4::address[], $5::jsonb) AS id',
-      [
-        '0.0.0.0', // TODO: IPv4
-        fromBlock,
-        toBlock,
-        addresses,
-        topics ? JSON.stringify(topics) : null,
-      ]
-    );
+      rows: [{ uuid_send: id }],
+    } = await this._query(query);
+
     return intToHex(id.toString('hex'));
   }
 
   async eth_newPendingTransactionFilter(
     _request: Request
   ): Promise<web3.Quantity> {
-    const {
-      rows: [{ id }],
-    } = await this._query('SELECT eth_newPendingTransactionFilter() AS id');
-    return bytesToHex(id);
+    return `0x${'0'.repeat(32)}`;
   }
 
   async eth_sendRawTransaction(
@@ -794,13 +793,15 @@ export class DatabaseServer extends SkeletonServer {
     if (filterID_.every((b) => b === 0)) {
       return true;
     }
+
     const {
-      rows: [{ found }],
+      rows,
     } = await this._query(
-      'SELECT eth_uninstallFilter($1::inet, $2::bytea) AS found',
-      ['0.0.0.0', filterID_] // TODO: IPv4
+      'DELETE FROM filter WHERE uuid_send(id) = $2 AND created_by = $1 RETURNING id',
+      ['0.0.0.0', filterID_]
     );
-    return found;
+
+    return rows.length > 0 ? true : false;
   }
 
   async eth_unsubscribe(
@@ -818,6 +819,23 @@ export class DatabaseServer extends SkeletonServer {
       'UPDATE filter SET poll_block = $1 + 1 WHERE uuid_send(id) = $2',
       [latestBlock, filterID_]
     );
+  }
+
+  protected async _getFilterChangesBlock(filter: {
+    addresses?: string;
+    poll_block: web3.Quantity;
+    to_block?: web3.Quantity;
+    topics?: web3.FilterTopic[];
+    type: 'block' | 'event' | 'transaction';
+  }): Promise<web3.Data[]> {
+    const query = sql
+      .select(
+        "COALESCE(array_agg( REPLACE(b.hash::VARCHAR, '\\x', '0x' ) ORDER BY b.id ASC), '{}') as hashes"
+      )
+      .from('block b')
+      .where(sql.gt('b.id', filter.poll_block));
+    const result = await this._query(query);
+    return result.rows[0].hashes;
   }
 
   protected async _getFilterChangesEvent(
