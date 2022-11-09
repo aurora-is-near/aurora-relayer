@@ -830,7 +830,7 @@ export class DatabaseServer extends SkeletonServer {
   }): Promise<web3.Data[]> {
     const query = sql
       .select(
-        "COALESCE(array_agg( REPLACE(b.hash::VARCHAR, '\\x', '0x' )), '{}') as hashes"
+        "COALESCE(array_agg( REPLACE(b.hash::VARCHAR, '\\x', '0x' ) ORDER BY b.id ASC), '{}') as hashes"
       )
       .from('block b')
       .where(sql.gt('b.id', filter.poll_block));
