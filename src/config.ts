@@ -24,6 +24,10 @@ export interface Config {
   getLogsEventLimit: number;
   getLogsOnlyBlockLimit: number;
   lockTimeout: number;
+  proxyMethods?: {
+    url: string;
+    methods: string[];
+  };
 }
 
 export const localConfig: Config = {
@@ -98,6 +102,7 @@ export function parseConfig(
       getLogsOnlyBlockLimit:
         options.getLogsOnlyBlockLimit || config.getLogsOnlyBlockLimit || 30000,
       lockTimeout: options.lockTimeout || config.lockTimeout || 100,
+      proxyMethods: options.proxyMethods || config.proxyMethods,
     },
   ];
 }
