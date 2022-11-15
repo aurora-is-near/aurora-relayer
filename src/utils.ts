@@ -31,3 +31,13 @@ export function blockRangeFilter(filter: web3.FilterOptions): boolean {
   }
   return !filterKeys.some((key) => notBlockRangeProperties.includes(key));
 }
+
+export function checkReceipt(receipt: any): web3.TransactionReceipt | null {
+  const auroraAddress = '0x4444588443c3a91288c5002483449aba1054192b';
+
+  if (receipt?.from === auroraAddress) {
+    receipt.contractAddress = null;
+  }
+
+  return receipt;
+}

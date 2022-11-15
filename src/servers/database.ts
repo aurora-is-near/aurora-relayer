@@ -19,7 +19,7 @@ import { Request } from '../request.js';
 import { compileTopics } from '../topics.js';
 import * as web3 from '../web3.js';
 import { parse } from 'postgres-array';
-import { blockRangeFilter } from '../utils.js';
+import { blockRangeFilter, checkReceipt } from '../utils.js';
 
 import {
   Address,
@@ -523,7 +523,7 @@ export class DatabaseServer extends SkeletonServer {
       console.log(query.toString());
       const { rows } = await this._query(query);
       receipt.logs = rows;
-      return exportJSON(receipt);
+      return checkReceipt(exportJSON(receipt));
     } catch (error) {
       if (this.config.debug) {
         console.debug('eth_getTransactionReceipt', error);
