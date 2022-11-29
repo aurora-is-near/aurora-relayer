@@ -15,8 +15,8 @@ CREATE TYPE block_result AS (
     "totalDifficulty" int2,
     "extraData" bytea,       -- 0 bytes
     "size" int4,
-    "gasLimit" int8,
-    "gasUsed" int8,
+    "gasLimit" numeric,
+    "gasUsed" numeric,
     "timestamp" int4,
     "mixHash" hash
 );

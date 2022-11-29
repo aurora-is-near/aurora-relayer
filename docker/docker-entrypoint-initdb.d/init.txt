@@ -43,7 +43,7 @@ CREATE TYPE block_result AS (
     "extraData" bytea,       -- 0 bytes
     "size" int4,
     "gasLimit" numeric,
-    "gasUsed" int8,
+    "gasUsed" numeric,
     "timestamp" int4,
     "mixHash" hash
 );
@@ -242,24 +242,24 @@ DECLARE
   result block_result;
 BEGIN
   SELECT
-      id,                           -- number
-      hash,                         -- hash
-      parent_hash,                  -- parentHash
-      repeat('\000', 8)::bytea,     -- nonce
+      id,                                               -- number
+      hash,                                             -- hash
+      parent_hash,                                      -- parentHash
+      repeat('\000', 8)::bytea,                         -- nonce
       '\x1dcc4de8dec75d7aab85b567b6ccd41ad312451b948a7413f0a142fd40d49347',    -- sha3Uncles keccak256(rlp.encode([]))
-      logs_bloom,                   -- logsBloom
-      transactions_root,            -- transactionsRoot
-      state_root,                   -- stateRoot
-      receipts_root,                -- receiptsRoot
-      repeat('\000', 20)::bytea,    -- miner
-      0,                            -- difficulty
-      0,                            -- totalDifficulty
-      ''::bytea,                    -- extraData
-      size,                         -- size
-      4503599627370495,             -- gasLimit
-      gas_used,                     -- gasUsed
+      logs_bloom,                                       -- logsBloom
+      transactions_root,                                -- transactionsRoot
+      state_root,                                       -- stateRoot
+      receipts_root,                                    -- receiptsRoot
+      repeat('\000', 20)::bytea,                        -- miner
+      0,                                                -- difficulty
+      0,                                                -- totalDifficulty
+      ''::bytea,                                        -- extraData
+      size,                                             -- size
+      LEAST(gas_limit, 9007199254740991),           -- gasLimit
+      LEAST(gas_used, 9007199254740991),            -- gasUsed
       COALESCE(EXTRACT(EPOCH FROM timestamp), 0)::int4, -- timestamp
-      repeat('\000', 32)::hash,     -- mixHash
+      repeat('\000', 32)::hash,                         -- mixHash
       0
     FROM block
     WHERE id = block_id
@@ -327,7 +327,7 @@ BEGIN
       t.hash AS "hash",
       t.from AS "from",
       t.to AS "to",
-      LEAST(t.gas_limit, 4503599627370495) AS "gas",
+      LEAST(t.gas_limit, 9007199254740991) AS "gas",
       t.gas_price AS "gasPrice",
       t.nonce AS "nonce",
       t.value AS "value",
@@ -355,7 +355,7 @@ BEGIN
       t.hash AS "hash",
       t.from AS "from",
       t.to AS "to",
-      LEAST(t.gas_limit, 4503599627370495) AS "gas",
+      LEAST(t.gas_limit, 9007199254740991) AS "gas",
       t.gas_price AS "gasPrice",
       t.nonce AS "nonce",
       t.value AS "value",
@@ -383,7 +383,7 @@ BEGIN
       t.hash AS "hash",
       t.from AS "from",
       t.to AS "to",
-      LEAST(t.gas_limit, 4503599627370495) AS "gas",
+      LEAST(t.gas_limit, 9007199254740991) AS "gas",
       t.gas_price AS "gasPrice",
       t.nonce AS "nonce",
       t.value AS "value",

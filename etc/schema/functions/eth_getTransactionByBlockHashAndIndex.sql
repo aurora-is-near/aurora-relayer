@@ -11,7 +11,7 @@ BEGIN
       t.hash AS "hash",
       t.from AS "from",
       t.to AS "to",
-      LEAST(t.gas_limit, 4503599627370495) AS "gas",
+      LEAST(t.gas_limit, 9007199254740991) AS "gas",
       t.gas_price AS "gasPrice",
       t.nonce AS "nonce",
       t.value AS "value",
