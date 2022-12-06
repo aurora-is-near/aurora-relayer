@@ -23,11 +23,11 @@ fi
 if [ -z "${DBURL}" ]; then
 	echo "NO DBURL"
 	exit 1
-fi	
+fi
 
 echo "CREATE TABLE IF NOT EXISTS \"db_upgrades\" (Version varchar(255) NOT NULL UNIQUE, Success boolean NOT NULL );" | psql "${DBURL}" -tAq 2> /dev/null
 
-cat "${basedir}/.docker/.manifest" | while read entry command; do
+cat "${basedir}/docker/.manifest" | while read entry command; do
 	res=$(echo "SELECT CASE WHEN EXISTS (SELECT version FROM db_upgrades WHERE version='${entry}' ) THEN 1 ELSE 0 END;" | psql "${DBURL}" -tA)
 	if [ "${res}" -eq 0 ]; then
 		cmdType=$(echo "${command}" | awk '{ print $1 }')
@@ -38,7 +38,7 @@ cat "${basedir}/.docker/.manifest" | while read entry command; do
 				psql "${DBURL}" -tA < "${basedir}/${cmdParameter}" && success=1
 				;;
 			"goose")
-				export GOOSE_DBSTRING="${DBURL}?sslmode=disable" 
+				export GOOSE_DBSTRING="${DBURL}?sslmode=disable"
 				GOOSE_DRIVER=postgres "${basedir}/util/goose/goose" -dir "${basedir}/migrations/${cmdParameter}" up && success=1
 				;;
 			*)
@@ -49,13 +49,13 @@ cat "${basedir}/.docker/.manifest" | while read entry command; do
 			echo "SUCCESS: ${entry} ${command}"
 			echo "INSERT INTO db_upgrades (Version, Success) VALUES('${entry}',true);" | psql "${DBURL}" -tA
 		else
-			echo "FAILED: ${entry} ${command}"		
+			echo "FAILED: ${entry} ${command}"
 			echo "INSERT INTO db_upgrades (Version, Success) VALUES('${entry}',false);" | psql "${DBURL}" -tA
 			echo "===== FAILED ====="
 			exit 1
 		fi
-	else		
-		echo "SKIPPED: ${entry} ${command}"		
+	else
+		echo "SKIPPED: ${entry} ${command}"
 	fi
 done
 echo "===== SUCCESS ====="

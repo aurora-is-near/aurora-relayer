@@ -32,7 +32,7 @@
     "lint": "eslint test && eslint **/*.ts",
     "start": "nodemon",
     "test": "NODE_ENV= jest --forceExit",
-    "build:schema": "cat etc/schema.sql | cut -d' ' -f2 | xargs cat > .docker/docker-entrypoint-initdb.d/init.txt"
+    "build:schema": "cat etc/schema.sql | cut -d' ' -f2 | xargs cat > docker/docker-entrypoint-initdb.d/init.txt"
   },
   "keywords": [
     "Aurora",

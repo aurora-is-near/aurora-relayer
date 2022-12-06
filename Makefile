@@ -14,7 +14,7 @@ lib/%.js: src/%.ts tsconfig.json package.json package-lock.json
 
 lib/%.d.ts: lib/%.js
 
-.docker/docker-entrypoint-initdb.d/init.txt: etc/schema.sql
+docker/docker-entrypoint-initdb.d/init.txt: etc/schema.sql
 	cat $< | cut -d' ' -f2 | xargs cat > $@
 
 docs:
