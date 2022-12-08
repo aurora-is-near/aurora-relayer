@@ -260,6 +260,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql VOLATILE PARALLEL UNSAFE;
 
+DROP FUNCTION IF EXISTS eth_getTransactionByBlockNumberAndIndex(blockno, int) RESTRICT;
+
 CREATE FUNCTION eth_getTransactionByBlockNumberAndIndex(block_id blockno, transaction_index int) RETURNS transaction_result AS $$
 DECLARE
   result transaction_result;
