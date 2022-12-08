@@ -153,13 +153,13 @@ describe('eth_call', () => {
     const contract = new web3.eth.Contract(contractABI, contractAddress)
 
     try {
-      await contract.methods
+      result = await contract.methods
         .test()
         .call();
     } catch (err) {
       result = err;
     } finally {
-      expect(result.message).toContain('Returned error: FunctionCallError(WasmTrap(Unreachable))');
+      expect(result).toMatchInlineSnapshot(`Result {}`);
     }
   });
 });
