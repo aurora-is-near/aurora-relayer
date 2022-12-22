@@ -194,7 +194,11 @@ export class DatabaseServer extends SkeletonServer {
   ): Promise<web3.Quantity> {
     const address_ = parseAddress(address);
     this._enforceBans(address_, 'eth_getBalance');
-    const balance = (await this.engine.getBalance(address_)).unwrap();
+    const balance = (
+      await this.engine.getBalance(address_, {
+        block: this._parseBlockID(blockNumber),
+      })
+    ).unwrap();
     return intToHex(balance);
   }
 
@@ -296,12 +300,11 @@ export class DatabaseServer extends SkeletonServer {
     address: web3.Data,
     blockNumber: web3.Quantity | web3.Tag
   ): Promise<web3.Data> {
-    const blockNumber_ = parseBlockSpec(blockNumber);
     const address_ = parseAddress(address);
     this._enforceBans(address_, 'eth_getCode');
     const code = (
       await this.engine.getCode(address_, {
-        block: blockNumber_ !== null ? (blockNumber_ as BlockID) : undefined,
+        block: this._parseBlockID(blockNumber),
       })
     ).unwrap();
     return bytesToHex(code);
@@ -409,7 +412,11 @@ export class DatabaseServer extends SkeletonServer {
   ): Promise<web3.Data> {
     const address_ = parseAddress(address);
     this._enforceBans(address_, 'eth_getStorageAt');
-    const result = (await this.engine.getStorageAt(address_, key)).unwrap();
+    const result = (
+      await this.engine.getStorageAt(address_, key, {
+        block: this._parseBlockID(blockNumber),
+      })
+    ).unwrap();
     return formatU256(result);
   }
 
@@ -489,7 +496,7 @@ export class DatabaseServer extends SkeletonServer {
     address: web3.Data,
     blockNumber: web3.Quantity | web3.Tag
   ): Promise<web3.Quantity> {
-    const blockNumber_ = parseBlockSpec(blockNumber);
+    const blockNumber_ = this._parseBlockID(blockNumber);
     const address_ = parseAddress(address);
     this._enforceBans(address_, 'eth_getTransactionCount');
     const nonce = (
@@ -1015,6 +1022,36 @@ export class DatabaseServer extends SkeletonServer {
     }
 
     return exportJSON(rows);
+  }
+
+  protected _parseBlockID(
+    blockSpec?: web3.Quantity | web3.Tag | null
+  ): number | undefined {
+    const auroraGenesisBlockHeight =
+      this.config.network === 'mainnet' ? 37157758 : 47354108;
+
+    switch (blockSpec) {
+      case undefined:
+        return undefined;
+      case null:
+        return undefined;
+      case 'pending':
+        return undefined;
+      case 'latest':
+        return undefined;
+      case 'earliest':
+        return auroraGenesisBlockHeight;
+      default: {
+        const blockID = parseInt(blockSpec);
+        if (isNaN(blockID)) {
+          throw new InvalidArguments();
+        }
+        if (blockID < auroraGenesisBlockHeight) {
+          return auroraGenesisBlockHeight;
+        }
+        return blockID;
+      }
+    }
   }
 }
 

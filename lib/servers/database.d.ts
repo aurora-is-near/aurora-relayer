@@ -57,4 +57,5 @@ export declare class DatabaseServer extends SkeletonServer {
     protected _fetchEvents(transactionID: Uint8Array): Promise<unknown[]>;
     protected _fetchTransactions(blockID: bigint | number | Uint8Array, fullObject: boolean): Promise<unknown[] | string[]>;
     protected _getLogs(filter: web3.FilterOptions): Promise<web3.LogObject[]>;
+    protected _parseBlockID(blockSpec?: web3.Quantity | web3.Tag | null): number | undefined;
 }
