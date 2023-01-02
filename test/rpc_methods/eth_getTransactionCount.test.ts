@@ -16,6 +16,36 @@ describe('eth_getTransactionCount', () => {
     expect(response).toBeGreaterThan(0)
   })
 
+  test(`should return data for address with transactions, block as hex`, async () => {
+    const response = await web3.eth.getTransactionCount('0x23a824dD17d6571e1BAdd25A6247C685D6802985', '0x4beca86')
+
+    expect(response).toBe(1)
+  })
+
+  test(`should return data for address with transactions, block as number`, async () => {
+    const response = await web3.eth.getTransactionCount('0x23a824dD17d6571e1BAdd25A6247C685D6802985', '79612550')
+
+    expect(response).toBe(1)
+  })
+
+  test(`should return data for address with transactions, pending`, async () => {
+    const response = await web3.eth.getTransactionCount('0x23a824dD17d6571e1BAdd25A6247C685D6802985', 'pending')
+
+    expect(response).toBeGreaterThan(0)
+  })
+
+  test(`should return 0, for block before genesis`, async () => {
+    const response = await web3.eth.getTransactionCount('0x23a824dD17d6571e1BAdd25A6247C685D6802985', '0x0')
+
+    expect(response).toBe(0)
+  })
+
+  test(`should return 0, for block before genesis, earliest`, async () => {
+    const response = await web3.eth.getTransactionCount('0x23a824dD17d6571e1BAdd25A6247C685D6802985', 'earliest')
+
+    expect(response).toBe(0)
+  })
+
   test(`should return 0 for address without transactions`, async () => {
     const response = await web3.eth.getTransactionCount('0x1Ca3285DA521EC7ee20e3Ca72b7cd9e890F03906', 'latest')
 
