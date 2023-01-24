@@ -34,6 +34,7 @@ export async function createApp(
   app.use(middleware.setRequestID());
   app.use(middleware.blacklistIPs());
   app.use(bodyParser.json({ type: 'application/json' }));
+  app.use(bodyParser.text({ type: 'text/plain' }));
   app.use(middleware.logger(logger));
   app.use(cors()); // Access-Control-Allow-Origin: *
   app.get('/health', (req, res) => {
@@ -240,7 +241,7 @@ function rpcMiddleware(server: jayson.Server): any {
     }
 
     if (
-      !RegExp('application/json', 'i').test(
+      !RegExp('application/json|text/plain', 'i').test(
         (req || { headers: {} }).headers['content-type'] || ''
       )
     ) {
