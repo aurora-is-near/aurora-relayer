@@ -1,6 +1,4 @@
-> **⚠ WARNING: This repository in its current state will be gradually deprecated. Deprecation will happen in 2 steps:
-> 1. Replacing current “Indexer” with a different implementation written in go-lang/rust.
-> 2. Replacing “JSON-RPC Endpoint” with an implementation in go-lang.
+> **⚠ WARNING: This repository is deprecated. Please visit [Aurora Relayer V2](https://github.com/aurora-is-near/relayer2-public).
 
 # Aurora Relayer
 
