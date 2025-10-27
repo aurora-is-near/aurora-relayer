@@ -9,7 +9,7 @@ name: Tests for testnet
 jobs:
   prebuild:
     name: Prebuild
-    runs-on: [self-hosted, heavy]
+    runs-on: runs-on=${{ github.run_id }}/family=c5a.2xlarge+c6a.2xlarge/image=ubuntu24-full-x64
     if: ${{ contains(github.event.pull_request.labels.*.name, 'safe to test') || github.ref == 'refs/heads/master' }}
     steps:
       - name: Clone the repository
@@ -32,7 +32,7 @@ jobs:
             run: |
               npm test
     name: ${{ matrix.name }}
-    runs-on: [self-hosted, heavy]
+    runs-on: runs-on=${{ github.run_id }}/family=c5a.2xlarge+c6a.2xlarge/image=ubuntu24-full-x64
     needs: prebuild
     steps:
       - name: Clone the repository
@@ -70,7 +70,7 @@ jobs:
         run: ./.ci/e2e/runner/teardown.sh
   cleanup:
     name: Cleanup
-    runs-on: [self-hosted, heavy]
+    runs-on: runs-on=${{ github.run_id }}/family=c5a.2xlarge+c6a.2xlarge/image=ubuntu24-full-x64
     needs: tests
     if: ${{ always() }}
     steps:

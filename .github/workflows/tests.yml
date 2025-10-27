@@ -9,7 +9,7 @@ name: Tests
 jobs:
   prebuild:
     name: Prebuild
-    runs-on: [self-hosted, heavy]
+    runs-on: runs-on=${{ github.run_id }}/family=c5a.2xlarge+c6a.2xlarge/image=ubuntu24-full-x64
     steps:
       - name: Clone the repository
         uses: actions/checkout@v3
@@ -38,7 +38,7 @@ jobs:
                 -d '{"jsonrpc":"2.0","id":"1","method":"eth_blockNumber","params":[]}' \
                 http://${ENDPOINT_HOST}:8545
     name: ${{ matrix.name }}
-    runs-on: [self-hosted, heavy]
+    runs-on: runs-on=${{ github.run_id }}/family=c5a.2xlarge+c6a.2xlarge/image=ubuntu24-full-x64
     needs: prebuild
     steps:
       - name: Clone the repository
@@ -64,7 +64,7 @@ jobs:
         run: ./.ci/runner/teardown.sh
   cleanup:
     name: Cleanup
-    runs-on: [self-hosted, heavy]
+    runs-on: runs-on=${{ github.run_id }}/family=c5a.2xlarge+c6a.2xlarge/image=ubuntu24-full-x64
     needs: tests
     if: ${{ always() }}
     steps:
